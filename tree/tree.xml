@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<dir name="maxwit" version="1.0">
+	<dir name="archives">
+		<dir name="ubuntu">
+			<dir name="maverick">
+				<dir name="i386"/>
+				<dir name="amd64"/>
+			</dir>
+		</dir>
+	</dir>
+	<dir name="build"/>
+	<dir name="document" init="document/populate.sh"/>
+	<dir name="ebook">
+		<dir name="programming">
+			<dir name="data_structure"/>
+			<dir name="c_cpp_java"/>
+			<dir name="python"/>
+			<dir name="perl"/>
+			<dir name="shell"/>
+		</dir>
+		<dir name="architecture">
+			<dir name="arm"/>
+			<dir name="x86">
+				<dir name="atom"/>
+			</dir>
+		</dir>
+		<dir name="io_spec">
+			<dir name="spi"/>
+			<dir name="i2c"/>
+			<dir name="pci"/>
+			<dir name="usb"/>
+			<dir name="flash"/>
+			<dir name="wifi"/>
+		</dir>
+		<dir name="lablin"/>
+		<dir name="linux">
+			<dir name="kernel"/>
+			<dir name="qt"/>
+			<dir name="xml"/>
+		</dir>
+		<dir name="network">
+			<dir name="tcpip"/>
+			<dir name="web"/>
+		</dir>
+	</dir>
+	<dir name="log"/>
+	<dir name="media">
+		<dir name="audio">
+		</dir>
+		<dir name="video">
+		</dir>
+	</dir>
+	<dir name="platform">
+		<dir name="atmel">
+			<dir name="at91sam9261"/>
+			<dir name="at91sam9263"/>
+		</dir>
+		<dir name="marvell">
+			<dir name="pxa168"/>
+		</dir>
+		<dir name="qualcomm">
+		</dir>
+		<dir name="samsung">
+			<dir name="s3c2410"/>
+			<dir name="s3c2440"/>
+			<dir name="s3c6410"/>
+		</dir>
+		<dir name="ti">
+			<dir name="omap3530"/>
+		</dir>
+	</dir>
+	<dir name="project">
+	</dir>
+	<dir name="source">
+	</dir>
+	<dir name="toolchain">
+	</dir>
+	<dir name="utility">
+	</dir>
+	<dir name="vdisk">
+		<dir name="windows">
+		</dir>
+		<dir name="linux">
+		</dir>
+		<dir name="macos">
+		</dir>
+	</dir>
+	<dir name="work">
+	</dir>
+</dir>
