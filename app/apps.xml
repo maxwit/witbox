@@ -19,7 +19,7 @@
 			<app class="ereader">evince poppler-data</app>
 			<app class="fs">nfs-common smbfs ntfs-3g</app>
 			<app class="Unknown">mesa-utils</app>
-			<app class="latex" default='n'>latex-cjk-chinese hyperlatex latex-beamer texlive-fonts-extra texlive-latex-extra</app>
+			<app class="latex" default='n'>latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
 			<app class="vm" post="post.sh" default="n">virtualbox-ose</app>
 			<app class="browser">chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
 			<app class="apache2" post="post.sh">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
