@@ -11,18 +11,23 @@
 			<?to add: mutt mutt-patched?>
 			<app class="toolchain">gcc g++</app>
 			<app class="toolchain" arch="x86_64">libc6-dev-i386</app>
-			<app class="editor" post="setup.sh">vim vim-gnome</app>
-			<app class="java">openjdk-6-jdk eclipse</app>
+			<app class="editor" post="setup.sh">vim vim-gnome ctags</app>
+			<app class="java">openjdk-7-jdk eclipse</app>
 			<app class="server" post="nfs.sh">nfs-kernel-server</app>
 			<app class="TFTP">tftp-hpa tftpd-hpa</app>
 			<app class="serial" post="setup.sh">minicom ckermit</app>
 			<app class="ereader">evince poppler-data</app>
-			<app class="fs">nfs-common smbfs ntfs-3g</app>
+			<app class="fs">nfs-common cifs ntfs-3g</app>
 			<app class="Unknown">mesa-utils</app>
-			<app class="latex" default='n'>latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
+			<app class="latex" default='y'>latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
 			<app class="vm" post="post.sh" default="n">virtualbox-ose</app>
+			<app class="vm">qemu qemu-kvm</app>
 			<app class="browser">chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
 			<app class="apache2" post="post.sh">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
+			<app class="media">kmplayer gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good gstreamer1.0-libav</app>
+			<app class="language">mythes-en-us libreoffice-l10n-en-za mythes-en-au hunspell-en-ca thunderbird-locale-en myspell-en-za libreoffice-help-en-gb wbritish libreoffice-l10n-en-gb openoffice.org-hyphenation myspell-en-gb thunderbird-locale-en-gb hyphen-en-us myspell-en-au thunderbird-locale-en-us kde-l10n-engb</app>
+			<app class="fonts">fonts-arphic-uming fonts-arphic-ukai language-pack-gnome-zh-hans-base language-pack-gnome-zh-hans language-pack-zh-hans-base language-pack-zh-hans libsunpinyin3 sunpinyin-data firefox-locale-zh-hans ibus-sunpinyin ibus-table-wubi </app>
+
 		</release>
 		<release version="maverick">
 			<app class="Unknown">libstdc++6-4.5-dev</app>
