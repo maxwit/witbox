@@ -4,7 +4,7 @@ sudo add-apt-repository ppa:mactel-support && \
 sudo apt-get update && \
 sudo apt-get dist-upgrade -y && \
 #nvidia-current nvidia-settings v86d
-sudo apt-get install -y bcm5974-dkms xserver-xorg-input-synaptics || \
+sudo apt-get install -y nvidia-current xserver-xorg-input-synaptics || \
 {
 	echo "$0: update failed!"
 	exit 1
