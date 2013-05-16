@@ -81,14 +81,16 @@ def install_config(curr_distrib, curr_version):
 
 # get distribution name and release version
 def distrib_version():
-	fi = open('/etc/issue', 'r')
-	line = fi.readline()
-	fi.close()
-	distrib = line.split(' ')[0].lower()
-	#version = line.split(' ')[1].lower()
-	distinf = lsb_release.get_distro_information()
-	version = distinf.get('CODENAME', 'n/a')
-	return (distrib, version)
+	#fi = open('/etc/issue', 'r')
+	#line = fi.readline()
+	#fi.close()
+	#distrib = line.split(' ')[0].lower()
+	##version = line.split(' ')[1].lower()
+	#distinf = lsb_release.get_distro_information()
+	#version = distinf.get('CODENAME', 'n/a')
+	distrib = os.popen('lsb_release -si').read().replace('\n','') # fixme
+	version = os.popen('lsb_release -sc').read().replace('\n','') # fixme
+	return (distrib.lower(), version)
 
 #def config_sys():
 #	fp = open('/etc/passwd', 'r')
