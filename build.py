@@ -12,7 +12,7 @@ import os,sys,re
 #import socket, fcntl, struct
 from optparse import OptionParser
 from xml.etree import ElementTree
-import lsb_release
+#import lsb_release
 
 global curr_user
 
