@@ -57,9 +57,11 @@
 			<app class="Unknown">fixme</app>
 		</release>
 	</distri>
-	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
-		<release version="rhel6">
-			<app class="Unknown">fixme</app>
+	<distri name="centos" upgrade="yum upgrade -y" install="yum install -y">
+		<release version="all">
+			<app class="ssh">openssh</app>
+			<app class="nfs" post="setup.sh">nfs-utils portmap</app>
+			<app class="lamp">httpd mysql php mysql-server php-mysql</app>
 		</release>
 	</distri>
 </package>
