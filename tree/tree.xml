@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<dir name="maxwit" version="1.0">
+<dir name="maxwit" version="1.0" init="clone.sh">
 	<dir name="archives">
 		<dir name="ubuntu">
 			<dir name="maverick">

@@ -12,7 +12,7 @@ populate()
 }
 
 case $USER in
-conke|rouchel|jack|annie|tina|gavin)
+conke|rouchel|sandy)
 	populate
 	;;
 *)
