@@ -162,7 +162,11 @@ def main():
 	distrib = platform.dist()[0].lower()
 	version = platform.dist()[2].lower()
 
-	system_setup(distrib, version)
+	try:
+		system_setup(distrib, version)
+	except:
+		print 'fail to setup system'
+		exit()
 
 	populate_tree('tree/tree.xml', options.rm)
 
