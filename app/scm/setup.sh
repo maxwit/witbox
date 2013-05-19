@@ -6,12 +6,8 @@ FULL_NAME=`grep $USER /etc/passwd | awk -F '[:,]' '{print $5}'`
 USER_GROUP=`groups ${USER} | awk '{print $3}'`
 
 if [ -z "${USER_EMAIL}" ]; then
-	if [ "${USER_GROUP}" = "mwmgr" ]; then
-		USER_EMAIL="${USER}@maxwit.com"
-	else # elif [ "${USER_GROUP}" = "mwsse" ]; then
-		USER_EMAIL=`echo ${FULL_NAME} | tr 'A-Z' 'a-z' | sed 's/ /./g'`
-		USER_EMAIL="${USER_EMAIL}@maxwit.com"
-	fi
+	USER_EMAIL=`echo ${FULL_NAME} | tr 'A-Z' 'a-z' | sed 's/ /./g'`
+	USER_EMAIL="${USER_EMAIL}@maxwit.com"
 fi
 
 USER_PASS=MW111`echo ${FULL_NAME} | sed 's/\s//g'`
@@ -26,22 +22,6 @@ echo "######################################"
 echo "Full Name = \"$FULL_NAME\""
 echo "User Mail = \"$USER_EMAIL\""
 echo
-
-#for rc in msmtprc muttrc
-for rc in msmtprc
-do
-	if [ -e ~/.$rc ]; then
-		echo "Skipping ${HOME}/.$rc"
-	else
-		sed -e "s/student_at_maxwit/${USER_EMAIL}/" -e "s/student_init_password/${USER_PASS}/" \
-			$rc > ~/.$rc
-
-		chmod 600 ~/.$rc
-	fi
-done
-
-#mkdir -p ~/Mail/
-#touch ~/Mail/Inbox ~/Mail/Sent ~/Mail/Postponed
 
 ############# configure git ############
 echo "---- GIT Configuration ---"

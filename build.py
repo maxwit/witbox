@@ -1,18 +1,16 @@
 #!/usr/bin/python
 #
-# The Main Program for Building Embedded Development Environment
-#
 # http://www.maxwit.com
 # http://maxwit.github.com
 # http://maxwit.googlecode.com
 #
 
 import os,sys,re
+import platform
 #import shutil
 #import socket, fcntl, struct
 from optparse import OptionParser
 from xml.etree import ElementTree
-import lsb_release
 
 global curr_user
 
@@ -42,55 +40,41 @@ def populate_tree(fn, rm, top = ''):
 		os.system('sudo rm -rvf ' + top + '/*')
 	traverse(root, top)
 
-# install software
-def install_config(curr_distrib, curr_version):
+def system_setup(curr_distrib, curr_version):
 	upgrade  = ''
 	install  = ''
-	curr_arch = os.popen('uname -m').read().replace('\n','') # fixme
-	#os.system(r'tools/apt_update.sh')
+	curr_arch = platform.processor()
 	tree = ElementTree.parse(r'app/apps.xml')
 	root = tree.getroot()
 	dist_list = root.getchildren()
 	for dist_node in dist_list:
-		if dist_node.attrib['name'] == curr_distrib:
-			upgrade = dist_node.attrib['upgrade']
-			install = dist_node.attrib['install']
+		if dist_node.attrib['name'] <> curr_distrib:
+			continue
 
-			if upgrade <> '':
-				os.system('sudo ' + upgrade)
+		upgrade = dist_node.attrib['upgrade']
+		install = dist_node.attrib['install']
 
-			release_list = dist_node.getchildren()
-			for release in release_list:
-				version = release.attrib['version']
-				if version == 'all' or version == curr_version:
-					app_list = release.getchildren()
-					for app_node in app_list:
-						attr_arch = app_node.get('arch', curr_arch)
-						attr_def  = app_node.get('default')
-						if attr_arch == curr_arch and attr_def <> 'n':
-							print 'Installing \"%s\"' % app_node.text
-							os.system('sudo ' + install + ' ' +  app_node.text)
-							attr_cate = app_node.get('class')
-							attr_post = app_node.get('post')
-							if attr_post <> None:
-								os.system('cd app/' + attr_cate  + ' && ./' + attr_post) #fixme: catch exception
-							print ''
-					if version == curr_version:
-						break
-			break
+		if upgrade <> '':
+			os.system('sudo ' + upgrade)
 
-# get distribution name and release version
-def distrib_version():
-	#fi = open('/etc/issue', 'r')
-	#line = fi.readline()
-	#fi.close()
-	#distrib = line.split(' ')[0].lower()
-	##version = line.split(' ')[1].lower()
-	#distinf = lsb_release.get_distro_information()
-	#version = distinf.get('CODENAME', 'n/a')
-	distrib = os.popen('lsb_release -si').read().replace('\n','') # fixme
-	version = os.popen('lsb_release -sc').read().replace('\n','') # fixme
-	return (distrib.lower(), version)
+		release_list = dist_node.getchildren()
+		for release in release_list:
+			version = release.attrib['version']
+			if version == 'all' or version == curr_version:
+				app_list = release.getchildren()
+				for app_node in app_list:
+					attr_arch = app_node.get('arch', curr_arch)
+					attr_def  = app_node.get('default').lower()
+					if attr_arch == curr_arch and attr_def <> 'n':
+						print 'Installing \"%s\"' % app_node.text
+						os.system('sudo ' + install + ' ' +  app_node.text)
+						attr_cate = app_node.get('class')
+						attr_post = app_node.get('post')
+						if attr_post <> None:
+							os.system('cd app/%s && ./%s' (attr_cate, attr_post)) #fixme: catch exception
+						print ''
+				if version == curr_version:
+					break
 
 #def config_sys():
 #	fp = open('/etc/passwd', 'r')
@@ -119,7 +103,7 @@ def id_equal(str1, str2):
 def main():
 	parser = OptionParser()
 	parser.add_option('-m', '--maxwit', dest='maxwit',
-					  default=False, action='store_true',
+					  default=False , action='store_true',
 					  help="MaxWit specific setting")
 	parser.add_option('-i', '--init', dest='sysinit',
 					  default=False, action='store_true',
@@ -139,19 +123,17 @@ def main():
 
 	(options, args) = parser.parse_args()
 	if args:
-		parser.error("No arguments are permitted")
+		parser.error("Argument invalid!")
 
 	if options.version:
-		# fixme
-		print "  MaxWit PowerTool v1.0-rc1"
-		print "  http://www.maxwit.com"
+		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v1.1"
 		exit()
 
 	if options.sysinit:
-		os.system('cd tools && sudo ./sudo_pass.sh ' + curr_user + ' && ./desktop_layout.sh && ./init.sh')
+		os.system('cd tools && sudo ./sudo_pass.sh %s && ./desktop_layout.sh && ./init.sh' % curr_user)
 
-		vendor = os.popen('sudo dmidecode -s system-manufacturer').read().replace('\n','') # fixme
-		board  = os.popen('sudo dmidecode -s system-product-name').read().replace('\n','') # fixme
+		vendor = os.popen('sudo dmidecode -s system-manufacturer').read().strip('\n') # fixme
+		board  = os.popen('sudo dmidecode -s system-product-name').read().strip('\n') # fixme
 
 		run = ''
 		idf = open('./platform/id_table', 'r')
@@ -177,11 +159,10 @@ def main():
 	if options.overwrite:
 		print 'overwrite'
 
-	(distrib, version) = distrib_version()
-	install_config(distrib, version)
+	distrib = plaform.dist()[0].lower()
+	version = plaform.dist()[2].lower()
 
-	# fixme: to be removed
-	#config_sys()
+	system_setup(distrib, version)
 
 	populate_tree('tree/tree.xml', options.rm)
 
