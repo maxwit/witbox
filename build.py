@@ -64,14 +64,14 @@ def system_setup(curr_distrib, curr_version):
 				app_list = release.getchildren()
 				for app_node in app_list:
 					attr_arch = app_node.get('arch', curr_arch)
-					attr_def  = app_node.get('default').lower()
+					attr_def  = app_node.get('default')
 					if attr_arch == curr_arch and attr_def <> 'n':
 						print 'Installing \"%s\"' % app_node.text
 						os.system('sudo ' + install + ' ' +  app_node.text)
 						attr_cate = app_node.get('class')
 						attr_post = app_node.get('post')
 						if attr_post <> None:
-							os.system('cd app/%s && ./%s' (attr_cate, attr_post)) #fixme: catch exception
+							os.system('cd app/%s && ./%s' % (attr_cate, attr_post)) #fixme: catch exception
 						print ''
 				if version == curr_version:
 					break
@@ -159,8 +159,8 @@ def main():
 	if options.overwrite:
 		print 'overwrite'
 
-	distrib = plaform.dist()[0].lower()
-	version = plaform.dist()[2].lower()
+	distrib = platform.dist()[0].lower()
+	version = platform.dist()[2].lower()
 
 	system_setup(distrib, version)
 
