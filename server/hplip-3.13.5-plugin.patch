@@ -1,0 +1,11 @@
+--- hplip-3.13.5-plugin.run.orig	2013-05-21 16:12:56.790954316 +0800
++++ hplip-3.13.5-plugin.run	2013-05-21 16:12:48.230954316 +0800
+@@ -7,7 +7,7 @@ TMPROOT=${TMPDIR:=/tmp}
+ 
+ label="HPLIP 3.13.5 Plugin Self Extracting Archive"
+ script="./hplip-plugin-install"
+-scriptargs="-v 3.13.5 -c 24"
++scriptargs="-v 3.13.5 -c 24 -i"
+ targetdir="plugin_tmp"
+ filesizes="1819207"
+ keep=n

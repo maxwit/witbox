@@ -41,6 +41,8 @@ cups_setup()
 {
 	HPLIP_VER="3.13.5"
 
+	sudo yum remove -y hplip hplip-common
+
 	if [ ! -e $SOURCE_PATH/hplip-${HPLIP_VER}.tar.gz ]; then
 		$WGET http://ncu.dl.sourceforge.net/project/hplip/hplip/3.13.5/hplip-${HPLIP_VER}.tar.gz
 	fi
@@ -60,7 +62,7 @@ cups_setup()
 
 	cd $BUILD_PATH
 	cp -v $SOURCE_PATH/hplip-${HPLIP_VER}-plugin.run . && \
-	patch -p0 < $SOURCE_PATH/hplip-${HPLIP_VER}-plugin.patch && \
+	patch -p0 < hplip-${HPLIP_VER}-plugin.patch && \
 	chmod +x hplip-${HPLIP_VER}-plugin.run && \
 	sudo ./hplip-${HPLIP_VER}-plugin.run --nox11 < $TOP_DIR/plugin || exit 1
 }
