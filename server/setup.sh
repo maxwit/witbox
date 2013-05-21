@@ -51,18 +51,38 @@ cups_setup()
 		$WGET http://www.openprinting.org/download/printdriver/auxfiles/HP/plugins/hplip-${HPLIP_VER}-plugin.run
 	fi
 
-	if [ ! -e $BUILD_PATH/.powertool_built ]; then
+	if [ ! -e $BUILD_PATH/hplip-${HPLIP_VER}/.powertool_built ]; then
 		cd $BUILD_PATH
 		tar xvf $SOURCE_PATH/hplip-${HPLIP_VER}.tar.gz && \
 		cd hplip-${HPLIP_VER} && \
-		./configure --prefix=/usr && \
+		./configure --with-hpppddir=/usr/share/ppd/HP \
+			--libdir=/usr/lib64 \
+			--prefix=/usr \
+			--enable-udev-acl-rules \
+			--enable-qt4 \
+			--disable-libusb01_build \
+			--enable-doc-build \
+			--disable-cups-ppd-install \
+			--disable-foomatic-drv-install \
+			--disable-foomatic-ppd-install \
+			--disable-hpijs-install \
+			--disable-udev_sysfs_rules \
+			--disable-policykit \
+			--enable-cups-drv-install \
+			--enable-hpcups-install \
+			--enable-network-build \
+			--enable-dbus-build \
+			--enable-scan-build \
+			--enable-fax-build \
+			&& \
 		make && \
-		sudo make install && touch $BUILD_PATH/.powertool_built || exit 1
+		sudo make install && \
+		touch $BUILD_PATH/hplip-${HPLIP_VER}/.powertool_built || exit 1
 	fi
 
 	cd $BUILD_PATH
 	cp -v $SOURCE_PATH/hplip-${HPLIP_VER}-plugin.run . && \
-	patch -p0 < hplip-${HPLIP_VER}-plugin.patch && \
+	patch -p0 < $TOP_DIR/hplip-${HPLIP_VER}-plugin.patch && \
 	chmod +x hplip-${HPLIP_VER}-plugin.run && \
 	sudo ./hplip-${HPLIP_VER}-plugin.run --nox11 < $TOP_DIR/plugin || exit 1
 }
