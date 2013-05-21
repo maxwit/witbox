@@ -86,6 +86,14 @@ mysql_setup()
 
 apache_setup()
 {
+	sudo yum install httpd httpd-devel mysql php mysql-server php-mysql python mod_wsgi MySQL-python
+	sudo chkconfig httpd on
+
+	sudo sed -i '/\:OUTPUT ACCEPT \[0\:0\]/a\-A INPUT -p tcp --dport 80 -j ACCEPT' /etc/sysconfig/iptables
+	sudo cp $TOP_DIR/wsgi.conf /etc/httpd/conf.d/wsgi.conf -v
+
+	sudo /etc/init.d/iptables restart
+	sudo /etc/init.d/httpd start
 	return
 }
 
