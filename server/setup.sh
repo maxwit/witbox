@@ -47,6 +47,10 @@ samba_setup()
 
 mysql_setup()
 {
+	sudo yum install mysql mysql-server
+
+	mysqladmin -u root password maxwit2013
+
 	return
 }
 
