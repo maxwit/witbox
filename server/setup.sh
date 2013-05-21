@@ -41,7 +41,11 @@ cups_setup()
 {
 	HPLIP_VER="3.13.5"
 
-	sudo yum remove -y hplip hplip-common
+	if [ "$distr" == centos ]; then
+		sudo yum remove -y hplip hplip-common
+	else
+		sudo apt-get remove -y hplip hplip-common
+	fi
 
 	if [ ! -e $SOURCE_PATH/hplip-${HPLIP_VER}.tar.gz ]; then
 		$WGET http://ncu.dl.sourceforge.net/project/hplip/hplip/3.13.5/hplip-${HPLIP_VER}.tar.gz
