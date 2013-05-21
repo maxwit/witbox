@@ -78,12 +78,6 @@
 	<dir name="utility">
 	</dir>
 	<dir name="vdisk">
-		<dir name="windows">
-		</dir>
-		<dir name="linux">
-		</dir>
-		<dir name="macos">
-		</dir>
 	</dir>
 	<dir name="work">
 	</dir>
