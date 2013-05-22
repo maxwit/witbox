@@ -32,8 +32,7 @@
 			<app class="db">sqlite3 sqlite3-doc python-pysqlite2 php5-sqlite</app>
 			<app class="media">kmplayer gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good gstreamer1.0-libav</app>
 			<app class="language">mythes-en-us libreoffice-l10n-en-za mythes-en-au hunspell-en-ca thunderbird-locale-en myspell-en-za libreoffice-help-en-gb wbritish libreoffice-l10n-en-gb openoffice.org-hyphenation myspell-en-gb thunderbird-locale-en-gb hyphen-en-us myspell-en-au thunderbird-locale-en-us kde-l10n-engb</app>
-			<app class="fonts">fonts-arphic-uming fonts-arphic-ukai language-pack-gnome-zh-hans-base language-pack-gnome-zh-hans language-pack-zh-hans-base language-pack-zh-hans libsunpinyin3 sunpinyin-data firefox-locale-zh-hans ibus-sunpinyin ibus-table-wubi </app>
-
+			<app class="fonts">fonts-arphic-uming fonts-arphic-ukai language-pack-gnome-zh-hans-base language-pack-gnome-zh-hans language-pack-zh-hans-base language-pack-zh-hans libsunpinyin3 sunpinyin-data firefox-locale-zh-hans ibus-sunpinyin ibus-table-wubi libreoffice-help-zh-cn libreoffice-l10n-zh-cn thunderbird-locale-zh-hans thunderbird-locale-zh-cn ttf-wqy-zenhei ttf-arphic-ukai kde-l10n-zhcn </app>
 		</release>
 		<release version="raring">
 			<app class="toolchain">libstdc++6-4.7-dev</app>
