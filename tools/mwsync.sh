@@ -24,7 +24,7 @@ esac
 SUBDIR="${LINUX_RELEASE_NAME}/${LINUX_RELEASE_VER}/${MACHINE_TYPE}"
 
 if [ -z "${1}" ]; then
-	SERVER_MNT="/media/maxwit/archives/${SUBDIR}"
+	SERVER_MNT="/media/$USER/maxwit/archives/${SUBDIR}"
 	if [ ! -d "${SERVER_MNT}" ]; then
 		echo "$SERVER_MNT does NOT exist!"
 		exit 1
@@ -63,5 +63,5 @@ xcp()
 xcp ${LOCAL_PATH} ${SERVER_MNT}
 xcp ${SERVER_MNT} ${LOCAL_PATH}
 
-echo $SERVER_MNT | grep "^/media/maxwit" || \
+echo $SERVER_MNT | grep "^/media/$USER/maxwit" || \
 	sudo umount ${SERVER_MNT} #&& rm -r ${SERVER_MNT}
