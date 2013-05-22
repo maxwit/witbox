@@ -1,6 +1,5 @@
 #/bin/sh
 
-
 cd /tmp
 wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
 sudo rpm --import http://apt.sw.be/RPM-GPG-KEY.dag.txt
