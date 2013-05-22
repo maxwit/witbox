@@ -1,0 +1,13 @@
+[pub]  
+comment = Public Stuff
+path = /maxwit/pub
+public = yes
+writable = yes 
+browseable = yes
+
+[source]
+comment = Public Stuff  
+path = /maxwit/source
+public = yes
+writable = no
+browseable = yes

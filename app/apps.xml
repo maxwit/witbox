@@ -16,8 +16,8 @@
 			<app class="editor" post="setup.sh">vim vim-gnome ctags dos2unix</app>
 			<app class="java">openjdk-7-jdk eclipse eclipse-cdt</app>
 			<app class="python">idle idle3 python-django</app>
-			<app class="server">openssh</app>
-			<app class="nfs" post="setup.sh">nfs-kernel-server</app>
+			<app class="server">openssh-server</app>
+			<app class="nfs">nfs-kernel-server</app>
 			<app class="tftp">tftp-hpa tftpd-hpa</app>
 			<app class="serial" post="setup.sh">minicom ckermit</app>
 			<app class="ereader">evince poppler-data</app>
@@ -27,8 +27,8 @@
 			<app class="vm" default='n'>qemu qemu-kvm</app>
 			<app class="vm" arch="x86_64">xen-system-amd64</app>
 			<app class="browser" default='n'>chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
-			<app class="apache2" post="setup.sh">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
-			<app class="db">mysql-server mysql-client mysql-common python-mysqldb php5-mysql</app>
+			<app class="apache2">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
+			<app class="db">mysql-server mysql-client mysql-common python-mysqldb php5 php5-mysql</app>
 			<app class="db">sqlite3 sqlite3-doc python-pysqlite2 php5-sqlite</app>
 			<app class="media">kmplayer gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good gstreamer1.0-libav</app>
 			<app class="language">mythes-en-us libreoffice-l10n-en-za mythes-en-au hunspell-en-ca thunderbird-locale-en myspell-en-za libreoffice-help-en-gb wbritish libreoffice-l10n-en-gb openoffice.org-hyphenation myspell-en-gb thunderbird-locale-en-gb hyphen-en-us myspell-en-au thunderbird-locale-en-us kde-l10n-engb</app>
@@ -73,10 +73,6 @@
 			<app class="editor" post="setup.sh">vim ctags dos2unix</app>
 			<app class="toolchain">gcc gcc-c++</app>
 			<app class="ssh">openssh</app>
-			<app class="nfs" post="setup.sh">nfs-utils portmap</app>
-			<app class="apache2" post="centos.sh">httpd httpd-devel mysql php mysql-server php-mysql python</app>
-			<app class="scm" post="centos.sh">git subversion git-daemon</app>
-			<app class="server" post="centos.sh">samba samba-client samba-common</app>
 
 			<app class="latex">latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
 
