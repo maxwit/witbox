@@ -21,18 +21,21 @@ if [ -z "$MP" ]; then
 	exit 1
 fi
 
-echo $MP
+#echo $MP
 
-for iso in `ls $MP/boot/ubuntu-*.iso 2>/dev/null`
-do
-	IMAGE=${iso#$MP/boot/}
-	break;
-done
+#for iso in `ls $MP/boot/ubuntu-*.iso 2>/dev/null`
+#do
+#	IMAGE=${iso#$MP/boot/}
+#	break;
+#done
+#
+#if [ -z "$IMAGE" ]; then
+#	echo "Ubuntu ISO not found in $MP/boot!"
+#	IMAGE="ubuntu-13.04-desktop-amd64.iso"
+#fi
 
-if [ -z "$IMAGE" ]; then
-	echo "Ubuntu ISO not found in $MP/boot!"
-	IMAGE="ubuntu-13.04-desktop-amd64.iso"
-fi
+IMAGE_PATH="/maxwit/vdisk/ubuntu-13.04-desktop-amd64.iso"
+IMAGE=`basename $IMAGE_PATH`
 
 echo "Installing grub to $PART ..."
 sudo grub-install --boot-directory=$MP/boot $DISK || exit 1
@@ -46,4 +49,8 @@ menuentry 'Ubuntu Installation' {
 }
 EOF
 
-sudo cp -v /tmp/grub.cfg $MP/boot/grub
+sudo cp -v /tmp/grub.cfg $MP/boot/grub && \
+sudo cp -v $IMAGE_PATH $MP/boot/ && \
+sudo dosfslabel $PART maxwit && \
+sync && \
+sudo umount $PART
