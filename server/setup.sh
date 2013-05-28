@@ -70,7 +70,7 @@ cups_setup()
 		sudo chkconfig cups on
 		sudo yum remove -y hplip hplip-common
 	else
-		sudo apt-get install cups libcups2-dev libusb-1.0-0-dev python-dev
+		sudo apt-get install cups libcups2-dev libusb-1.0-0-dev python-dev libcupsimage2-dev
 		sudo apt-get remove -y hplip hplip-common
 	fi
 
@@ -157,16 +157,17 @@ samba_setup()
 
 		sudo sed -i "s/SELINUX=enforcing/SELINUX=disabled/g" /etc/selinux/config
 
-		cp /etc/samba/smb.conf .
-		cat $TOP_DIR/samba >> smb.conf
-		sudo mv smb.conf /etc/samba/smb.conf
+		cp /etc/samba/smb.conf /tmp
+		cat $TOP_DIR/samba >> /tmp/smb.conf
+		sudo cp /tmp/smb.conf /etc/samba/smb.conf
 		sudo /etc/init.d/smb start
 	else
 		sudo apt-get install samba
 
-		cp /etc/samba/smb.conf .
-		cat $TOP_DIR/samba >> smb.conf
-		sudo mv smb.conf /etc/samba/smb.conf
+		sudo sed -i "292,299 s/guest ok = no/valid users = @maxwit/g" /etc/samba/smb.conf
+		cp /etc/samba/smb.conf /tmp
+		cat $TOP_DIR/samba >> /tmp/smb.conf
+		sudo cp /tmp/smb.conf /etc/samba/smb.conf
 
 		sudo service smbd start
 	fi
@@ -202,18 +203,18 @@ apache_setup()
 	else
 		sudo apt-get install apache2 libapache2-mod-python libapache2-mod-auth-mysql
 
-		sudo cp python.conf /etc/apache2/mods-available/ && sudo ln -s ../mods-available/python.conf /etc/apache2/mods-enabled/python.conf
+		sudo cp $TOP_DIR/python.conf /etc/apache2/mods-available/ && sudo ln -s ../mods-available/python.conf /etc/apache2/mods-enabled/python.conf
 		sudo sed -i '/<Directory \/var\/www\/>/a\\t\tAddHandler mod_python .py\n\t\tPythonHandler index\n\t\tPythonDebug On' /etc/apache2/sites-enabled/000-default
-		sudo cp index.py /var/www/
+		sudo cp $TOP_DIR/index.py /var/www/
 
-		sudo service apache2 start
+		sudo service apache2 restart
 	fi
 }
 
 
 nfs_setup()
 {
-	sudo mkdir pub
+	mkdir /maxwit/pub
 
 	if [ "$distr" == centos ]; then
 		sudo yum install nfs-utils portmap
@@ -222,8 +223,8 @@ nfs_setup()
 		echo '#MaxWit NFS' >> /tmp/exports
 		echo '/maxwit/pub *(rw,async)' >> /tmp/exports
 		echo '/maxwit/source *(ro,async)' >> /tmp/exports
-		sudo mv /tmp/exports /etc
-		sudo chmod 777 /maxwit/pub
+		sudo cp /tmp/exports /etc
+		sudo chmod 0777 /maxwit/pub
 
 		sudo sed -i '$a\MOUNTD_PORT="4002"\nSTATD_PORT="4003"\nLOCKD_TCPPORT="4004"\nLOCKD_UDPPORT="4004"' /etc/sysconfig/nfs
 		sudo sed -i '/\:OUTPUT ACCEPT \[0\:0\]/a\-A INPUT -p udp --dport 2049 -j ACCEPT\n-A INPUT -p tcp --dport 2049 -j ACCEPT\n-A INPUT -p udp --dport 111 -j ACCEPT\n-A INPUT -p tcp --dport 111 -j ACCEPT\n-A INPUT -m state --state NEW -m tcp -p tcp --dport 4002:4004 -j ACCEPT\n-A INPUT -m state --state NEW -m udp -p udp --dport 4002:4004 -j ACCEPT' /etc/sysconfig/iptables
@@ -234,10 +235,11 @@ nfs_setup()
 	else
 		sudo apt-get install nfs-kernel-server
 
+		cp /etc/exports /tmp
 		echo '#MaxWit NFS' >> /tmp/exports
 		echo '/maxwit/pub *(rw,async)' >> /tmp/exports
 		echo '/maxwit/source *(ro,async)' >> /tmp/exports
-		sudo mv /tmp/exports /etc
+		sudo cp /tmp/exports /etc
 		sudo chmod 777 /maxwit/pub
 		sudo service nfs-kernel-server start
 	fi
