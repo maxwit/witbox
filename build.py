@@ -13,6 +13,8 @@ from optparse import OptionParser
 from xml.etree import ElementTree
 
 global curr_user
+global full_name
+global email_name 
 
 def traverse(node, path):
 	if not os.path.exists(path):
@@ -71,25 +73,25 @@ def system_setup(curr_distrib, curr_version):
 						attr_cate = app_node.get('class')
 						attr_post = app_node.get('post')
 						if attr_post <> None:
-							os.system('cd app/%s && ./%s' % (attr_cate, attr_post)) #fixme: catch exception
+							os.system('cd app/%s && ./%s %s %s' % (attr_cate, attr_post, full_name, email_name)) #fixme: catch exception
 						print ''
 				if version == curr_version:
 					break
 
-#def config_sys():
-#	fp = open('/etc/passwd', 'r')
-#	for line in fp:
-#		account = line.split(',')[0].split(':')
-#		user_name = account[0]
-#		full_name = account[4]
-#		if user_name == curr_user:
-#			#print user_name, full_name
-#			break
-#	fp.close()
-#	email_name = full_name.lower().replace(' ', '.')
-#	#print email_name + '@maxwit.com'
-#
-#	os.system('./tools/config.sh')
+def config_sys():
+	fp = open('/etc/passwd', 'r')
+	for line in fp:
+		account = line.split(':')
+		user_name = account[0]
+		if user_name == curr_user:
+			full_name = account[4].split(',')[0]
+			break
+
+	fp.close()
+	email_name = full_name.lower().replace(' ', '.')
+	print '"' + full_name + '" (' + email_name + '@maxwit.com)'
+
+	#os.system('./tools/config.sh')
 
 def id_equal(str1, str2):
 	str1 = re.sub('^\s+', '', str1)
@@ -176,4 +178,5 @@ if __name__ == "__main__":
 		print 'cannot run as root!'
 		exit()
 
+	config_sys()
 	main()

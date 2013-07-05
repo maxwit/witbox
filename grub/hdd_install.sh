@@ -50,7 +50,9 @@ menuentry 'Ubuntu Installation' {
 EOF
 
 sudo cp -v /tmp/grub.cfg $MP/boot/grub && \
-sudo cp -v $IMAGE_PATH $MP/boot/ && \
 sudo dosfslabel $PART maxwit && \
 sync && \
 sudo umount $PART
+
+echo "cp IMAGE_PATH $MP/boot/ ..."
+sudo cp -v $IMAGE_PATH $MP/boot/

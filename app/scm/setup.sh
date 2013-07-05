@@ -1,16 +1,17 @@
 #!/bin/sh
-#
 
-# fixme
-FULL_NAME=`grep $USER /etc/passwd | awk -F '[:,]' '{print $5}'`
-USER_GROUP=`groups ${USER} | awk '{print $3}'`
+if [ -z "${FULL_NAME}" ]; then
+	FULL_NAME=`grep $USER /etc/passwd | awk -F '[:,]' '{print $5}'`
+fi
 
 if [ -z "${USER_EMAIL}" ]; then
 	USER_EMAIL=`echo ${FULL_NAME} | tr 'A-Z' 'a-z' | sed 's/ /./g'`
 	USER_EMAIL="${USER_EMAIL}@maxwit.com"
 fi
 
-USER_PASS=MW111`echo ${FULL_NAME} | sed 's/\s//g'`
+if [ -z "${USER_PASS}" ]; then
+	USER_PASS="MaxWiter"
+fi
 
 ############## configure E-mail client ############
 echo

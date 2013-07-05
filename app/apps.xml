@@ -6,13 +6,13 @@
 			<app class="lib">libgmp3-dev libmpfr-dev libmpc-dev</app>
 			<app class="lib">libncurses5-dev zlib1g-dev libsdl1.2-dev libasound2-dev libasound2-doc</app>
 			<app class="lib">liblzo2-2 liblzo2-dev</app>
-			<app class="lib">libgtk-3-dev libqt4-dev</app>
+			<app class="lib-gui" default='n'>libgtk-3-dev libqt4-dev</app>
 			<app class="lib">libjpeg-dev libpng12-dev</app>
 			<app class="scm" post="setup.sh">git git-email subversion</app>
 			<app class="mail" post="setup.sh">mutt msmtp</app>
 			<app class="toolchain">gcc g++ mono-mcs gobjc gobjc++ gnustep gnustep-devel</app>
 			<app class="toolchain" arch="x86_64">libc6-dev-i386</app>
-			<app class="toolchain">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
+			<app class="toolchain">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo devhelp</app>
 			<app class="editor" post="setup.sh">vim vim-gnome ctags dos2unix</app>
 			<app class="java">openjdk-7-jdk eclipse eclipse-cdt</app>
 			<app class="python">idle idle3 python-django</app>
