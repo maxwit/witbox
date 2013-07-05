@@ -18,7 +18,7 @@ set move=no
 set ascii_chars=yes
 set include
 # set indent_str="> "
-my_hdr From: student_at_maxwit
+my_hdr From: user_at_maxwit
 
 # score
 score "~N" +4
@@ -78,8 +78,8 @@ color body brightyellow default "^@@.*"
 ############################
 
 # pop3
-set pop_user=student_at_maxwit
-set pop_pass="student_init_password"
+set pop_user=user_at_maxwit
+set pop_pass="user_init_password"
 set pop_host=pops://pop.gmail.com
 set pop_last=yes
 set pop_delete=no
@@ -89,5 +89,5 @@ set timeout=1800
 # msmtp setting
 set sendmail="/usr/bin/msmtp"
 # set use_from=yes
-# set from=student_at_maxwit
+# set from=user_at_maxwit
 # set envelope_from=yes

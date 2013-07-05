@@ -13,8 +13,6 @@ from optparse import OptionParser
 from xml.etree import ElementTree
 
 global curr_user
-global full_name
-global email_name 
 
 def traverse(node, path):
 	if not os.path.exists(path):
@@ -43,6 +41,7 @@ def populate_tree(fn, rm, top = ''):
 	traverse(root, top)
 
 def system_setup(curr_distrib, curr_version):
+	(full_name, email_name) = config_sys()
 	upgrade  = ''
 	install  = ''
 	curr_arch = platform.processor()
@@ -65,15 +64,16 @@ def system_setup(curr_distrib, curr_version):
 			if version == 'all' or version == curr_version:
 				app_list = release.getchildren()
 				for app_node in app_list:
+					attr_class = app_node.get('class')
 					attr_arch = app_node.get('arch', curr_arch)
 					attr_def  = app_node.get('default')
 					if attr_arch == curr_arch and attr_def <> 'n':
-						print 'Installing \"%s\"' % app_node.text
+						print 'Installing %s:\n  %s' % (attr_class, app_node.text)
 						os.system('sudo ' + install + ' ' +  app_node.text)
 						attr_cate = app_node.get('class')
 						attr_post = app_node.get('post')
 						if attr_post <> None:
-							os.system('cd app/%s && ./%s %s %s' % (attr_cate, attr_post, full_name, email_name)) #fixme: catch exception
+							os.system('cd app/%s && ./%s "%s" "%s"' % (attr_cate, attr_post, full_name, email_name)) #fixme: catch exception
 						print ''
 				if version == curr_version:
 					break
@@ -88,9 +88,9 @@ def config_sys():
 			break
 
 	fp.close()
-	email_name = full_name.lower().replace(' ', '.')
-	print '"' + full_name + '" (' + email_name + '@maxwit.com)'
+	email_name = full_name.lower().replace(' ', '.') + '@maxwit.com'
 
+	return (full_name, email_name)
 	#os.system('./tools/config.sh')
 
 def id_equal(str1, str2):
@@ -178,5 +178,4 @@ if __name__ == "__main__":
 		print 'cannot run as root!'
 		exit()
 
-	config_sys()
 	main()
