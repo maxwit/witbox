@@ -1,7 +1,7 @@
 #!/bin/sh
 
 TOP_DIR="/maxwit"
-SERVER="192.168.0.2"
+SERVER="192.168.0.1"
 GITADMIN="gitolite-admin"
 
 check_out()

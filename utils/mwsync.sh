@@ -1,16 +1,17 @@
 #!/bin/sh
 
-WITDISK="/media/$USER/WitDisk"
 LINUX_RELEASE_NAME=`lsb_release -is | tr A-Z a-z`
 LINUX_RELEASE_VER=`lsb_release -cs`
 MACHINE_TYPE=`uname -m`
 
 SKIP_LIST=""
 
-mount | grep -w "$WITDISK" || {
-	echo "$WITDISK NOT mounted!"
+WITPART=`awk '{print $2}' /proc/mounts | grep -w -i WitDisk`
+
+if [ -z "$WITPART" ]; then
+	echo "Please insert MaxWit Magic Disk!"
 	exit 1
-}
+fi
 
 case ${MACHINE_TYPE} in
 i[3456]86)
@@ -26,9 +27,9 @@ x86_64)
 	;;
 esac
 
-SUBDIR="${LINUX_RELEASE_NAME}/${LINUX_RELEASE_VER}/${MACHINE_TYPE}"
+SUBDIR="${LINUX_RELEASE_NAME}/archives/${LINUX_RELEASE_VER}/${MACHINE_TYPE}"
 
-SERVER_MNT="$WITDISK/archives/${SUBDIR}"
+SERVER_MNT="$WITPART/${SUBDIR}"
 if [ ! -d "${SERVER_MNT}" ]; then
 	echo "$SERVER_MNT does NOT exist!"
 	sudo mkdir -vp $SERVER_MNT || exit 1
@@ -54,3 +55,6 @@ xcp()
 
 xcp ${LOCAL_PATH} ${SERVER_MNT}
 xcp ${SERVER_MNT} ${LOCAL_PATH}
+
+sync
+echo "Done."
