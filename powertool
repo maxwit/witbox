@@ -1,0 +1,181 @@
+#!/usr/bin/python
+#
+# http://www.maxwit.com
+# http://maxwit.github.com
+# http://maxwit.googlecode.com
+#
+
+import os,sys,re
+import platform
+#import shutil
+#import socket, fcntl, struct
+from optparse import OptionParser
+from xml.etree import ElementTree
+
+global curr_user
+
+def traverse(node, path):
+	if not os.path.exists(path):
+		print "creating \"%s\"" % path
+		os.mkdir(path)
+	#else:
+	#	print "skipping \"%s\"" % path
+	lst = node.getchildren()
+	for n in lst:
+		traverse(n, path + '/' + n.attrib['name'])
+
+# population the target directory
+def populate_tree(fn, rm, top = ''):
+	tree = ElementTree.parse(fn)
+	root = tree.getroot()
+	top += '/' + root.attrib['name']
+	if not os.path.isdir(top):
+		print "Directory " + top + " not exist!"
+		exit()
+	if top == '' or top == '/':
+		print 'error: connot remove ' + top
+		return
+	os.system('sudo chown $USER ' + top) # fixme!
+	if rm == True:
+		os.system('sudo rm -rvf ' + top + '/*')
+	traverse(root, top)
+
+def system_setup(curr_distrib, curr_version):
+	(full_name, email_name) = config_sys()
+	upgrade  = ''
+	install  = ''
+	curr_arch = platform.processor()
+	tree = ElementTree.parse(r'app/apps.xml')
+	root = tree.getroot()
+	dist_list = root.getchildren()
+	for dist_node in dist_list:
+		if dist_node.attrib['name'] <> curr_distrib:
+			continue
+
+		upgrade = dist_node.attrib['upgrade']
+		install = dist_node.attrib['install']
+
+		if upgrade <> '':
+			os.system('sudo ' + upgrade)
+
+		release_list = dist_node.getchildren()
+		for release in release_list:
+			version = release.attrib['version']
+			if version == 'all' or version == curr_version:
+				app_list = release.getchildren()
+				for app_node in app_list:
+					attr_class = app_node.get('class')
+					attr_arch = app_node.get('arch', curr_arch)
+					attr_def  = app_node.get('default')
+					if attr_arch == curr_arch and attr_def <> 'n':
+						print 'Installing %s:\n  %s' % (attr_class, app_node.text)
+						os.system('sudo ' + install + ' ' +  app_node.text)
+						attr_cate = app_node.get('class')
+						attr_post = app_node.get('post')
+						if attr_post <> None:
+							os.system('cd app/%s && ./%s "%s" "%s"' % (attr_cate, attr_post, full_name, email_name)) #fixme: catch exception
+						print ''
+				if version == curr_version:
+					break
+
+def config_sys():
+	fp = open('/etc/passwd', 'r')
+	for line in fp:
+		account = line.split(':')
+		user_name = account[0]
+		if user_name == curr_user:
+			full_name = account[4].split(',')[0]
+			break
+	fp.close()
+
+	email_name = full_name.lower().replace(' ', '.') + '@maxwit.com'
+
+	return (full_name, email_name)
+	#os.system('./tools/config.sh')
+
+def id_equal(str1, str2):
+	str1 = re.sub('^\s+', '', str1)
+	str1 = re.sub('\s+$', '', str1)
+	str1 = str1.lower()
+	str2 = re.sub('^\s+', '', str2)
+	str2 = re.sub('\s+$', '', str2)
+	str2 = str2.lower()
+	return str1 == str2
+
+def main():
+	parser = OptionParser()
+	parser.add_option('-m', '--maxwit', dest='maxwit',
+					  default=False , action='store_true',
+					  help="MaxWit specific setting")
+	parser.add_option('-i', '--init', dest='sysinit',
+					  default=False, action='store_true',
+					  help="disable sudo password")
+	parser.add_option('-r', '--remove-top', dest='rm',
+					  default=False, action='store_true',
+					  help="remove top directory before populating directory tree")
+	parser.add_option('-o', '--overwrite', dest='overwrite',
+					  default=False, action='store_true',
+					  help="overwrite system configuration file")
+	parser.add_option('-s', '--sync', dest='sync',
+					  default=False, action='store_true',
+					  help="synchronize archives")
+	parser.add_option('-v', '--version', dest='version', action='store_true',
+					  default=False,
+					  help="show PowerTool version")
+
+	(options, args) = parser.parse_args()
+	if args:
+		parser.error("Argument invalid!")
+
+	if options.version:
+		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v1.1"
+		exit()
+
+	if options.sysinit:
+		os.system('cd tools && sudo ./sudo_pass.sh %s && ./desktop_layout.sh && ./init.sh' % curr_user)
+
+		vendor = os.popen('sudo dmidecode -s system-manufacturer').read().strip('\n') # fixme
+		board  = os.popen('sudo dmidecode -s system-product-name').read().strip('\n') # fixme
+
+		run = ''
+		idf = open('./platform/id_table', 'r')
+		for ids in idf:
+			bid = ids.replace('\n','').split(':')
+			if id_equal(bid[0], vendor) and id_equal(bid[1], board):
+				run = './platform/' + bid[2]
+				break
+		idf.close()
+
+		if run <> '':
+			os.system('test -x ' + run + ' && ' + run)
+
+		exit()
+
+	if options.sync:
+		os.system("cd tools && ./mwsync.sh")
+		exit()
+
+	if options.rm:
+		print "Warning: top dir will be removed!"
+
+	if options.overwrite:
+		print 'overwrite'
+
+	distrib = platform.dist()[0].lower()
+	version = platform.dist()[2].lower()
+
+	try:
+		system_setup(distrib, version)
+	except:
+		print 'fail to setup system'
+		exit()
+
+	populate_tree('tree/tree.xml', options.rm)
+
+if __name__ == "__main__":
+	curr_user = os.getenv('USER')
+	if curr_user == 'root':
+		print 'cannot run as root!'
+		exit()
+
+	main()
