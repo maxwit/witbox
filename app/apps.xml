@@ -21,7 +21,7 @@
 			<app class="tftp">tftp-hpa tftpd-hpa</app>
 			<app class="serial" post="setup.sh">minicom ckermit</app>
 			<app class="ereader">evince poppler-data</app>
-			<app class="fs">nfs-common cifs ntfs-3g</app>
+			<app class="fs">nfs-common cifs-utils ntfs-3g</app>
 			<app class="3d">mesa-utils</app>
 			<app class="latex">latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
 			<app class="vm" default='n'>qemu qemu-kvm</app>

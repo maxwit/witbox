@@ -86,8 +86,8 @@ def config_sys():
 		if user_name == curr_user:
 			full_name = account[4].split(',')[0]
 			break
-
 	fp.close()
+
 	email_name = full_name.lower().replace(' ', '.') + '@maxwit.com'
 
 	return (full_name, email_name)
