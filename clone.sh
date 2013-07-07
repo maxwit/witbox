@@ -1,7 +1,7 @@
 #!/bin/sh
 
 TOP_DIR="/maxwit"
-SERVER="192.168.0.2"
+SERVER="192.168.0.1"
 GITADMIN="gitolite-admin"
 
 check_out()
@@ -18,7 +18,7 @@ check_out()
 check_out ${GITADMIN}
 echo
 
-DIRS=`grep repo ${GITADMIN}/conf/gitolite.conf | sed -e 's/repo //' -e 's/gitolite-admin//'`
+DIRS=`grep repo $TOP_DIR/${GITADMIN}/conf/gitolite.conf | sed -e 's/repo //' -e 's/gitolite-admin//'`
 
 for dir in $DIRS
 do
