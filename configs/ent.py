@@ -2,33 +2,71 @@
 
 import os
 
+def do_setup(distrib, version, config):
+	user = config['user.name']
+	mail = config['user.mail']
+	domain = mail.split('@')[1]
+	# host = 'smtp.' + domain
+
+	print 'setup msmtp ...'
+	fd = open(os.getenv('HOME') + '/.msmtprc', 'w+')
 #defaults
 #
 #account qq
 #host smtp.qq.com
 #user 1450028115@qq.com
 #from 1450028115@qq.com
+#password ???
 #auth login
 #
 #account default: qq
-
-def do_setup(distrib, version, config):
-	user = config['user.name']
-	mail = config['user.mail']
-	domain = mail.split('@')[1]
-	host = 'smtp.' + domain
-
-	print 'setup msmtp ...'
-
-	fd = open(os.getenv('HOME') + '/.msmtprc', 'w+')
 	fd.write('defaults\n\n')
 	fd.write('account %s\n' % domain)
-	fd.write('host %s\n' % host)
+	fd.write('host smtp.%s\n' % domain)
 	fd.write('user %s\n' % mail)
 	#fd.write('from "%s" <%s>\n' % (user, mail))
 	fd.write('from %s\n' % mail)
+	fd.write('password ???\n')
 	fd.write('auth login\n\n')
 	fd.write('account default: %s' % domain)
+	fd.close()
+
+	print 'setup mutt ...'
+	fd = open(os.getenv('HOME') + '/.muttrc', 'w+')
+## pop3
+#set pop_user=conke.hu@maxwit.com
+#set pop_pass="printfMW13"
+#set pop_host=pops://pop.maxwit.com
+#set pop_last=yes
+#set pop_delete=no
+#set check_new=yes
+#set timeout=1800
+	fd.write("# pop3 setting\n")
+	fd.write("set pop_user = %s\n" % mail)
+	fd.write("set pop_pass = ???\n")
+	fd.write("set pop_host = pops://pop.%s\n" % domain)
+	fd.write("set pop_last = yes\n")
+	fd.write("set pop_delete = no\n")
+	fd.write("set check_new = yes\n")
+	fd.write("set timeout = 1800\n")
+	fd.write("\n")
+
+## msmtp setting
+#set sendmail="/usr/bin/msmtp"
+## set use_from=yes
+## set from=
+## set envelope_from=yes
+	fd.write("# msmtp setting\n")
+	fd.write("set sendmail = /usr/bin/msmtp\n")
+	fd.write("# set use_from = yes\n")
+	fd.write("# set from = %s\n", )
+	fd.write("# set envelope_from = yes\n")
+	fd.write("\n")
+
+#my_hdr From: 
+	fd.write("my_hdr From: %s\n" % mail)
+	fd.write("\n")
+
 	fd.close()
 
 msmtp_config = {}

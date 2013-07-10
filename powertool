@@ -116,16 +116,14 @@ def setup():
 
 	do_setup(distrib, version, conf_list)
 
-	rep_fn = '/tmp/report'
-
-	rep_fd = open(rep_fn, 'w+')
-	rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
-	rep_fd.write('to: "%s\n' % conf_list['mail.to'])
-	rep_fd.write('subject: [report] init\n\n')
-	rep_fd.write('OS: %s, %s\n' % (platform.dist(), arch))
-	rep_fd.close()
-
-	os.system("msmtp %s < %s" % (conf_list['mail.to'],  rep_fn))
+	#rep_fn = '/tmp/report'
+	#rep_fd = open(rep_fn, 'w+')
+	#rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
+	#rep_fd.write('to: "%s\n' % conf_list['mail.to'])
+	#rep_fd.write('subject: [report] init\n\n')
+	#rep_fd.write('OS: %s, %s\n' % (platform.dist(), arch))
+	#rep_fd.close()
+	# os.system("msmtp %s < %s" % (conf_list['mail.to'],  rep_fn))
 
 def report(rep):
 	rep_fn = '/tmp/report'
