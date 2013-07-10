@@ -86,7 +86,8 @@ def config(cfg):
 	fd.write('config = %s\n' % cfg)
 	fd.write('user.name = %s\n' % name)
 	fd.write('user.mail = %s\n' % mail)
-	fd.write('mailto = %s\n' % mailto)
+	fd.write('mail.to = %s\n' % mailto)
+	fd.write('mail.cc = \n')
 	fd.close()
 
 def setup():
@@ -119,14 +120,12 @@ def setup():
 
 	rep_fd = open(rep_fn, 'w+')
 	rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
-	rep_fd.write('to: "%s\n' % conf_list['mailto'])
-	#if conf_list.has_key('mailcc'):
-	#	rep_fd.write('cc: "%s\n' % conf_list['mailcc'])
+	rep_fd.write('to: "%s\n' % conf_list['mail.to'])
 	rep_fd.write('subject: [report] init\n\n')
 	rep_fd.write('OS: %s, %s\n' % (platform.dist(), arch))
 	rep_fd.close()
 
-	os.system("msmtp %s < %s" % (conf_list['mailto'],  rep_fn))
+	os.system("msmtp %s < %s" % (conf_list['mail.to'],  rep_fn))
 
 def report(rep):
 	rep_fn = '/tmp/report'
