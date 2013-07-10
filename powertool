@@ -129,12 +129,14 @@ def setup():
 
 def report(rep):
 	rep_fn = '/tmp/report'
+	if os.path.isfile(rep_fn):
+		os.remove(rep_fn)
 
-	rep_fd = open(rep_fn, 'w+')
-	rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
-	rep_fd.write('subject: [report] %s\n' % (rep))
-	rep_fd.write('\n')
-	rep_fd.close()
+	#rep_fd = open(rep_fn, 'w+')
+	#rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
+	#rep_fd.write('subject: [report] %s\n' % (rep))
+	#rep_fd.write('\n')
+	#rep_fd.close()
 
 	sys.path.append('configs')
 	if conf_list['config'] == 'entrance':
@@ -143,8 +145,7 @@ def report(rep):
 		from onb import do_setup, do_report
 
 	do_report(rep, rep_fn, conf_list)
-	#print "msmtp %s < %s" % (conf_list['mailto'],  rep_fn)
-	os.system("msmtp %s < %s" % (conf_list['mail.to'],  rep_fn))
+	print "mutt -s [report]%s %s -c %s < %s" % (rep, conf_list['mail.to'], conf_list['mail.cc'], rep_fn)
 	os.system("mutt -s [report]%s %s -c %s < %s" % (rep, conf_list['mail.to'], conf_list['mail.cc'], rep_fn))
 
 def main():
