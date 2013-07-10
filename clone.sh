@@ -18,7 +18,7 @@ check_out()
 check_out ${GITADMIN}
 echo
 
-DIRS=`grep repo ${GITADMIN}/conf/gitolite.conf | sed -e 's/repo //' -e 's/gitolite-admin//'`
+DIRS=`grep repo $TOP_DIR/${GITADMIN}/conf/gitolite.conf | sed -e 's/repo //' -e 's/gitolite-admin//'`
 
 for dir in $DIRS
 do
