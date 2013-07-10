@@ -1,2 +1,2 @@
-apps =  vim msmtp mutt
+apps = msmtp mutt
 post = check.sh
