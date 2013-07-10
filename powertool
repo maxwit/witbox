@@ -144,8 +144,8 @@ def report(rep):
 
 	do_report(rep, rep_fn, conf_list)
 	#print "msmtp %s < %s" % (conf_list['mailto'],  rep_fn)
-	os.system("msmtp %s < %s" % (conf_list['mailto'],  rep_fn))
-	os.system("mutt -s [report]%s %s -c %s < %s" % (rep, conf_list['mailto'], conf_list['mailcc'], rep_fn))
+	os.system("msmtp %s < %s" % (conf_list['mail.to'],  rep_fn))
+	os.system("mutt -s [report]%s %s -c %s < %s" % (rep, conf_list['mail.to'], conf_list['mail.cc'], rep_fn))
 
 def main():
 	parser = OptionParser()
