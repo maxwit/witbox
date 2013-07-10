@@ -77,12 +77,12 @@ def do_report(key, rep_fn, config_list):
 	if key == 'install':
 		rep_fd.write('Installation setting report:\n\n')
 		rep_fd.flush()
-		os.system("dpkg -l vim vim-gnome gcc g++>> %s" % rep_fn)
+		os.system("dpkg -l vim vim-gnome gcc g++ >> %s" % rep_fn)
 		rep_fd.write('\n')
 	elif key == 'mail':
 		rep_fd.write('Mail setting report:\n\n')
 		rep_fd.flush()
-		os.system("dpkg -l msmtp >> %s" % rep_fn)
+		os.system("dpkg -l msmtp mutt >> %s" % rep_fn)
 		rep_fd.write('\n')
 		user = os.getenv('USER')
 		fd = open('/home/%s/.msmtprc' % user)
