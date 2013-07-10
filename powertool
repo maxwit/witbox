@@ -68,7 +68,8 @@ def parse_config():
 	for line in fd:
 		if re.match(r'^[a-zA-Z].*=.*', line) <> None:
 			elem = re.split('\s*=\s*', line.replace('\n', ''))
-			conf_list[elem[0]] = elem[1]
+			if elem[0] <> '' and elem[1] <> '':
+				conf_list[elem[0]] = elem[1]
 	fd.close()
 
 def config(cfg):
