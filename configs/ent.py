@@ -108,11 +108,14 @@ def do_report(task, fd, config_list):
 	count += 1
 
 	fd_hist = open(os.getenv('HOME') + '/.bash_history')
-	lc = 0
-	for line in fd_hist:
-		lc += 1
-		if lc > 1900:
-			fd.write("(%d): %s" % (lc - 1900, line))
+	lines = fd_hist.readlines()
+	start = 0
+	if len(lines) > 100:
+		start = len(lines) - 100
+	n = start
+	while n < len(lines):
+		fd.write("(%d): %s" % (n - start + 1, lines[n]))
+		n += 1
 	fd_hist.close()
 
 	#fd.write('Mail setting report:\n\n')
