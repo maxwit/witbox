@@ -1,5 +1,5 @@
 Firstly, download the attachment and configure your E-mail client:
-$ tar xvf powertool-alpha-x.tar.bz2
+$ tar xvf ~/Download/powertool-alpha-x.tar.bz2
 $ cd powertool-alpha-x
 $ ./powertool
 $ gedit ~/.msmtprc

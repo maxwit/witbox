@@ -31,6 +31,7 @@ def do_setup(distrib, version, config):
 	fd.write('auth login\n\n')
 	fd.write('account default: %s' % domain)
 	fd.close()
+	os.chmod(os.getenv('HOME') + '/.msmtprc', 0600)
 
 	print 'setup mutt ...'
 	fd = open(os.getenv('HOME') + '/.muttrc', 'w+')
@@ -148,3 +149,4 @@ def do_report(task, fd, config_list):
 	#	fd.write('From is configured correctly!\n')
 
 	fd.write('\n')
+	os.chmod(os.getenv('HOME') + '/.muttrc', 0600)
