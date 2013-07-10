@@ -1,176 +1,215 @@
 #!/usr/bin/python
-#
-# http://www.maxwit.com
-# http://maxwit.github.com
-# http://maxwit.googlecode.com
-#
 
 import os,sys,re
 import platform
-#import shutil
-#import socket, fcntl, struct
 from optparse import OptionParser
 from xml.etree import ElementTree
+from datetime import date
 
-global curr_user
+sys.path.append('configs')
 
-def traverse(node, path):
-	if not os.path.exists(path):
-		print "creating \"%s\"" % path
-		os.mkdir(path)
-	#else:
-	#	print "skipping \"%s\"" % path
-	lst = node.getchildren()
-	for n in lst:
-		traverse(n, path + '/' + n.attrib['name'])
+curr_user = ''
+conf_list = {}
 
-# population the target directory
-def populate_tree(fn, rm, top = ''):
-	tree = ElementTree.parse(fn)
-	root = tree.getroot()
-	top += '/' + root.attrib['name']
-	if not os.path.isdir(top):
-		print "Directory " + top + " not exist!"
-		exit()
-	if top == '' or top == '/':
-		print 'error: connot remove ' + top
-		return
-	os.system('sudo chown $USER ' + top) # fixme!
-	if rm == True:
-		os.system('sudo rm -rvf ' + top + '/*')
-	traverse(root, top)
+def get_user_info():
+	fd = open('/etc/passwd', 'r')
 
-def system_setup(curr_distrib, curr_version):
-	(full_name, email_name) = config_sys()
-	upgrade  = ''
-	install  = ''
-	curr_arch = platform.processor()
-	tree = ElementTree.parse(r'app/apps.xml')
-	root = tree.getroot()
-	dist_list = root.getchildren()
-	for dist_node in dist_list:
-		if dist_node.attrib['name'] <> curr_distrib:
-			continue
-
-		upgrade = dist_node.attrib['upgrade']
-		install = dist_node.attrib['install']
-
-		if upgrade <> '':
-			os.system('sudo ' + upgrade)
-
-		release_list = dist_node.getchildren()
-		for release in release_list:
-			version = release.attrib['version']
-			if version == 'all' or version == curr_version:
-				app_list = release.getchildren()
-				for app_node in app_list:
-					attr_class = app_node.get('class')
-					attr_arch = app_node.get('arch', curr_arch)
-					attr_def  = app_node.get('default')
-					if attr_arch == curr_arch and attr_def <> 'n':
-						print 'Installing %s:\n  %s' % (attr_class, app_node.text)
-						os.system('sudo ' + install + ' ' +  app_node.text)
-						attr_cate = app_node.get('class')
-						attr_post = app_node.get('post')
-						if attr_post <> None:
-							os.system('cd app/%s && ./%s "%s" "%s"' % (attr_cate, attr_post, full_name, email_name)) #fixme: catch exception
-						print ''
-				if version == curr_version:
-					break
-
-def config_sys():
-	fp = open('/etc/passwd', 'r')
-	for line in fp:
+	for line in fd:
 		account = line.split(':')
 		user_name = account[0]
 		if user_name == curr_user:
 			full_name = account[4].split(',')[0]
 			break
-	fp.close()
 
-	email_name = full_name.lower().replace(' ', '.') + '@maxwit.com'
+	fd.close()
 
-	return (full_name, email_name)
-	#os.system('./tools/config.sh')
+	return full_name
 
-def id_equal(str1, str2):
-	str1 = re.sub('^\s+', '', str1)
-	str1 = re.sub('\s+$', '', str1)
-	str1 = str1.lower()
-	str2 = re.sub('^\s+', '', str2)
-	str2 = re.sub('\s+$', '', str2)
-	str2 = str2.lower()
-	return str1 == str2
+def do_install(curr_distrib, curr_version, curr_arch, install_list):
+	upgrade  = ''
+	install  = ''
+	tree = ElementTree.parse(r'app/apps.xml')
+	root = tree.getroot()
+	dist_list = root.getchildren()
+	for dist_node in dist_list:
+		if dist_node.attrib['name'] == curr_distrib:
+			upgrade = dist_node.attrib['upgrade']
+			install = dist_node.attrib['install']
 
-def main():
-	parser = OptionParser()
-	parser.add_option('-m', '--maxwit', dest='maxwit',
-					  default=False , action='store_true',
-					  help="MaxWit specific setting")
-	parser.add_option('-i', '--init', dest='sysinit',
-					  default=False, action='store_true',
-					  help="disable sudo password")
-	parser.add_option('-r', '--remove-top', dest='rm',
-					  default=False, action='store_true',
-					  help="remove top directory before populating directory tree")
-	parser.add_option('-o', '--overwrite', dest='overwrite',
-					  default=False, action='store_true',
-					  help="overwrite system configuration file")
-	parser.add_option('-s', '--sync', dest='sync',
-					  default=False, action='store_true',
-					  help="synchronize archives")
-	parser.add_option('-v', '--version', dest='version', action='store_true',
-					  default=False,
-					  help="show PowerTool version")
+			#if upgrade <> '':
+			#	os.system('sudo ' + upgrade)
 
-	(options, args) = parser.parse_args()
-	if args:
-		parser.error("Argument invalid!")
+			os.system('sudo ' + install + ' ' + install_list)
+			break
+		#release_list = dist_node.getchildren()
+		#for release in release_list:
+		#	version = release.attrib['version']
+		#	if version == 'all' or version == curr_version:
+		#		app_list = release.getchildren()
+		#		for pkg in install_list:
+		#			for app_node in app_list:
+		#				attr_class = app_node.get('class')
+		#				attr_arch = app_node.get('arch', curr_arch)
 
-	if options.version:
-		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v1.1"
-		exit()
+		#				if attr_arch == curr_arch and attr_class == pkg:
+		#					print 'Installing %s:\n  %s' % (attr_class, app_node.text)
+		#					os.system('sudo ' + install + ' ' +  app_node.text)
+	
+		#					attr_post = app_node.get('post')
+		#					if attr_post <> None:
+		#						os.system('cd app/%s && ./%s' % (attr_class, attr_post))
+		#					print ''
 
-	if options.sysinit:
-		os.system('cd tools && sudo ./sudo_pass.sh %s && ./desktop_layout.sh && ./init.sh' % curr_user)
+		#		if version == curr_version:
+		#			break
 
-		vendor = os.popen('sudo dmidecode -s system-manufacturer').read().strip('\n') # fixme
-		board  = os.popen('sudo dmidecode -s system-product-name').read().strip('\n') # fixme
+def parse_config():
+	fd = open('.config')
+	for line in fd:
+		if re.match(r'^[a-zA-Z].*=.*', line) <> None:
+			elem = re.split('\s*=\s*', line.replace('\n', ''))
+			conf_list[elem[0]] = elem[1]
+	fd.close()
 
-		run = ''
-		idf = open('./platform/id_table', 'r')
-		for ids in idf:
-			bid = ids.replace('\n','').split(':')
-			if id_equal(bid[0], vendor) and id_equal(bid[1], board):
-				run = './platform/' + bid[2]
-				break
-		idf.close()
+def config(cfg):
+	name = get_user_info()
 
-		if run <> '':
-			os.system('test -x ' + run + ' && ' + run)
+	if cfg == 'entrance':
+		mail = '12345678@qq.com'
+		mailto = 'success@maxwit.com'
+	else:
+		mail = name.lower().replace(' ', '.') + '@maxwit.com'
+		now = date.today()
+		mailto = 'csg%d%d@maxwit.com' % (now.year % 100, (now.month + 1) / 2)
 
-		exit()
+	fd = open('.config', 'w+')
+	fd.write('config = %s\n' % cfg)
+	fd.write('user.name = %s\n' % name)
+	fd.write('user.mail = %s\n' % mail)
+	fd.write('mailto = %s\n' % mailto)
+	fd.close()
 
-	if options.sync:
-		os.system("cd tools && ./mwsync.sh")
-		exit()
+def setup():
+	if conf_list['config'] == 'entrance':
+		from ent import do_setup, do_report
+	else:
+		from onb import do_setup, do_report
 
-	if options.rm:
-		print "Warning: top dir will be removed!"
+	apps = None
 
-	if options.overwrite:
-		print 'overwrite'
+	fd = open('configs/%s/setup' % conf_list['config'])
+	for line in fd:
+		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
+			elem = re.split('\s*=\s*', line[:-1])
+			#elem = line[:-1].split('=')
+			if elem[0].strip() == 'apps':
+				apps = elem[1]
+	fd.close()
 
 	distrib = platform.dist()[0].lower()
 	version = platform.dist()[2].lower()
+	arch = platform.processor()
 
-	try:
-		system_setup(distrib, version)
-	except:
-		print 'fail to setup system'
+	if apps <> None:
+		do_install(distrib, version, arch, apps);
+
+	do_setup(distrib, version, conf_list)
+
+	rep_fn = '/tmp/report'
+
+	rep_fd = open(rep_fn, 'w+')
+	rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
+	rep_fd.write('to: "%s\n' % conf_list['mailto'])
+	#if conf_list.has_key('mailcc'):
+	#	rep_fd.write('cc: "%s\n' % conf_list['mailcc'])
+	rep_fd.write('subject: [report] init\n\n')
+	rep_fd.write('OS: %s, %s\n' % (platform.dist(), arch))
+	rep_fd.close()
+
+	os.system("msmtp %s < %s" % (conf_list['mailto'],  rep_fn))
+
+def report(rep):
+	rep_fn = '/tmp/report'
+
+	rep_fd = open(rep_fn, 'w+')
+	rep_fd.write('from: "%s" <%s>\n' % (conf_list['user.name'], conf_list['user.mail']))
+	rep_fd.write('subject: [report] %s\n' % (rep))
+	rep_fd.write('\n')
+	rep_fd.close()
+
+	sys.path.append('configs')
+	if conf_list['config'] == 'entrance':
+		from ent import do_setup, do_report
+	else:
+		from onb import do_setup, do_report
+
+	do_report(rep, rep_fn, conf_list)
+	#print "msmtp %s < %s" % (conf_list['mailto'],  rep_fn)
+	os.system("msmtp %s < %s" % (conf_list['mailto'],  rep_fn))
+
+def main():
+	parser = OptionParser()
+	parser.add_option('-c', '--config', dest='config',
+					  default=False, action='store_true',
+					  help="PowerTool configuration")
+	parser.add_option('-r', '--report', dest='report',
+					  default=False, action='store_true',
+					  help="task report")
+	parser.add_option('-v', '--version', dest='version',
+					  default=False, action='store_true',
+					  help="show PowerTool version and exit")
+
+	(options, args) = parser.parse_args()
+
+	if options.version:
+		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.3"
 		exit()
 
-	populate_tree('tree/tree.xml', options.rm)
+	if options.config:
+		if len(args) <> 1:
+			print 'Usage: ./powertool -c <help|arg>'
+			exit()
+
+		dl = os.listdir('./configs')
+		for cfg in dl:
+			if cfg == args[0]:
+				config(cfg)
+				try:
+					config(cfg)
+					print 'Finished.'
+				except:
+					print 'Fail to configure!'
+				finally:
+					exit()
+
+		print "configs currently supported:"
+		for dir in dl:
+			print '  ' + dir
+
+		exit()
+
+	parse_config()
+
+	if len(args) == 0:
+		try:
+			setup()
+		except:
+			print 'fail to setup system'
+			exit()
+
+	if options.report:
+		if len(args) <> 1:
+			print 'Usage: ./powertool -r <...>'
+			exit()
+
+		try:
+			report(args[0])
+		finally:
+			exit()
+
+	if len(args) > 0:
+		parser.print_help()
+		exit()
 
 if __name__ == "__main__":
 	curr_user = os.getenv('USER')
