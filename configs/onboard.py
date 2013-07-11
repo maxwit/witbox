@@ -37,7 +37,7 @@ def do_setup(distrib, version, config):
 	fd = open(os.getenv('HOME') + '/.muttrc', 'w+')
 ## pop3
 #set pop_user=conke.hu@maxwit.com
-#set pop_pass="printfMW13"
+#set pop_pass="???"
 #set pop_host=pops://pop.maxwit.com
 #set pop_last=yes
 #set pop_delete=no
@@ -80,85 +80,38 @@ def do_setup(distrib, version, config):
 	kver = os.uname()[2]
 	os.system('sudo apt-get install -y linux-headers-' + kver)
 
-msmtp_config = {}
+def check_env(fd_rept, conf_list):
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tPartition and File System\n')
+	fd_rept.write('########################################\n')
 
-def do_report(task, fd, config_list):
-	if task == 'help':
+	fd_chk = open('/proc/mounts')
+	for line in fd_chk:
+		mount = line.split(' ')
+		fd_rept.write('%s %s %s\n' % (mount[0], mount[1], mount[2]))
+	fd_rept.write('\n')
+
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tApplications Installation\n')
+	fd_rept.write('########################################\n')
+
+	for line in os.popen("dpkg -l vim vim-gnome gcc g++ msmtp mutt"):
+		fd_rept.write(line)
+	fd_rept.write('\n')
+
+def do_report(task, fd_rept, config_list):
+	if task == 'help' or task != 'help' and task != 'env' and task != 'build' and task != 'cstart':
 		print 'usage:\n' \
-			'./powertool -r install: Report System Installation\n' \
-			'./powertool -r command: Report Linux Commands Practice\n'
-		fd.close()
+			'./powertool -r env: Report System Environment\n' \
+			'./powertool -r build: Report Unix/Linux System Operation\n' \
+			'./powertool -r cstart: Report C-like Programming Languages\n'
+		fd_rept.close()
+		return False
 		exit()
 
 	print 'checking %s ...' % task
-	count = 1
 
-	### check install ###
-	if task == 'install':
-		fd.write("*")
-	fd.write("Step %d: Installation\n" % (count))
-	count += 1
+	if task == 'env':
+		check_env(fd_rept, config_list)
 
-	fd.write('[Partition and File System Information]:\n')
-	fd_chk = open('/proc/mounts')
-	for line in fd_chk:
-		fd.write(line)
-	fd.write('\n')
-
-	fd.write('[Packages Installation]:\n')
-	for line in os.popen("dpkg -l vim vim-gnome gcc g++ msmtp mutt"):
-		fd.write(line)
-	fd.write('\n')
-
-	### check commands ###
-	if task == 'command':
-		fd.write("*")
-	fd.write("Step %d: Unix/Linux Commands\n" % (count))
-	count += 1
-
-	fd_hist = open(os.getenv('HOME') + '/.bash_history')
-	lines = fd_hist.readlines()
-	start = 0
-	if len(lines) > 100:
-		start = len(lines) - 100
-	n = start
-	while n < len(lines):
-		fd.write("(%d): %s" % (n - start + 1, lines[n]))
-		n += 1
-	fd_hist.close()
-
-	#fd.write('Mail setting report:\n\n')
-	#fd.flush()
-	#os.system("dpkg -l msmtp mutt >> %s" % fn)
-	#fd.write('\n')
-	#fd = open(os.getenv('HOME') + '/.msmtprc')
-	#for line in fd:
-	#	if line != '\n' and line.strip().startswith('#') == False:
-	#		task_value = line.strip().split(' ', 1)
-	#		if len(task_value) == 2:
-	#			msmtp_config[task_value[0].strip()] = task_value[1].strip()
-	#fd.close()
-
-	#if msmtp_config.has_task('host') != True:
-	#	fd.write('Host is not configured in file msmtprc!\n')
-	#elif msmtp_config['host'] != 'smtp.qq.com':
-	#	fd.write('Expected host is smtp.qq.com, yours is %s\n' % msmtp_config['host'])
-	#else:
-	#	fd.write('Host is configured correctly!\n')
-
-	#if msmtp_config.has_task('user') != True:
-	#	fd.write('User is not configured in file msmtprc\n')
-	#elif msmtp_config['user'] != config_list['user.mail']:
-	#	fd.write('Expected user is %s, yours is %s\n' % (config_list['user.mail'], msmtp_config['user']))
-	#else:
-	#	fd.write('User is configured correctly!\n')
-
-	#if msmtp_config.has_task('from') != True:
-	#	fd.write('From is not configured in file msmtprc\n')
-	#elif msmtp_config['from'] != config_list['user.mail']:
-	#	fd.write('Expected from is %s, yours is %s\n' % (config_list['user.mail'], msmtp_config['from']))
-	#else:
-	#	fd.write('From is configured correctly!\n')
-
-	fd.write('\n')
-	os.chmod(os.getenv('HOME') + '/.muttrc', 0600)
+	return True

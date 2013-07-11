@@ -1,50 +1,17 @@
 <?xml version="1.0"?>
-<dir name="maxwit" version="1.0" init="clone.sh">
-	<dir name="archives">
-		<dir name="ubuntu"/>
+<dir name="maxwit" version="2.0" init="clone.sh">
+	<dir name="build">
+		<dir name="cstart"/>
 	</dir>
-	<dir name="build"/>
 	<dir name="document" init="document/populate.sh"/>
 	<dir name="ebook">
-		<dir name="programming">
-			<dir name="data_structure"/>
-			<dir name="c_cpp"/>
-			<dir name="java"/>
-			<dir name="c_sharp"/>
-			<dir name="obj-c"/>
-			<dir name="python"/>
-			<dir name="javascript"/>
-			<dir name="html5"/>
-			<dir name="shell"/>
-		</dir>
-		<dir name="architecture">
-			<dir name="arm"/>
-			<dir name="x86"/>
-		</dir>
-		<dir name="io_spec">
-			<dir name="spi"/>
-			<dir name="i2c"/>
-			<dir name="pci"/>
-			<dir name="usb"/>
-			<dir name="flash"/>
-			<dir name="wifi"/>
-		</dir>
-		<dir name="linux">
-		</dir>
-		<dir name="tcpip"/>
-		<dir name="web"/>
 	</dir>
-	<dir name="multimedia">
+	<dir name="mm">
 		<dir name="audio"/>
 		<dir name="video"/>
 		<dir name="picture"/>
 	</dir>
 	<dir name="platform">
-		<dir name="atmel"/>
-		<dir name="marvell"/>
-		<dir name="qualcomm"/>
-		<dir name="samsung"/>
-		<dir name="ti"/>
 	</dir>
 	<dir name="project">
 	</dir>
@@ -55,7 +22,5 @@
 	<dir name="utility">
 	</dir>
 	<dir name="vdisk">
-	</dir>
-	<dir name="work">
 	</dir>
 </dir>

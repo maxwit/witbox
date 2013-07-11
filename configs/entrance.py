@@ -38,7 +38,7 @@ def do_setup(distrib, version, config):
 	fd_rept = open(os.getenv('HOME') + '/.muttrc', 'w+')
 ## pop3
 #set pop_user=conke.hu@maxwit.com
-#set pop_pass="printfMW13"
+#set pop_pass="???"
 #set pop_host=pops://pop.maxwit.com
 #set pop_last=yes
 #set pop_delete=no
@@ -74,8 +74,6 @@ def do_setup(distrib, version, config):
 
 	os.chmod(os.getenv('HOME') + '/.muttrc', 0600)
 
-msmtp_config = {}
-
 def check_install(fd_rept, conf_list):
 	fd_rept.write('########################################\n')
 	fd_rept.write('\tPartition and File System\n')
@@ -83,7 +81,8 @@ def check_install(fd_rept, conf_list):
 
 	fd_chk = open('/proc/mounts')
 	for line in fd_chk:
-		fd_rept.write(line)
+		mount = line.split(' ')
+		fd_rept.write('%s %s %s\n' % (mount[0], mount[1], mount[2]))
 	fd_rept.write('\n')
 
 # def check_apps(fd_rept, conf_list):

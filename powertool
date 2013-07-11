@@ -107,9 +107,11 @@ def config(cfg):
 	if cfg == 'entrance':
 		mail = '12345678@qq.com'
 		mailto = 'success@maxwit.com'
+		mailcc = 'devel@maxwit.com'
 	else:
 		mail = name.lower().replace(' ', '.') + '@maxwit.com'
-		mailto = term + '@maxwit.com'
+		mailto = 'devel@maxwit.com'
+		mailcc = term + '@maxwit.com'
 
 	fd_rept = open('.config', 'w+')
 	fd_rept.write('config = %s\n' % cfg)
@@ -117,7 +119,7 @@ def config(cfg):
 	fd_rept.write('user.mail = %s\n' % mail)
 	fd_rept.write('mail.pass = maxwit%s\n' % term) # fixme
 	fd_rept.write('mail.to = %s\n' % mailto)
-	fd_rept.write('mail.cc = \n')
+	fd_rept.write('mail.cc = %s\n' % mailcc)
 	fd_rept.close()
 
 def setup():
