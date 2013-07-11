@@ -38,16 +38,16 @@ def populate_tree(fn, rm, top = ''):
 	traverse(root, top)
 
 def get_user_info():
-	fd = open('/etc/passwd', 'r')
+	fd_rept = open('/etc/passwd', 'r')
 
-	for line in fd:
+	for line in fd_rept:
 		account = line.split(':')
 		user_name = account[0]
 		if user_name == curr_user:
 			full_name = account[4].split(',')[0]
 			break
 
-	fd.close()
+	fd_rept.close()
 
 	return full_name
 
@@ -90,13 +90,13 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 		#			break
 
 def parse_config():
-	fd = open('.config')
-	for line in fd:
+	fd_rept = open('.config')
+	for line in fd_rept:
 		if re.match(r'^[a-zA-Z].*=.*', line) <> None:
 			elem = re.split('\s*=\s*', line.replace('\n', ''))
 			if elem[0] <> '' and elem[1] <> '':
 				conf_list[elem[0]] = elem[1]
-	fd.close()
+	fd_rept.close()
 
 def config(cfg):
 	name = get_user_info()
@@ -111,31 +111,31 @@ def config(cfg):
 		mail = name.lower().replace(' ', '.') + '@maxwit.com'
 		mailto = term + '@maxwit.com'
 
-	fd = open('.config', 'w+')
-	fd.write('config = %s\n' % cfg)
-	fd.write('user.name = %s\n' % name)
-	fd.write('user.mail = %s\n' % mail)
-	fd.write('mail.pass = maxwit%s\n' % term) # fixme
-	fd.write('mail.to = %s\n' % mailto)
-	fd.write('mail.cc = \n')
-	fd.close()
+	fd_rept = open('.config', 'w+')
+	fd_rept.write('config = %s\n' % cfg)
+	fd_rept.write('user.name = %s\n' % name)
+	fd_rept.write('user.mail = %s\n' % mail)
+	fd_rept.write('mail.pass = maxwit%s\n' % term) # fixme
+	fd_rept.write('mail.to = %s\n' % mailto)
+	fd_rept.write('mail.cc = \n')
+	fd_rept.close()
 
 def setup():
 	if conf_list['config'] == 'entrance':
-		from ent import do_setup, do_report
+		from entrance import do_setup, do_report
 	else:
-		from onb import do_setup, do_report
+		from onboard import do_setup, do_report
 
 	apps = None
 
-	fd = open('configs/%s/setup' % conf_list['config'])
-	for line in fd:
+	fd_rept = open('configs/%s/setup' % conf_list['config'])
+	for line in fd_rept:
 		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
 			elem = re.split('\s*=\s*', line[:-1])
 			#elem = line[:-1].split('=')
 			if elem[0].strip() == 'apps':
 				apps = elem[1]
-	fd.close()
+	fd_rept.close()
 
 	distrib = platform.dist()[0].lower()
 	version = platform.dist()[2].lower()
@@ -158,28 +158,55 @@ def setup():
 def report(rep):
 	sys.path.append('configs')
 	if conf_list['config'] == 'entrance':
-		from ent import do_setup, do_report
+		from entrance import do_setup, do_report
 	else:
-		from onb import do_setup, do_report
+		from onboard import do_setup, do_report
 
-	rep_fn = '/tmp/report'
-	fd = open(rep_fn, 'w+')
+	rep_fn = '/tmp/report-%s.msg' % rep
+	fd_rept = open(rep_fn, 'w+')
 
-	fd.write('-------------------------------\n')
-	fd.write('System Information:\n')
-	fd.write("%s\n%s\n" % (platform.dist(), os.uname()))
-	fd.write('-------------------------------\n')
-	fd.write('\n')
+	#fd_rept.write('"%s" report:\n\n' % conf_list['config'].upper())
 
-	do_report(rep, fd, conf_list)
+	ret = do_report(rep, fd_rept, conf_list)
+	if ret == False:
+		return
 
-	fd.close()
+	fd_rept.write('\n')
 
+	### append system info ###
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tSystem Information:\n')
+	fd_rept.write('########################################\n')
+	fd_rept.write("%s\n%s\n" % (platform.dist(), os.uname()))
+	fd_rept.write('\n')
+
+	### append command history ###
+	fd_rept.write('########################################\n')
+	fd_rept.write("\tCommand History\n")
+	fd_rept.write('########################################\n')
+
+	fd_hist = open(os.getenv('HOME') + '/.bash_history')
+	lines = fd_hist.readlines()
+	start = 0
+	if len(lines) > 100:
+		start = len(lines) - 100
+	n = start
+	while n < len(lines):
+		fd_rept.write("(%d): %s" % (n - start + 1, lines[n]))
+		n += 1
+	fd_hist.close()
+
+	fd_rept.write('\n\n---\n%s\n' % conf_list['user.name'])
+
+	fd_rept.close()
+
+	mutt_send = 'mutt -s "[Report] %s" %s' % (rep, conf_list['mail.to'])
 	if conf_list.has_key('mail.cc'):
-		mutt_send = 'mutt -s "[Report] %s" %s -c %s < %s' % (rep, conf_list['mail.to'], conf_list['mail.cc'], rep_fn)
-	else:
-		mutt_send = 'mutt -s "[Report] %s" %s < %s' % (rep, conf_list['mail.to'], rep_fn)
-	os.system(mutt_send)
+		mutt_send += ' -c %s' % conf_list['mail.cc']
+	mutt_send += ' < %s' % rep_fn
+
+	#os.system(mutt_send)
+	print mutt_send
 
 def main():
 	parser = OptionParser()
