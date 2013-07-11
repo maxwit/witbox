@@ -27,7 +27,7 @@ def do_setup(distrib, version, config):
 	fd.write('user %s\n' % mail)
 	#fd.write('from "%s" <%s>\n' % (user, mail))
 	fd.write('from %s\n' % mail)
-	fd.write('password maxwitcsg134\n')
+	fd.write('password %s\n' % config['mail.pass'])
 	fd.write('auth login\n\n')
 	fd.write('account default: %s' % domain)
 	fd.close()
@@ -45,7 +45,7 @@ def do_setup(distrib, version, config):
 #set timeout=1800
 	fd.write("# pop3 setting\n")
 	fd.write("set pop_user = %s\n" % mail)
-	fd.write("set pop_pass = maxwitcsg134\n")
+	fd.write("set pop_pass = %s\n" % config['mail.pass'])
 	fd.write("set pop_host = pops://pop.%s\n" % domain)
 	fd.write("set pop_last = yes\n")
 	fd.write("set pop_delete = no\n")
@@ -69,9 +69,16 @@ def do_setup(distrib, version, config):
 	fd.write("my_hdr From: %s\n" % mail)
 	fd.write("\n")
 
+	fd_rc = open('app/mail/muttrc.common')
+	for line in fd_rc:
+		fd.write(line)
+
+	fd_rc.close()
+
 	fd.close()
 
-	os.system('sudo apt-get install -y linux-headers-`uname -r`')
+	kver = os.uname()[2]
+	os.system('sudo apt-get install -y linux-headers-' + kver)
 
 msmtp_config = {}
 

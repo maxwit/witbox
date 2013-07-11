@@ -100,19 +100,22 @@ def parse_config():
 
 def config(cfg):
 	name = get_user_info()
+	
+	now = date.today()
+	term = "csg%d%d" % (now.year % 100, (now.month + 1) / 2)
 
 	if cfg == 'entrance':
 		mail = '12345678@qq.com'
 		mailto = 'success@maxwit.com'
 	else:
 		mail = name.lower().replace(' ', '.') + '@maxwit.com'
-		now = date.today()
-		mailto = 'csg%d%d@maxwit.com' % (now.year % 100, (now.month + 1) / 2)
+		mailto = term + '@maxwit.com'
 
 	fd = open('.config', 'w+')
 	fd.write('config = %s\n' % cfg)
 	fd.write('user.name = %s\n' % name)
 	fd.write('user.mail = %s\n' % mail)
+	fd.write('mail.pass = maxwit%s\n' % term) # fixme
 	fd.write('mail.to = %s\n' % mailto)
 	fd.write('mail.cc = \n')
 	fd.close()
@@ -164,7 +167,7 @@ def report(rep):
 
 	fd.write('-------------------------------\n')
 	fd.write('System Information:\n')
-	fd.write("%s, %s\n" % (platform.dist(), platform.processor()))
+	fd.write("%s\n%s\n" % (platform.dist(), os.uname()))
 	fd.write('-------------------------------\n')
 	fd.write('\n')
 
