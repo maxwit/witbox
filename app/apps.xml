@@ -25,7 +25,6 @@
 			<app class="3d">mesa-utils</app>
 			<app class="latex">latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
 			<app class="vm" default='n'>qemu qemu-kvm</app>
-			<app class="vm" arch="x86_64">xen-system-amd64</app>
 			<app class="browser" default='n'>chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
 			<app class="apache2">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
 			<app class="db">mysql-server mysql-client mysql-common python-mysqldb php5 php5-mysql</app>

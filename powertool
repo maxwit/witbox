@@ -196,23 +196,16 @@ def main():
 	parse_config()
 
 	if len(args) == 0:
-		try:
-			setup()
-		except:
-			print 'fail to setup system'
-			exit()
+		setup()
+		exit()
 
 	if options.report:
 		if len(args) <> 1:
 			print 'Usage: ./powertool -r <...>'
 			exit()
 
-		try:
-			report(args[0])
-		except:
-			print 'Fail to report!'
-		finally:
-			exit()
+		report(args[0])
+		exit()
 
 	if len(args) > 0:
 		parser.print_help()

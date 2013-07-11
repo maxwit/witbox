@@ -1,2 +1,2 @@
-apps = mail
+apps = nfs-common cifs-utils poppler-data gcc g++ openjdk-7-jdk git
 post = check.sh
