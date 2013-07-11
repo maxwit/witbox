@@ -11,6 +11,32 @@ sys.path.append('configs')
 curr_user = ''
 conf_list = {}
 
+def traverse(node, path):
+	if not os.path.exists(path):
+		print "creating \"%s\"" % path
+		os.mkdir(path)
+	#else:
+	#	print "skipping \"%s\"" % path
+	lst = node.getchildren()
+	for n in lst:
+		traverse(n, path + '/' + n.attrib['name'])
+
+# population the target directory
+def populate_tree(fn, rm, top = ''):
+	tree = ElementTree.parse(fn)
+	root = tree.getroot()
+	top += '/' + root.attrib['name']
+	if not os.path.isdir(top):
+		print "Directory " + top + " not exist!"
+		exit()
+	if top == '' or top == '/':
+		print 'error: connot remove ' + top
+		return
+	os.system('sudo chown $USER ' + top) # fixme!
+	if rm == True:
+		os.system('sudo rm -rvf ' + top + '/*')
+	traverse(root, top)
+
 def get_user_info():
 	fd = open('/etc/passwd', 'r')
 
@@ -197,6 +223,10 @@ def main():
 
 	if len(args) == 0:
 		setup()
+
+		if conf_list['config'] == 'onboard':
+			populate_tree('tree/tree.xml', False)
+
 		exit()
 
 	if options.report:

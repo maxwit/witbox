@@ -1,2 +1,2 @@
-apps = nfs-common cifs-utils poppler-data gcc g++ openjdk-7-jdk git
+apps = nfs-common cifs-utils poppler-data gcc g++ openjdk-7-jdk git vim-gnome
 post = check.sh
