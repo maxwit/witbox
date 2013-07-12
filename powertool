@@ -168,32 +168,7 @@ def setup():
 	#rep_fd.close()
 	# os.system("msmtp %s < %s" % (conf_list['mail.to'],  rep_fn))
 
-def report(rep):
-	sys.path.append('configs')
-	if conf_list['config'] == 'entrance':
-		from entrance import do_setup, do_report
-	else:
-		from onboard import do_setup, do_report
-
-	rep_fn = '/tmp/report-%s.msg' % rep
-	fd_rept = open(rep_fn, 'w+')
-
-	#fd_rept.write('"%s" report:\n\n' % conf_list['config'].upper())
-
-	ret = do_report(rep, fd_rept, conf_list)
-	if ret == False:
-		return
-
-	fd_rept.write('\n')
-
-	### append system info ###
-	fd_rept.write('########################################\n')
-	fd_rept.write('\tSystem Information\n')
-	fd_rept.write('########################################\n')
-	fd_rept.write("%s\n%s\n" % (platform.dist(), os.uname()))
-	fd_rept.write('\n')
-
-	### append command history ###
+def check_command(fd_rept, conf_list):
 	fd_rept.write('########################################\n')
 	fd_rept.write("\tCommand History\n")
 	fd_rept.write('########################################\n')
@@ -209,10 +184,44 @@ def report(rep):
 		n += 1
 	fd_hist.close()
 
-	fd_rept.write('\n\n---\n%s\n' % conf_list['user.name'])
+	fd_rept.write('\n')
 
+def report(rep):
+	sys.path.append('configs')
+	if conf_list['config'] == 'entrance':
+		from entrance import do_setup, do_report
+	else:
+		from onboard import do_setup, do_report
+
+	rep_fn = '/tmp/report-%s.msg' % rep
+	fd_rept = open(rep_fn, 'w+')
+
+	#fd_rept.write('"%s" report:\n\n' % conf_list['config'].upper())
+
+	if rep == 'command':
+		check_command(fd_rept, conf_list)
+	else:
+		ret = do_report(rep, fd_rept, conf_list)
+		if ret == False:
+			fd_rept.close()
+			return
+
+	fd_rept.write('\n')
+
+	### append system info ###
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tSystem Information\n')
+	fd_rept.write('########################################\n')
+	fd_rept.write("%s\n%s\n" % (platform.dist(), os.uname()))
+	fd_rept.write('\n')
+
+	### end ###
+	fd_rept.write('\n\n---\n%s\n' % conf_list['user.name'])
 	fd_rept.close()
 
+	### append command history ###
+
+	###
 	mutt_send = 'mutt -s "[Report] %s" %s' % (rep, conf_list['mail.to'])
 	if conf_list.has_key('mail.cc'):
 		mutt_send += ' -c %s' % conf_list['mail.cc']
