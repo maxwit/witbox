@@ -48,7 +48,7 @@ def do_setup(distrib, version, config):
 	fd.write("set pop_pass = %s\n" % config['mail.pass'])
 	fd.write("set pop_host = pops://pop.%s\n" % domain)
 	fd.write("set pop_last = yes\n")
-	fd.write("set pop_delete = no\n")
+	fd.write("set pop_delete = yes\n")
 	fd.write("set check_new = yes\n")
 	fd.write("set timeout = 1800\n")
 	fd.write("\n")
@@ -135,7 +135,7 @@ def report_usage():
 	print 'usage:\n' \
 			'./powertool -r env: Report System Environment\n' \
 			'./powertool -r unix: Report Unix/Linux System Operation\n' \
-			'./powertool -r c-like : Report C-like Programming Languages\n'
+			'./powertool -r cstart : Report C-like Programming Languages\n'
 
 def do_report(task, fd_rept, config_list):
 	if task == 'help':
@@ -147,7 +147,7 @@ def do_report(task, fd_rept, config_list):
 		check_env(fd_rept, config_list)
 	elif task == 'unix':
 		check_build(fd_rept, config_list)
-	elif task == 'c-like':
+	elif task == 'cstart':
 		check_clike(fd_rept, config_list)
 	else:
 		report_usage()

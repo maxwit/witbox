@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <dir name="maxwit" version="2.0" init="clone.sh">
 	<dir name="build">
-		<dir name="c-like"/>
+		<dir name="cstart"/>
 	</dir>
 	<dir name="document" init="document/populate.sh"/>
 	<dir name="ebook">

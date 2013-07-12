@@ -27,7 +27,7 @@ score "~s Task" +3
 score "~D" -5
 score "~O" +1
 
-set sort=date
+set sort=reverse-date
 set sort_aux=score
 
 set pager_stop
