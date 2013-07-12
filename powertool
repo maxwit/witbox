@@ -258,7 +258,8 @@ def main():
 
 		print "configs currently supported:"
 		for dir in dl:
-			print '  ' + dir
+			if os.path.isdir('configs/' + dir):
+				print '  ' + dir
 
 		exit()
 
