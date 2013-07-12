@@ -29,13 +29,13 @@ def populate_tree(fn):
 	top = '/' + root.attrib['name']
 
 	mounted = False
-	fd = open('/proc/mounts')
+	fd_chk = open('/proc/mounts')
 	for line in fd_chk:
 		mount = line.split(' ')
-		if mount[2] == top:
+		if mount[1] == top:
 			mounted = True
 			break
-	fd.close()
+	fd_chk.close()
 
 	if mounted == False:
 		print '"%s" NOT mounted!' % top
@@ -218,8 +218,8 @@ def report(rep):
 		mutt_send += ' -c %s' % conf_list['mail.cc']
 	mutt_send += ' < %s' % rep_fn
 
-	#os.system(mutt_send)
-	print mutt_send
+	os.system(mutt_send)
+	#print mutt_send
 
 def main():
 	parser = OptionParser()
@@ -236,7 +236,7 @@ def main():
 	(options, args) = parser.parse_args()
 
 	if options.version:
-		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.3"
+		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.4-alpha2"
 		exit()
 
 	if options.config:

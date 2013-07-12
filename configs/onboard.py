@@ -126,7 +126,7 @@ def check_build(fd_rept, conf_list):
 		fd_rept.write(line)
 	fd_rept.write('\n')
 
-def check_cstart(fd_rept, conf_list):
+def check_clike(fd_rept, conf_list):
 	fd_rept.write('########################################\n')
 	fd_rept.write('\tC-like Programming Laguages\n')
 	fd_rept.write('########################################\n')
@@ -134,8 +134,8 @@ def check_cstart(fd_rept, conf_list):
 def report_usage():
 	print 'usage:\n' \
 			'./powertool -r env: Report System Environment\n' \
-			'./powertool -r build: Report Unix/Linux System Operation\n' \
-			'./powertool -r cstart: Report C-like Programming Languages\n'
+			'./powertool -r unix: Report Unix/Linux System Operation\n' \
+			'./powertool -r c-like : Report C-like Programming Languages\n'
 
 def do_report(task, fd_rept, config_list):
 	if task == 'help':
@@ -145,10 +145,10 @@ def do_report(task, fd_rept, config_list):
 
 	if task == 'env':
 		check_env(fd_rept, config_list)
-	elif task == 'build':
+	elif task == 'unix':
 		check_build(fd_rept, config_list)
-	elif task == 'cstart':
-		check_cstart(fd_rept, config_list)
+	elif task == 'c-like':
+		check_clike(fd_rept, config_list)
 	else:
 		report_usage()
 		fd_rept.close()
