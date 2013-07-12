@@ -36,7 +36,7 @@ def do_setup(distrib, version, config):
 	print 'setup mutt ...'
 	fd = open(os.getenv('HOME') + '/.muttrc', 'w+')
 ## pop3
-#set pop_user=conke.hu@maxwit.com
+#set pop_user=jet.li@maxwit.com
 #set pop_pass="???"
 #set pop_host=pops://pop.maxwit.com
 #set pop_last=yes
@@ -72,7 +72,6 @@ def do_setup(distrib, version, config):
 	fd_rc = open('app/mail/muttrc.common')
 	for line in fd_rc:
 		fd.write(line)
-
 	fd_rc.close()
 
 	fd.close()
@@ -89,29 +88,70 @@ def check_env(fd_rept, conf_list):
 	for line in fd_chk:
 		mount = line.split(' ')
 		fd_rept.write('%s %s %s\n' % (mount[0], mount[1], mount[2]))
+	fd_chk.close()
+
 	fd_rept.write('\n')
 
 	fd_rept.write('########################################\n')
-	fd_rept.write('\tApplications Installation\n')
+	fd_rept.write('\tDevice and Driver\n')
 	fd_rept.write('########################################\n')
 
-	for line in os.popen("dpkg -l vim vim-gnome gcc g++ msmtp mutt"):
+	for line in os.popen('lspci -v'):
+		fd_rept.write(line)
+
+	fd_rept.write('\n')
+
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tNetwork Interface\n')
+	fd_rept.write('########################################\n')
+
+	for line in os.popen('iwconfig 2>&1'):
+		fd_rept.write(line)
+	fd_rept.write('-----------------------------------\n')
+	for line in os.popen('ifconfig'):
+		fd_rept.write(line)
+
+	fd_rept.write('\n')
+
+def check_build(fd_rept, conf_list):
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tPackages Installation\n')
+	fd_rept.write('########################################\n')
+
+	pkgs = "libmad0-dev libid3tag0-dev libasound2-dev madplay mpg123"
+
+	fd_rept.write('All the following packages should NOT be installed:\n%s\n\n' % pkgs)
+
+	for line in os.popen("dpkg -l %s" % pkgs):
 		fd_rept.write(line)
 	fd_rept.write('\n')
 
-def do_report(task, fd_rept, config_list):
-	if task == 'help' or task != 'help' and task != 'env' and task != 'build' and task != 'cstart':
-		print 'usage:\n' \
+def check_cstart(fd_rept, conf_list):
+	fd_rept.write('########################################\n')
+	fd_rept.write('\tC-like Programming Laguages\n')
+	fd_rept.write('########################################\n')
+
+def report_usage():
+	print 'usage:\n' \
 			'./powertool -r env: Report System Environment\n' \
 			'./powertool -r build: Report Unix/Linux System Operation\n' \
 			'./powertool -r cstart: Report C-like Programming Languages\n'
+
+def do_report(task, fd_rept, config_list):
+	if task == 'help':
+		report_usage()
 		fd_rept.close()
 		return False
-		exit()
-
-	print 'checking %s ...' % task
 
 	if task == 'env':
 		check_env(fd_rept, config_list)
+	elif task == 'build':
+		check_build(fd_rept, config_list)
+	elif task == 'cstart':
+		check_cstart(fd_rept, config_list)
+	else:
+		report_usage()
+		fd_rept.close()
+		return False
 
 	return True

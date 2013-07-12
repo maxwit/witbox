@@ -22,19 +22,30 @@ def traverse(node, path):
 		traverse(n, path + '/' + n.attrib['name'])
 
 # population the target directory
-def populate_tree(fn, rm, top = ''):
+def populate_tree(fn):
 	tree = ElementTree.parse(fn)
 	root = tree.getroot()
-	top += '/' + root.attrib['name']
-	if not os.path.isdir(top):
-		print "Directory " + top + " not exist!"
+
+	top = '/' + root.attrib['name']
+
+	mounted = False
+	fd = open('/proc/mounts')
+	for line in fd_chk:
+		mount = line.split(' ')
+		if mount[2] == top:
+			mounted = True
+			break
+	fd.close()
+
+	if mounted == False:
+		print '"%s" NOT mounted!' % top
 		exit()
-	if top == '' or top == '/':
-		print 'error: connot remove ' + top
-		return
-	os.system('sudo chown $USER ' + top) # fixme!
-	if rm == True:
-		os.system('sudo rm -rvf ' + top + '/*')
+
+	if not os.access(top, 7):
+		print 'Fail to access "' + top + '", permission denied!'
+		exit()
+		#os.system('sudo chown $USER ' + top) # fixme!
+
 	traverse(root, top)
 
 def get_user_info():
@@ -177,7 +188,7 @@ def report(rep):
 
 	### append system info ###
 	fd_rept.write('########################################\n')
-	fd_rept.write('\tSystem Information:\n')
+	fd_rept.write('\tSystem Information\n')
 	fd_rept.write('########################################\n')
 	fd_rept.write("%s\n%s\n" % (platform.dist(), os.uname()))
 	fd_rept.write('\n')
@@ -257,7 +268,7 @@ def main():
 		setup()
 
 		if conf_list['config'] == 'onboard':
-			populate_tree('tree/tree.xml', False)
+			populate_tree('tree/tree.xml')
 
 		exit()
 

@@ -101,7 +101,6 @@ def do_report(task, fd_rept, config_list):
 			'./powertool -r command: Report Linux Commands Practice\n'
 		fd_rept.close()
 		return False
-		exit()
 
 	print 'checking %s ...' % task
 
