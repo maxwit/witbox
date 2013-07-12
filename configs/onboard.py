@@ -79,7 +79,8 @@ def do_setup(distrib, version, config):
 	kver = os.uname()[2]
 	os.system('sudo apt-get install -y linux-headers-' + kver)
 
-def check_env(fd_rept, conf_list):
+def check_env(mail_info, conf_list):
+	fd_rept = mail_info[0]
 	fd_rept.write('########################################\n')
 	fd_rept.write('\tPartition and File System\n')
 	fd_rept.write('########################################\n')
@@ -113,7 +114,8 @@ def check_env(fd_rept, conf_list):
 
 	fd_rept.write('\n')
 
-def check_build(fd_rept, conf_list):
+def check_build(mail_info, conf_list):
+	fd_rept = mail_info[0]
 	fd_rept.write('########################################\n')
 	fd_rept.write('\tPackages Installation\n')
 	fd_rept.write('########################################\n')
@@ -126,7 +128,8 @@ def check_build(fd_rept, conf_list):
 		fd_rept.write(line)
 	fd_rept.write('\n')
 
-def check_clike(fd_rept, conf_list):
+def check_clike(mail_info, conf_list):
+	fd_rept = mail_info[0]
 	fd_rept.write('########################################\n')
 	fd_rept.write('\tC-like Programming Laguages\n')
 	fd_rept.write('########################################\n')
@@ -137,18 +140,18 @@ def report_usage():
 			'./powertool -r unix: Report Unix/Linux System Operation\n' \
 			'./powertool -r cstart : Report C-like Programming Languages\n'
 
-def do_report(task, fd_rept, config_list):
+def do_report(task, mail_info, config_list):
 	if task == 'help':
 		report_usage()
 		fd_rept.close()
 		return False
 
 	if task == 'env':
-		check_env(fd_rept, config_list)
+		check_env(mail_info, config_list)
 	elif task == 'unix':
-		check_build(fd_rept, config_list)
+		check_build(mail_info, config_list)
 	elif task == 'cstart':
-		check_clike(fd_rept, config_list)
+		check_clike(mail_info, config_list)
 	else:
 		report_usage()
 		fd_rept.close()
