@@ -194,8 +194,10 @@ def report(rep):
 	else:
 		from onboard import do_setup, do_report
 
-	rep_fn = '/tmp/report-%s/msg' % rep
-	rep_at = '/tmp/report-%s/attach/' % rep
+	rep_dir = '/tmp/report-%s' % rep
+	rep_fn = rep_dir + '/msg'
+	rep_at = rep_dir + '/attach/'
+	os.mkdir(rep_dir)
 	fd_rept = open(rep_fn, 'w+')
 
 	#fd_rept.write('"%s" report:\n\n' % conf_list['config'].upper())
@@ -204,6 +206,7 @@ def report(rep):
 		check_command(fd_rept, conf_list)
 	else:
 		mail_info = (fd_rept, rep_at)
+		os.mkdir(rep_at)
 		ret = do_report(rep, mail_info, conf_list)
 		if ret == False:
 			fd_rept.close()
@@ -228,8 +231,9 @@ def report(rep):
 	mutt_send = 'mutt -s "[Report] %s" %s' % (rep, conf_list['mail.to'])
 	if conf_list.has_key('mail.cc'):
 		mutt_send += ' -c %s' % conf_list['mail.cc']
-	shutil.copyfile(os.getenv('HOME') + '/.bash_history', rep_at + 'command_history')
-	mutt_send += ' -a %s/*' % rep_at
+	if os.path.isdir(rep_at):
+		shutil.copyfile(os.getenv('HOME') + '/.bash_history', rep_at + 'command_history')
+		mutt_send += ' -a %s/*' % rep_at
 	mutt_send += ' < %s' % rep_fn
 
 	os.system(mutt_send)
