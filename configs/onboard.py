@@ -141,6 +141,7 @@ def report_usage():
 			'./powertool -r cstart : Report C-like Programming Languages\n'
 
 def do_report(task, mail_info, config_list):
+	fd_rept = mail_info[0]
 	if task == 'help':
 		report_usage()
 		fd_rept.close()

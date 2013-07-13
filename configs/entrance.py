@@ -94,7 +94,8 @@ def check_install(fd_rept, conf_list):
 		fd_rept.write(line)
 	fd_rept.write('\n')
 
-def do_report(task, fd_rept, config_list):
+def do_report(task, mail_info, config_list):
+	fd_rept = mail_info[0]
 	if task == 'help' or task != 'help' and task != 'install' and task != 'command':
 		print 'usage:\n' \
 			'./powertool -r install: Report System Installation\n' \

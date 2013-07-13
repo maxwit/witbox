@@ -197,7 +197,8 @@ def report(rep):
 	rep_dir = '/tmp/report-%s' % rep
 	rep_fn = rep_dir + '/msg'
 	rep_at = rep_dir + '/attach/'
-	os.mkdir(rep_dir)
+	if os.path.exists(rep_dir) == False:
+		os.mkdir(rep_dir)
 	fd_rept = open(rep_fn, 'w+')
 
 	#fd_rept.write('"%s" report:\n\n' % conf_list['config'].upper())
@@ -206,7 +207,8 @@ def report(rep):
 		check_command(fd_rept, conf_list)
 	else:
 		mail_info = (fd_rept, rep_at)
-		os.mkdir(rep_at)
+		if os.path.exists(rep_at) == False:
+			os.mkdir(rep_at)
 		ret = do_report(rep, mail_info, conf_list)
 		if ret == False:
 			fd_rept.close()
