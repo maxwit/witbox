@@ -33,10 +33,12 @@ def split(path):
 			chapter = match.groups()[0]
 			fd_ch.write(str_begin.replace('_TITLE_', chapter))
 
-		elif fd_ch <> None:
+		else:
 			if re.match(r'^\s*\\end{document}\s*\n', line) <> None:
 				break
-			fd_ch.write(line)
+
+			if fd_ch <> None:
+				fd_ch.write(line)
 
 	if fd_ch <> None:
 		fd_ch.write(str_end)
