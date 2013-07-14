@@ -7,13 +7,27 @@ def split(path):
 	print 'splitting %s ...' % path
 
 	fd_src = open(path)
-	fd_dst = open(path + '_split', 'w+')
 
+	fd_ch = None
+	ch = 0
 	for line in fd_src:
-		fd_dst.write(line)
+		if re.match(r'^\\chapter{.*', line) <> None:
+			if ch > 0:
+				fd_ch.close()
 
-	fd_dst.close()
+			ch += 1
+			fd_ch = open('/tmp/chapter%d.tex' % ch, 'w+')
+
+		if fd_ch <> None:
+			fd_ch.write(line)
+
+	if fd_ch <> None:
+		fd_ch.close()
+
 	fd_src.close()
+
+	fd_dst = open(path + '_split', 'w+')
+	fd_dst.close()
 
 if __name__ == "__main__":
 	parser = OptionParser()
