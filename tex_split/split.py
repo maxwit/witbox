@@ -12,6 +12,7 @@ def split(path):
 	dirname = os.path.dirname(path)
 
 	fd_dst = open(dirname + '/split_' + basename, 'w+')
+	fd_dst.write('\def\inmaxwitbook{}\n\n')
 
 	fd_begin = open('article_begin.tmpl')
 	str_begin = fd_begin.read()
