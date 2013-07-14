@@ -34,16 +34,15 @@ def split(path):
 			fd_ch.write(str_begin.replace('_TITLE_', chapter))
 
 		elif fd_ch <> None:
-			if re.match(r'^\s*\\end{document}\s*\n', line) == None:
-				print line
-				fd_ch.write(line)
+			if re.match(r'^\s*\\end{document}\s*\n', line) <> None:
+				break
+			fd_ch.write(line)
 
 	if fd_ch <> None:
 		fd_ch.write(str_end)
 		fd_ch.close()
 
 	fd_src.close()
-
 
 if __name__ == "__main__":
 	parser = OptionParser()
