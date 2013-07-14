@@ -17,13 +17,13 @@ def split(path):
 
 if __name__ == "__main__":
 	parser = OptionParser()
-	parser.add_option('-f', '--file', dest='file',
+	parser.add_option('-f', '--file', dest='path',
 					  default=False, action='store_true',
-					  help="file to be splitted")
+					  help="path to the file to be splitted")
 
 	(options, args) = parser.parse_args()
 
-	if options.file:
+	if options.path:
 		split(args[0])
 		exit()
 
