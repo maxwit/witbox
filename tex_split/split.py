@@ -7,7 +7,7 @@ def split(path):
 	print 'splitting %s ...' % path
 
 	fd_src = open(path)
-	fd_dst = open(path + '_split.tex', 'w+')
+	fd_dst = open(path + '_split', 'w+')
 
 	for line in fd_src:
 		fd_dst.write(line)
@@ -15,7 +15,7 @@ def split(path):
 	fd_dst.close()
 	fd_src.close()
 
-if __name__ == "__split__":
+if __name__ == "__main__":
 	parser = OptionParser()
 	parser.add_option('-f', '--file', dest='file',
 					  default=False, action='store_true',
