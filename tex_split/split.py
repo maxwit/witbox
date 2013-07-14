@@ -8,26 +8,42 @@ def split(path):
 
 	fd_src = open(path)
 
+	basename = os.path.basename(path)
+	dirname = os.path.dirname(path)
+
+	fd_begin = open('article_begin.tmpl')
+	str_begin = fd_begin.read()
+	fd_begin.close()
+
+	fd_end = open('article_end.tmpl')
+	str_end = fd_end.read()
+	fd_end.close()
+
 	fd_ch = None
 	ch = 0
 	for line in fd_src:
-		if re.match(r'^\\chapter{.*', line) <> None:
+		match = re.search(r'^\\chapter{(.*)}', line)
+		if match:
 			if ch > 0:
+				fd_ch.write(str_end)
 				fd_ch.close()
 
 			ch += 1
-			fd_ch = open('/tmp/chapter%d.tex' % ch, 'w+')
+			fd_ch = open(dirname + '/chapter%d.tex' % ch, 'w+')
+			chapter = match.groups()[0]
+			fd_ch.write(str_begin.replace('_TITLE_', chapter))
 
-		if fd_ch <> None:
-			fd_ch.write(line)
+		elif fd_ch <> None:
+			if re.match(r'^\s*\\end{document}\s*\n', line) == None:
+				print line
+				fd_ch.write(line)
 
 	if fd_ch <> None:
+		fd_ch.write(str_end)
 		fd_ch.close()
 
 	fd_src.close()
 
-	fd_dst = open(path + '_split', 'w+')
-	fd_dst.close()
 
 if __name__ == "__main__":
 	parser = OptionParser()
