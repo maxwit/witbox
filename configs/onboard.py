@@ -4,23 +4,14 @@ import os
 import platform
 
 def do_setup(distrib, version, config):
+	home = os.getenv('HOME')
 	user = config['user.name']
 	mail = config['user.mail']
 	domain = mail.split('@')[1]
 	# host = 'smtp.' + domain
 
-	print 'setup msmtp ...'
+	print 'setup msmtp for "%s" <%s> ...' % (user, mail)
 	fd = open(os.getenv('HOME') + '/.msmtprc', 'w+')
-#defaults
-#
-#account qq
-#host smtp.qq.com
-#user 1450028115@qq.com
-#from 1450028115@qq.com
-#password maxwitcsg134
-#auth login
-#
-#account default: qq
 	fd.write('defaults\n\n')
 	fd.write('account %s\n' % domain)
 	fd.write('host smtp.%s\n' % domain)
@@ -31,18 +22,11 @@ def do_setup(distrib, version, config):
 	fd.write('auth login\n\n')
 	fd.write('account default: %s' % domain)
 	fd.close()
-	os.chmod(os.getenv('HOME') + '/.msmtprc', 0600)
+	os.chmod(home + '/.msmtprc', 0600)
 
-	print 'setup mutt ...'
-	fd = open(os.getenv('HOME') + '/.muttrc', 'w+')
-## pop3
-#set pop_user=jet.li@maxwit.com
-#set pop_pass="???"
-#set pop_host=pops://pop.maxwit.com
-#set pop_last=yes
-#set pop_delete=no
-#set check_new=yes
-#set timeout=1800
+	print 'setup mutt for "%s" <%s> ...' % (user, mail)
+	fd = open(home + '/.muttrc', 'w+')
+	# pop3 setting
 	fd.write("# pop3 setting\n")
 	fd.write("set pop_user = %s\n" % mail)
 	fd.write("set pop_pass = %s\n" % config['mail.pass'])
@@ -52,29 +36,26 @@ def do_setup(distrib, version, config):
 	fd.write("set check_new = yes\n")
 	fd.write("set timeout = 1800\n")
 	fd.write("\n")
-
-## msmtp setting
-#set sendmail="/usr/bin/msmtp"
-## set use_from=yes
-## set from=
-## set envelope_from=yes
-	fd.write("# msmtp setting\n")
+	# smtp setting
+	fd.write("# smtp setting\n")
 	fd.write("set sendmail = /usr/bin/msmtp\n")
 	fd.write("# set use_from = yes\n")
-	fd.write("# set from = %s\n", )
 	fd.write("# set envelope_from = yes\n")
 	fd.write("\n")
 
-#my_hdr From: 
+	fd.write("# general setting\n")
 	fd.write("my_hdr From: %s\n" % mail)
-	fd.write("\n")
-
 	fd_rc = open('app/mail/muttrc.common')
 	for line in fd_rc:
 		fd.write(line)
 	fd_rc.close()
-
 	fd.close()
+
+	# signature
+	fd_si = open(home + '/Mail/signature', 'w+')
+	fd_si.write('Regards,\n%s\n' % user)
+	#fd_si.write('MaxWit Software (Shanghai) Co., Ltd.\n')
+	fd_si.close()
 
 	kver = os.uname()[2]
 	os.system('sudo apt-get install -y linux-headers-' + kver)

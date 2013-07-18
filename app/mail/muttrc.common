@@ -1,6 +1,19 @@
+set attribution = "\n-------------------------------------------------------------------------------"
+set header = yes
+set indent_str = ""
+
+set signature = "~/Mail/signature"
+set sig_on_top = yes
+
 set editor="vim"
 
+set include
+set fast_reply
+
+#set quit=ask-yes
+
 # mail box
+mailboxes "=Inbox" "=Postponed" "=Sent"
 set mbox="~/Mail/inbox"
 #set mbox_type=maildir
 set mbox_type=mbox
@@ -9,45 +22,10 @@ set spoolfile="~/Mail/Inbox"
 set record="~/Mail/Sent"
 set postponed="~/Mail/Postponed"
 
-# set index_format="%4C %Z %{%b %d} %-15.15L (%4l) %s"
-mailboxes "=Inbox" "=Postponed" "=Sent"
-set header=no
-set quit=ask-yes
-auto_view text/html application/msword
-set move=no
-set ascii_chars=yes
-set include
-set indent_str=""
-
-# score
-score "~N" +4
-score "~s [Doc]" +2
-score "~s [PATCH]" +3
-score "~s Task" +3
-score "~D" -5
-score "~O" +1
-
 set sort=reverse-date
-set sort_aux=score
 
-set pager_stop
-set fast_reply
-set resolve=yes
-# address book
-# source ~/.mutt.alias
-set alias_file=~/.mutt.alias
-set charset="utf-8"
-set send_charset="utf-8:gb2312:us-ascii:iso-8859-1"
-set wait_key=yes
-set noconfirmappend
 set edit_headers=no
-set pager_index_lines=10
-# subscribe k105@maxwit.com
-
-# show date
-set locale="en_US"
-charset-hook ^iso-8859-1$ gb2312
-charset-hook !utf-8 gb2312
+set pager_index_lines=15
 
 # color setting
 color normal brightblue default
@@ -62,3 +40,4 @@ color body brightgreen default "^[+].*"
 color body brightwhite default "^diff --git.*"
 color body brightwhite default "^index [a-f0-9].*"
 color body brightyellow default "^@@.*"
+
