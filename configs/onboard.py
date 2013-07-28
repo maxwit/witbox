@@ -3,13 +3,14 @@
 import os
 import platform
 
-def do_setup(distrib, version, config):
+def mail_setup(config):
 	home = os.getenv('HOME')
 	user = config['user.name']
 	mail = config['user.mail']
 	domain = mail.split('@')[1]
 	# host = 'smtp.' + domain
 
+	# msmtp setup
 	print 'setup msmtp for "%s" <%s> ...' % (user, mail)
 	fd = open(os.getenv('HOME') + '/.msmtprc', 'w+')
 	fd.write('defaults\n\n')
@@ -24,18 +25,40 @@ def do_setup(distrib, version, config):
 	fd.close()
 	os.chmod(home + '/.msmtprc', 0600)
 
+	# fetchmail setup
+	print 'setup fetchmail for "%s" <%s> ...' % (user, mail)
+	fd = open(os.getenv('HOME') + '/.fetchmailrc', 'w+')
+	fd.write('set daemon 600\n')
+	fd.write('poll pop.%s with protocol pop3\n' % domain)
+	fd.write('uidl\n')
+	fd.write('user "%s"\n' % mail)
+	fd.write('password "%s"\n' % config['mail.pass'])
+	fd.write('keep\n')
+	fd.write('mda "/usr/bin/procmail -d %T"\n')
+	fd.close()
+	os.chmod(home + '/.fetchmailrc', 0600)
+
+	# procmail setup
+	print 'setup procmail ...'
+	fd = open(os.getenv('HOME') + '/.procmailrc', 'w+')
+	fd.write('MAILDIR=$HOME/Mail\n')
+	fd.write('DEFAULT=$MAILDIR/Inbox/\n')
+	fd.close()
+	os.chmod(home + '/.procmailrc', 0600)
+
+	# mutt setup
 	print 'setup mutt for "%s" <%s> ...' % (user, mail)
 	fd = open(home + '/.muttrc', 'w+')
-	# pop3 setting
-	fd.write("# pop3 setting\n")
-	fd.write("set pop_user = %s\n" % mail)
-	fd.write("set pop_pass = %s\n" % config['mail.pass'])
-	fd.write("set pop_host = pops://pop.%s\n" % domain)
-	fd.write("set pop_last = yes\n")
-	fd.write("set pop_delete = yes\n")
-	fd.write("set check_new = yes\n")
-	fd.write("set timeout = 1800\n")
-	fd.write("\n")
+	## pop3 setting
+	#fd.write("# pop3 setting\n")
+	#fd.write("set pop_user = %s\n" % mail)
+	#fd.write("set pop_pass = %s\n" % config['mail.pass'])
+	#fd.write("set pop_host = pops://pop.%s\n" % domain)
+	#fd.write("set pop_last = yes\n")
+	#fd.write("set pop_delete = yes\n")
+	#fd.write("set check_new = yes\n")
+	#fd.write("set timeout = 1800\n")
+	#fd.write("\n")
 	# smtp setting
 	fd.write("# smtp setting\n")
 	fd.write("set sendmail = /usr/bin/msmtp\n")
@@ -56,6 +79,9 @@ def do_setup(distrib, version, config):
 	fd_si.write('Regards,\n%s\n' % user)
 	#fd_si.write('MaxWit Software (Shanghai) Co., Ltd.\n')
 	fd_si.close()
+
+def do_setup(distrib, version, config):
+	mail_setup(config)
 
 	kver = os.uname()[2]
 	os.system('sudo apt-get install -y linux-headers-' + kver)

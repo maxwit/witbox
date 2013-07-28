@@ -1,2 +1,2 @@
-apps = vim-gnome poppler-data nfs-common cifs-utils ntfs-3g gcc g++ openjdk-7-jdk git mutt mutt-patched
+apps = poppler-data nfs-common cifs-utils ntfs-3g gcc g++ openjdk-7-jdk git msmtp fetchmail procmail mutt mutt-patched
 post = check.sh
