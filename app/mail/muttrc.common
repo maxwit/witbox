@@ -13,14 +13,15 @@ set fast_reply
 #set quit=ask-yes
 
 # mail box
-mailboxes "=Inbox" "=Postponed" "=Sent"
-set mbox="~/Mail/inbox"
-#set mbox_type=maildir
-set mbox_type=mbox
+# fixme!
+mailboxes "=Inbox" "=Draft" "=Sent"
+#set mbox="~/Mail/inbox"
+set mbox_type=maildir
+#set mbox_type=mbox
 set spoolfile="~/Mail/Inbox"
 # set record="~/Mail/sent-`date +%Y%m`"
 set record="~/Mail/Sent"
-set postponed="~/Mail/Postponed"
+set postponed="~/Mail/Draft"
 
 set sort=reverse-date
 
