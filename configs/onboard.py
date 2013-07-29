@@ -10,9 +10,13 @@ def mail_setup(config):
 	domain = mail.split('@')[1]
 	# host = 'smtp.' + domain
 
+	maildir='Mail'
+	if not os.path.exists(home + '/' + maildir):
+		os.mkdir(home + '/' + maildir)
+
 	# msmtp setup
 	print 'setup msmtp for "%s" <%s> ...' % (user, mail)
-	fd = open(os.getenv('HOME') + '/.msmtprc', 'w+')
+	fd = open(home + '/.msmtprc', 'w+')
 	fd.write('defaults\n\n')
 	fd.write('account %s\n' % domain)
 	fd.write('host smtp.%s\n' % domain)
@@ -27,7 +31,7 @@ def mail_setup(config):
 
 	# fetchmail setup
 	print 'setup fetchmail for "%s" <%s> ...' % (user, mail)
-	fd = open(os.getenv('HOME') + '/.fetchmailrc', 'w+')
+	fd = open(home + '/.fetchmailrc', 'w+')
 	fd.write('set daemon 600\n')
 	fd.write('poll pop.%s with protocol pop3\n' % domain)
 	fd.write('uidl\n')
@@ -40,7 +44,7 @@ def mail_setup(config):
 
 	# procmail setup
 	print 'setup procmail ...'
-	fd = open(os.getenv('HOME') + '/.procmailrc', 'w+')
+	fd = open(home + '/.procmailrc', 'w+')
 	fd.write('MAILDIR=$HOME/Mail\n')
 	fd.write('DEFAULT=$MAILDIR/Inbox/\n')
 	fd.close()
