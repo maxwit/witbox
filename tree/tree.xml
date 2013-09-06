@@ -21,6 +21,12 @@
 	</dir>
 	<dir name="utility">
 	</dir>
-	<dir name="vdisk">
+	<dir name="image">
+		<dir name="vmware"/>
+		<dir name="vbox"/>
+		<dir name="xen"/>
+		<dir name="qemu"/>
+		<dir name="armv7"/>
+		<dir name="iso"/>
 	</dir>
 </dir>

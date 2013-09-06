@@ -6,6 +6,7 @@ set signature = "~/Mail/signature"
 set sig_on_top = yes
 
 set editor="vim"
+auto_view text/html
 
 set include
 set fast_reply
