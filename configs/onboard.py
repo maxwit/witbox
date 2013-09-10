@@ -91,7 +91,10 @@ def git_setup(config):
 	user = config['user.name']
 	mail = config['user.mail']
 
+	print 'setup git for "%s" <%s> ...' % (user, mail)
+
 	os.system('git config --global color.ui auto')
+	os.system('git config --global push.default simple')
 	os.system('git config --global user.name "%s"' % user)
 	os.system('git config --global user.email "%s"' % mail)
 
