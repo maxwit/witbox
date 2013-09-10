@@ -90,7 +90,7 @@ def check_install(fd_rept, conf_list):
 	fd_rept.write('\tApplications Installation\n')
 	fd_rept.write('########################################\n')
 
-	for line in os.popen("dpkg -l vim vim-gnome gcc g++ msmtp mutt"):
+	for line in os.popen("dpkg -l vim gcc g++ msmtp mutt"):
 		fd_rept.write(line)
 	fd_rept.write('\n')
 

@@ -87,11 +87,21 @@ def mail_setup(config):
 	#fd_si.write('MaxWit Software (Shanghai) Co., Ltd.\n')
 	fd_si.close()
 
-def do_setup(distrib, version, config):
-	mail_setup(config)
+def git_setup(config):
+	user = config['user.name']
+	mail = config['user.mail']
 
+	os.system('git config --global color.ui auto')
+	os.system('git config --global user.name "%s"' % user)
+	os.system('git config --global user.email "%s"' % mail)
+
+def do_setup(distrib, version, config):
 	kver = os.uname()[2]
 	os.system('sudo apt-get install -y linux-headers-' + kver)
+
+	mail_setup(config)
+
+	git_setup(config)
 
 def check_env(mail_info, conf_list):
 	fd_rept = mail_info[0]
