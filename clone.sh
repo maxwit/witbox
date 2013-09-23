@@ -8,6 +8,8 @@ check_out()
 {
 	cd $TOP_DIR
 
+	echo "$1:"
+
 	if [ -d $1 ]; then
 		cd $1 && git pull
 	else
