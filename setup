@@ -7,42 +7,152 @@ from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
 
-curr_user = ''
-conf_list = {}
+# fixme
+g_home = ''
+g_user = ''
+g_conf = {}
 
 # fixme!
-def setup_msmtp(distrib, version, config):
-	user = config['user']
-	email = config['email']
-	epass = config['epass']
-	domain = email.split('@')[1]
+def setup_email(distrib, version, group):
 	# host = 'smtp.' + domain
+	now = date.today()
+	term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
+	rc = '%s/.%src' % (g_home, group)
 
-	print 'setup msmtp ...'
-	fd_rept = open(os.getenv('HOME') + '/.msmtprc', 'w+')
-#defaults
-#
-#account qq
-#host smtp.qq.com
-#user 1450028115@qq.com
-#from 1450028115@qq.com
-#password ???
-#auth login
-#
-#account default: qq
-	fd_rept.write('defaults\n\n')
-	fd_rept.write('account %s\n' % domain)
-	fd_rept.write('host smtp.%s\n' % domain)
-	fd_rept.write('user %s\n' % email)
-	fd_rept.write('from %s\n' % email)
-	fd_rept.write('password %s\n' % epass)
-	fd_rept.write('auth login\n\n')
-	fd_rept.write('account default: %s' % domain)
-	fd_rept.close()
+	print 'configuring %src ...' % group
 
-	os.chmod(os.getenv('HOME') + '/.msmtprc', 0600)
+	if os.path.exists(rc):
+		if not g_conf.has_key('email') and not g_conf.has_key('epass'):
+			return
 
-do_setup = {"msmtp": setup_msmtp}
+	if g_conf.has_key('email'):
+		email = g_conf['email']
+	else:
+		email = user_to_mail(g_conf['user'])
+
+	if g_conf.has_key('epass'):
+		epass = g_conf['epass']
+	else:
+		epass = 'MW%s' % term
+
+	domain = email.split('@')[1]
+
+	if group == 'msmtp':
+		if os.path.exists(rc):
+			if g_conf.has_key('email'):
+				os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
+				os.system('sed -i "s/from\s.*/from %s/" %s' % (email, rc))
+
+			if g_conf.has_key('epass'):
+				os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+
+			os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
+
+			return
+
+		fd = open(rc, 'w+')
+		fd.write('defaults\n\n')
+		fd.write('account %s\n' % domain)
+		fd.write('host smtp.%s\n' % domain)
+		fd.write('user %s\n' % email)
+		fd.write('from %s\n' % email)
+		fd.write('password %s\n' % epass)
+		fd.write('auth login\n\n')
+		fd.write('account default: %s' % domain)
+		fd.close()
+	elif group == 'fetchmail':
+		if os.path.exists(rc):
+			if g_conf.has_key('email'):
+				os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
+				os.system('sed -i "s/poll\s.*/poll pop.%s with protocol pop3' % domain)
+
+			if g_conf.has_key('epass'):
+				os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+
+			os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
+
+			return
+
+		fd = open(rc, 'w+')
+		fd.write('set daemon 600\n')
+		fd.write('poll pop.%s with protocol pop3\n' % domain)
+		fd.write('uidl\n')
+		fd.write('user "%s"\n' % email)
+		fd.write('password "%s"\n' % epass)
+		fd.write('keep\n')
+		fd.write('mda "/usr/bin/procmail -d %T"\n')
+		fd.close()
+	elif group == 'procmail':
+		fd = open(rc, 'w+')
+		fd.write('MAILDIR=$HOME/Mail\n')
+		fd.write('DEFAULT=$MAILDIR/Inbox/\n')
+		fd.close()
+	elif group == "mutt":
+		if os.path.exists(rc):
+			if g_conf.has_key('email'):
+				os.system('sed -i "s/my_hdr\s+Reply-To:.*/my_hdr Reply-To: %s/" %s' % (email, rc))
+
+			return
+
+		fd = open(rc, 'w+')
+		# smtp setting
+		fd.write('# smtp setting\n')
+		fd.write('set sendmail = /usr/bin/msmtp\n')
+		fd.write('# set use_from = yes\n')
+		fd.write('# set envelope_from = yes\n')
+		fd.write('\n')
+		# general setting
+		fd.write('# general setting\n')
+		fd.write('my_hdr From: %s\n' % mail)
+		#fd.write('my_hdr Reply-To: %s\n' % mail)
+		#fd.write('my_hdr Reply-To: \"%s\" <%s>\n' % (user, mail))
+		fd.write('\n')
+
+		fd_rc = open('app/mail/muttrc.common')
+		for line in fd_rc:
+			fd.write(line)
+		fd_rc.close()
+
+		fd.close()
+
+		# signature
+		fd = open(g_home + '/Mail/signature', 'w+')
+		fd.write('Regards,\n%s\n' % user)
+		fd.close()
+	else:
+		print 'Error: %s NOT supported!' % group
+		exit(1)
+
+	os.chmod(rc, 0600)
+
+def user_to_mail(user):
+	return user.lower().replace(' ', '.') + '@maxwit.com'
+
+def setup_git(distrib, version, group):
+	name = g_conf['user']
+	if g_conf.has_key('email'):
+		email = g_conf['email']
+	else:
+		email = user_to_mail(name)
+
+	# fixme
+	os.system('app/git/setup.sh "%s" "%s"' % (name, email))
+
+def setup_vim(distrib, version, group):
+	dst = open(g_home + '/.vimrc', 'w+')
+	src = open('app/vim/vimrc')
+	for line in src:
+		dst.write(line)
+	src.close()
+	dst.close()
+
+def setup_kermit(distrib, version, group):
+	dst = open(g_home + '/.kermrc', 'w+')
+	src = open('app/kermit/kermrc')
+	for line in src:
+		dst.write(line)
+	src.close()
+	dst.close()
 
 def traverse(node, path):
 	if not os.path.exists(path):
@@ -87,7 +197,7 @@ def get_user_info():
 	for line in fd_rept:
 		account = line.split(':')
 		user_name = account[0]
-		if user_name == curr_user:
+		if user_name == g_user:
 			full_name = account[4].split(',')[0]
 			break
 
@@ -95,15 +205,17 @@ def get_user_info():
 
 	return full_name
 
-def do_install(curr_distrib, curr_version, curr_arch, install_list):
+def do_install(distrib, version, curr_arch, install_list):
 	upgrade  = ''
 	install  = ''
 	tree = ElementTree.parse(r'app/apps.xml')
 	root = tree.getroot()
 	dist_list = root.getchildren()
 
+	do_setup = {"msmtp": setup_email, "msmtp": setup_email, "fetchmail": setup_email, "procmail": setup_email, "mutt": setup_email, "git": setup_git, "vim": setup_vim}
+
 	for dist_node in dist_list:
-		if dist_node.attrib['name'] == curr_distrib:
+		if dist_node.attrib['name'] == distrib:
 			upgrade = dist_node.attrib['upgrade']
 			install = dist_node.attrib['install']
 
@@ -114,38 +226,38 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 			release_list = dist_node.getchildren()
 			for release in release_list:
 				version = release.attrib['version']
-				if version == 'all' or version == curr_version:
+				if version == 'all' or version == version:
 					for pkg in install_list:
 						for app_node in release.getchildren():
 							if curr_arch != app_node.get('arch', curr_arch):
 								continue
 
 							if install_list[0] == 'ALL' or pkg in re.split('\s+', app_node.text):
-								attr_group = app_node.get('group')
+								group = app_node.get('group')
 								#attr_post = app_node.get('post')
 
-								print 'Installing %s:\n  %s' % (attr_group.upper(), app_node.text)
+								print 'Installing %s:\n  %s' % (group.upper(), app_node.text)
 								os.system('sudo ' + install + ' ' +  app_node.text)
 
 								#if attr_post != None:
-								#	os.system('cd app/%s && ./%s' % (attr_group, attr_post))
-								if do_setup.has_key(attr_group):
-									do_setup[attr_group](curr_distrib, curr_version, conf_list)
+								#	os.system('cd app/%s && ./%s' % (group, attr_post))
+								if do_setup.has_key(group):
+									do_setup[group](distrib, version, group)
 
 								print
 
-					if version == curr_version:
+					if version == version:
 						return
 
 def config():
-	conf_list['user'] = get_user_info()
-	conf_list['apps'] = 'msmtp'
+	g_conf['user'] = get_user_info()
+	g_conf['apps'] = 'ALL'
 
 def setup():
 	distrib = platform.dist()[0].lower()
 	version = platform.dist()[1].lower()
 	arch = platform.processor()
-	apps = re.split('\s+', conf_list['apps'])
+	apps = re.split('\s+', g_conf['apps'])
 
 	do_install(distrib, version, arch, apps);
 
@@ -166,10 +278,10 @@ def main():
 		exit()
 
 	if opts.email != None:
-		conf_list['email'] = opts.email
+		g_conf['email'] = opts.email
 
 	if opts.epass != None:
-		conf_list['epass'] = opts.epass
+		g_conf['epass'] = opts.epass
 
 	config()
 
@@ -180,8 +292,9 @@ def main():
 	exit()
 
 if __name__ == "__main__":
-	curr_user = os.getenv('USER')
-	if curr_user == 'root':
+	g_user = os.getenv('USER')
+	g_home = os.getenv('HOME')
+	if g_user == 'root':
 		print 'cannot run as root!'
 		exit()
 
