@@ -50,13 +50,25 @@
 		</release>
 	</distri>
 	<distri name="fedora" upgrade="yum upgrade -y" install="yum install -y">
-		<release version="all">
-			<app group="gcc">gcc gcc-c++</app>
-			<app group="vim" post="setup.sh">vim-enhanced ctags dos2unix</app>
+		<release version="19">
+			<app group="rpm">rpm-devel</app>
 			<app group="lzo">lzo lzo-devel</app>
 			<app group="glibc" arch="x86_64">glibc-devel</app>
-			<app group="java">java-1.7.0-openjdk eclipse eclipse-cdt</app>
+			<app group="java">java-1.8.0-openjdk eclipse eclipse-cdt</app>
 			<app group="mutt" post="setup.sh">mutt msmtp</app>
+			<app group="tftp">tftp tftp-server xinetd</app>
+			<app group="minicom" post="setup.sh">minicom</app>
+			<app group="evince">evince poppler-data</app>
+			<app group="cifs">cifs-utils fuse ntfs-3g</app>
+			<app group="patch">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
+			<app group="ncurses">ncurses-devel ncurses-libs zlib zlib-devel SDL SDL-devel alsa-lib alsa-lib-devel</app>
+			<app group="mpfr">mpfr mpfr-devel libmpcdec libmpcdec-devel</app>
+			<app group="libvirt">libvirt virt-manager virt-viewer bridge-utils</app>
+			<app group="gstreamer">gstreamer-plugins-bad-free</app>
+			<app group="gcc">gcc gcc-c++</app>
+			<app group="vim" post="setup.sh">vim-enhanced ctags dos2unix</app>
+			<app group="openssh">openssh</app>
+			<app group="latex">texlive-beamer texlive-collection-fontsextra texlive-collection-latexextra texlive-collection-fontsrecommended</app>
 		</release>
 	</distri>
 	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
