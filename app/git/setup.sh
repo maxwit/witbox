@@ -1,6 +1,7 @@
 #!/bin/sh
 
 echo "---- GIT Configuration ---"
+
 git config --list | grep ^color.ui || \
 	git config --global color.ui auto
 
@@ -12,3 +13,5 @@ git config --list | grep ^user.email || \
 
 git config --list | grep ^sendemail.smtpserver || \
 	git config --global sendemail.smtpserver /usr/bin/msmtp
+
+git config --global push.default matching
