@@ -28,7 +28,7 @@ def setup_email(distrib, version, group):
 	if g_conf.has_key('email'):
 		email = g_conf['email']
 	else:
-		email = user_to_mail(g_conf['user'])
+		email = user_to_mail(g_conf['name'])
 
 	if g_conf.has_key('epass'):
 		epass = g_conf['epass']
@@ -129,14 +129,14 @@ def user_to_mail(user):
 	return user.lower().replace(' ', '.') + '@maxwit.com'
 
 def setup_git(distrib, version, group):
-	name = g_conf['user']
+	fname = g_conf['name']
 	if g_conf.has_key('email'):
 		email = g_conf['email']
 	else:
-		email = user_to_mail(name)
+		email = user_to_mail(fname)
 
 	# fixme
-	os.system('app/git/setup.sh "%s" "%s"' % (name, email))
+	os.system('app/git/setup.sh "%s" "%s"' % (fname, email))
 
 def setup_vim(distrib, version, group):
 	dst = open(g_home + '/.vimrc', 'w+')
@@ -250,7 +250,7 @@ def do_install(distrib, version, curr_arch, install_list):
 						return
 
 def config():
-	g_conf['user'] = get_user_info()
+	g_conf['name'] = get_user_info()
 	g_conf['apps'] = 'ALL'
 
 def setup():
