@@ -54,6 +54,9 @@
 			<app group="gcc">gcc gcc-c++</app>
 			<app group="vim" post="setup.sh">vim-enhanced ctags dos2unix</app>
 			<app group="lzo">lzo lzo-devel</app>
+			<app group="glibc" arch="x86_64">glibc-devel</app>
+			<app group="java">java-1.7.0-openjdk eclipse eclipse-cdt</app>
+			<app group="mutt" post="setup.sh">mutt msmtp</app>
 		</release>
 	</distri>
 	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
