@@ -53,6 +53,7 @@
 		<release version="all">
 			<app group="gcc">gcc gcc-c++</app>
 			<app group="vim" post="setup.sh">vim-enhanced ctags dos2unix</app>
+			<app group="lzo">lzo lzo-devel</app>
 		</release>
 	</distri>
 	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
