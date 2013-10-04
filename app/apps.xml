@@ -10,7 +10,9 @@
 			<app group="libjpeg">libjpeg-dev libpng12-dev</app>
 			<app group="mutt" post="setup.sh">mutt msmtp</app>
 			<app group="git" post="setup.sh">git git-email subversion</app>
-			<app group="gcc">gcc g++ mono-mcs gobjc gobjc++ gnustep gnustep-devel</app>
+			<app group="gcc">gcc g++</app>
+			<app group="mono-mcs">mono-mcs</app>
+			<app group="gobjc">gobjc gobjc++ gnustep gnustep-devel</app>
 			<app group="libc6" arch="x86_64">libc6-dev-i386 ia32-libs</app>
 			<app group="patch">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
 			<app group="devhelp">devhelp</app>
@@ -24,7 +26,8 @@
 			<app group="evince">evince poppler-data</app>
 			<app group="nfs">nfs-common cifs-utils ntfs-3g</app>
 			<app group="mesa">mesa-utils</app>
-			<app group="texlive">texlive-xetex texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended latex-beamer</app>
+			<app group="texlive">texlive-xetex texlive-latex-extra latex-beamer</app>
+			<?app group="texlive">texlive-xetex texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended latex-beamer</app?>
 			<app group="qemu">qemu qemu-kvm</app>
 			<app group="chromium">chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
 			<app group="apache2">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
