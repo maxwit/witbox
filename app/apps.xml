@@ -2,78 +2,77 @@
 <package>
 	<distri name="ubuntu" upgrade="apt-get upgrade -y" install="apt-get install -y">
 		<release version="all">
-			<app class="sys">dpkg-dev gparted</app>
-			<app class="lib">libgmp3-dev libmpfr-dev libmpc-dev</app>
-			<app class="lib">libncurses5-dev zlib1g-dev libsdl1.2-dev libasound2-dev libasound2-doc</app>
-			<app class="lib">liblzo2-2 liblzo2-dev</app>
-			<app class="lib-gui" default='n'>libgtk-3-dev libqt4-dev</app>
-			<app class="lib">libjpeg-dev libpng12-dev</app>
-			<app class="mail" post="setup.sh">mutt msmtp</app>
-			<app class="scm" post="setup.sh">git git-email subversion</app>
-			<app class="toolchain">gcc g++ mono-mcs gobjc gobjc++ gnustep gnustep-devel</app>
-			<app class="toolchain" arch="x86_64">libc6-dev-i386 ia32-libs</app>
-			<app class="toolchain">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo devhelp</app>
-			<app class="editor" post="setup.sh">vim vim-gnome ctags dos2unix</app>
-			<app class="java">openjdk-7-jdk</app>
-			<app class="python">idle idle3 python-django</app>
-			<app class="server">openssh-server</app>
-			<app class="nfs">nfs-kernel-server</app>
-			<app class="tftp">tftp-hpa tftpd-hpa</app>
-			<app class="serial" post="setup.sh">minicom ckermit</app>
-			<app class="ereader">evince poppler-data</app>
-			<app class="fs">nfs-common cifs-utils ntfs-3g</app>
-			<app class="3d">mesa-utils</app>
-			<app class="latex">latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
-			<app class="vm" default='n'>qemu qemu-kvm</app>
-			<app class="browser" default='n'>chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
-			<app class="apache2">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
-			<app class="db">mysql-server mysql-client mysql-common python-mysqldb php5 php5-mysql</app>
-			<app class="db">sqlite3 sqlite3-doc python-pysqlite2 php5-sqlite</app>
-			<app class="media">kmplayer gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good gstreamer1.0-libav</app>
-			<app class="language">mythes-en-us libreoffice-l10n-en-za mythes-en-au hunspell-en-ca thunderbird-locale-en myspell-en-za libreoffice-help-en-gb wbritish libreoffice-l10n-en-gb openoffice.org-hyphenation myspell-en-gb thunderbird-locale-en-gb hyphen-en-us myspell-en-au thunderbird-locale-en-us kde-l10n-engb</app>
-			<app class="fonts">fonts-arphic-uming fonts-arphic-ukai language-pack-gnome-zh-hans-base language-pack-gnome-zh-hans language-pack-zh-hans-base language-pack-zh-hans libsunpinyin3 sunpinyin-data firefox-locale-zh-hans ibus-sunpinyin ibus-table-wubi libreoffice-help-zh-cn libreoffice-l10n-zh-cn thunderbird-locale-zh-hans thunderbird-locale-zh-cn ttf-wqy-zenhei ttf-arphic-ukai kde-l10n-zhcn </app>
+			<app group="dpkg">dpkg-dev gparted</app>
+			<app group="libgmp3">libgmp3-dev libmpfr-dev libmpc-dev</app>
+			<app group="libncurses5">libncurses5-dev zlib1g-dev libsdl1.2-dev libasound2-dev libasound2-doc</app>
+			<app group="liblzo2">liblzo2-2 liblzo2-dev</app>
+			<app group="libgtk">libgtk-3-dev libqt4-dev</app>
+			<app group="libjpeg">libjpeg-dev libpng12-dev</app>
+			<app group="mutt" post="setup.sh">mutt msmtp</app>
+			<app group="git" post="setup.sh">git git-email subversion</app>
+			<app group="gcc">gcc g++ mono-mcs gobjc gobjc++ gnustep gnustep-devel</app>
+			<app group="libc6" arch="x86_64">libc6-dev-i386 ia32-libs</app>
+			<app group="patch">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
+			<app group="devhelp">devhelp</app>
+			<app group="vim" post="setup.sh">vim ctags dos2unix</app>
+			<app group="openjdk">openjdk-7-jdk</app>
+			<app group="idle">idle idle3 python-django</app>
+			<app group="openssh">openssh-server</app>
+			<app group="nfs">nfs-kernel-server</app>
+			<app group="tftp">tftp-hpa tftpd-hpa</app>
+			<app group="minicom" post="setup.sh">minicom ckermit</app>
+			<app group="evince">evince poppler-data</app>
+			<app group="nfs">nfs-common cifs-utils ntfs-3g</app>
+			<app group="mesa">mesa-utils</app>
+			<app group="texlive">texlive-xetex texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended latex-beamer</app>
+			<app group="qemu">qemu qemu-kvm</app>
+			<app group="chromium">chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
+			<app group="apache2">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
+			<app group="mysql">mysql-server mysql-client mysql-common python-mysqldb php5 php5-mysql</app>
+			<app group="sqlite3">sqlite3 sqlite3-doc python-pysqlite2 php5-sqlite</app>
+			<app group="kmplayer">kmplayer gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good gstreamer1.0-libav</app>
+			<app group="mythes">mythes-en-us libreoffice-l10n-en-za mythes-en-au hunspell-en-ca thunderbird-locale-en myspell-en-za libreoffice-help-en-gb wbritish libreoffice-l10n-en-gb openoffice.org-hyphenation myspell-en-gb thunderbird-locale-en-gb hyphen-en-us myspell-en-au thunderbird-locale-en-us kde-l10n-engb</app>
+			<app group="fonts">fonts-arphic-uming fonts-arphic-ukai language-pack-gnome-zh-hans-base language-pack-gnome-zh-hans language-pack-zh-hans-base language-pack-zh-hans libsunpinyin3 sunpinyin-data firefox-locale-zh-hans ibus-sunpinyin ibus-table-wubi libreoffice-help-zh-cn libreoffice-l10n-zh-cn thunderbird-locale-zh-hans thunderbird-locale-zh-cn ttf-wqy-zenhei ttf-arphic-ukai kde-l10n-zhcn </app>
 		</release>
 		<release version="raring">
-			<app class="toolchain">libstdc++6-4.7-dev</app>
+			<app group="libstdc">libstdc++6-4.7-dev</app>
 		</release>
 		<release version="maverick">
-			<app class="toolchain">libstdc++6-4.5-dev</app>
+			<app group="libstdc">libstdc++6-4.5-dev</app>
 		</release>
 	</distri>
 	<distri name="debian" upgrade="apt-get upgrade -y" install="apt-get install -y">
 		<release version="squeeze">
-			<app class="Unknown">fixme</app>
+			<app group="fixme">fixme</app>
 		</release>
 	</distri>
 	<distri name="fedora" upgrade="yum upgrade -y" install="yum install -y">
 		<release version="langhlin">
-			<app class="Unknown">fixme</app>
+			<app group="fixme">fixme</app>
 		</release>
 	</distri>
-	<distri name="centos" upgrade="yum upgrade -y" install="yum install -y">
+	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
 		<release version="all">
-			<app class="sys">rpm-devel</app>
-			<app class="gui">gtk2-dev qt-devel</app>
-			<app class="lib">lzo lzo2-devel</app>
-			<app class="toolchain" arch="x86_64">glibc-devel</app>
-			<app class="java">java-1.7.0-openjdk eclipse eclipse-cdt</app>
-			<?to add: class="mail" mutt?>
-			<app class="tftp">tftp tftp-server xinetd</app>
-			<app class="serial" post="setup.sh">minicom</app>
-			<app class="ereader">evince poppler-data</app>
-			<app class="fs">cifs-utils fuse ntfs-3g</app>
-			<app class="Unknown">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
-			<app class="lib">ncurses-devel ncurses-libs zlib zlib-devel SDL SDL-devel alsa-lib alsa-lib-devel</app>
-			<app class="lib">mpfr mpfr-devel libmpcdec libmpcdec-devel</app>
-			<app class="vm" default='n'>kvm kmod-kvm kvm-qemu-img libvirt python-virtinst virt-manager virt-viewer bridge-utils</app>
-			<app class="browser">google-chrome-stable</app>
-			<app class="media">mplayer gstreamer-plugins-bad gstreamer-plugins-ugly gstreamer-ffmpeg</app>
-			<app class="editor" post="setup.sh">vim ctags dos2unix</app>
-			<app class="toolchain">gcc gcc-c++</app>
-			<app class="ssh">openssh</app>
-
-			<app class="latex">latex-cjk-chinese latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
-
+			<app group="rpm">rpm-devel</app>
+			<app group="gtk2">gtk2-dev qt-devel</app>
+			<app group="lzo">lzo lzo2-devel</app>
+			<app group="glibc" arch="x86_64">glibc-devel</app>
+			<app group="java">java-1.7.0-openjdk eclipse eclipse-cdt</app>
+			<app group="mutt" post="setup.sh">mutt msmtp</app>
+			<app group="tftp">tftp tftp-server xinetd</app>
+			<app group="minicom" post="setup.sh">minicom</app>
+			<app group="evince">evince poppler-data</app>
+			<app group="cifs">cifs-utils fuse ntfs-3g</app>
+			<app group="patch">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
+			<app group="ncurses">ncurses-devel ncurses-libs zlib zlib-devel SDL SDL-devel alsa-lib alsa-lib-devel</app>
+			<app group="mpfr">mpfr mpfr-devel libmpcdec libmpcdec-devel</app>
+			<app group="kvm">kvm kmod-kvm kvm-qemu-img libvirt python-virtinst virt-manager virt-viewer bridge-utils</app>
+			<app group="google">google-chrome-stable</app>
+			<app group="mplayer">mplayer gstreamer-plugins-bad gstreamer-plugins-ugly gstreamer-ffmpeg</app>
+			<app group="vim" post="setup.sh">vim ctags dos2unix</app>
+			<app group="gcc">gcc gcc-c++</app>
+			<app group="openssh">openssh</app>
+			<app group="latex">latex-beamer texlive-fonts-extra texlive-latex-extra texlive-fonts-recommended</app>
 		</release>
 	</distri>
 </package>

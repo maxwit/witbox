@@ -104,8 +104,8 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 def parse_config():
 	fd_rept = open('.config')
 	for line in fd_rept:
-		if re.match(r'^[a-zA-Z].*=.*', line) <> None:
-			elem = re.split('\s*=\s*', line.replace('\n', ''))
+		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
+			elem = re.split('\s*=\s*', line[:-1])
 			if elem[0] <> '' and elem[1] <> '':
 				conf_list[elem[0]] = elem[1]
 	fd_rept.close()

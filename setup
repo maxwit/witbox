@@ -1,0 +1,203 @@
+#!/usr/bin/python
+
+import os,sys,re
+import shutil
+import platform
+from optparse import OptionParser
+from xml.etree import ElementTree
+from datetime import date
+
+sys.path.append('configs')
+
+curr_user = ''
+conf_list = {}
+
+def traverse(node, path):
+	if not os.path.exists(path):
+		print "creating \"%s\"" % path
+		os.mkdir(path)
+	#else:
+	#	print "skipping \"%s\"" % path
+	lst = node.getchildren()
+	for n in lst:
+		traverse(n, path + '/' + n.attrib['name'])
+
+# population the target directory
+def populate_tree(fn):
+	tree = ElementTree.parse(fn)
+	root = tree.getroot()
+
+	top = '/' + root.attrib['name']
+
+	mounted = False
+	fd_chk = open('/proc/mounts')
+	for line in fd_chk:
+		mount = line.split(' ')
+		if mount[1] == top:
+			mounted = True
+			break
+	fd_chk.close()
+
+	if mounted == False:
+		print '"%s" NOT mounted!' % top
+		exit()
+
+	if not os.access(top, 7):
+		print 'Fail to access "' + top + '", permission denied!'
+		exit()
+		#os.system('sudo chown $USER ' + top) # fixme!
+
+	traverse(root, top)
+
+def get_user_info():
+	fd_rept = open('/etc/passwd', 'r')
+
+	for line in fd_rept:
+		account = line.split(':')
+		user_name = account[0]
+		if user_name == curr_user:
+			full_name = account[4].split(',')[0]
+			break
+
+	fd_rept.close()
+
+	return full_name
+
+def do_install(curr_distrib, curr_version, curr_arch, install_list):
+	upgrade  = ''
+	install  = ''
+	tree = ElementTree.parse(r'app/apps.xml')
+	root = tree.getroot()
+	dist_list = root.getchildren()
+
+	for dist_node in dist_list:
+		if dist_node.attrib['name'] == curr_distrib:
+			upgrade = dist_node.attrib['upgrade']
+			install = dist_node.attrib['install']
+
+			if upgrade <> '':
+				os.system('sudo ' + upgrade)
+
+			release_list = dist_node.getchildren()
+			for release in release_list:
+				version = release.attrib['version']
+				if version == 'all' or version == curr_version:
+					for pkg in install_list:
+						for app_node in release.getchildren():
+							if curr_arch <> app_node.get('arch', curr_arch):
+								continue
+
+							if pkg in re.split('\s+', app_node.text):
+								attr_group = app_node.get('group')
+								attr_post = app_node.get('post')
+
+								print 'Installing %s:\n  %s' % (pkg, app_node.text)
+								os.system('sudo ' + install + ' ' +  app_node.text)
+	
+								if attr_post <> None:
+									os.system('cd app/%s && ./%s' % (attr_group, attr_post))
+
+								print ''
+
+					if version == curr_version:
+						break
+
+def parse_config():
+	fd_rept = open('.config')
+	for line in fd_rept:
+		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
+			elem = re.split('\s*=\s*', line[:-1])
+			if elem[0] <> '' and elem[1] <> '':
+				conf_list[elem[0]] = elem[1]
+	fd_rept.close()
+
+def config(cfg):
+	name = get_user_info()
+	
+	now = date.today()
+	term = "csg%d%d" % (now.year % 100, (now.month + 1) / 2)
+
+	if cfg == 'entrance':
+		mail = '12345678@qq.com'
+		mailto = 'success@maxwit.com'
+		mailcc = 'devel@maxwit.com'
+	else:
+		mail = name.lower().replace(' ', '.') + '@maxwit.com'
+		mailto = 'devel@maxwit.com'
+		mailcc = term + '@maxwit.com'
+
+	fd_rept = open('.config', 'w+')
+	fd_rept.write('config = %s\n' % cfg)
+	fd_rept.write('user.name = %s\n' % name)
+	fd_rept.write('user.mail = %s\n' % mail)
+	fd_rept.write('mail.pass = maxwit%s\n' % term) # fixme
+	fd_rept.write('mail.to = %s\n' % mailto)
+	fd_rept.write('mail.cc = %s\n' % mailcc)
+	fd_rept.close()
+
+def setup():
+	distrib = platform.dist()[0].lower()
+	version = platform.dist()[2].lower()
+	arch = platform.processor()
+	apps = re.split('\s+', conf_list['apps'])
+
+	do_install(distrib, version, arch, apps);
+
+def main():
+	parser = OptionParser()
+	parser.add_option('-c', '--config', dest='config',
+					  default=False, action='store_true',
+					  help="PowerTool configuration")
+	parser.add_option('-v', '--version', dest='version',
+					  default=False, action='store_true',
+					  help="show PowerTool version and exit")
+
+	(options, args) = parser.parse_args()
+
+	if options.version:
+		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.4-alpha2"
+		exit()
+
+	if options.config:
+		if len(args) <> 1:
+			print 'Usage: ./powertool -c <help|arg>'
+			exit()
+
+		dl = os.listdir('./configs')
+		for cfg in dl:
+			if cfg == args[0]:
+				config(cfg)
+				try:
+					config(cfg)
+					print 'Finished.'
+				except:
+					print 'Fail to configure!'
+				finally:
+					exit()
+
+		print "configs currently supported:"
+		for dir in dl:
+			if os.path.isdir('configs/' + dir):
+				print '  ' + dir
+
+		exit()
+
+	if len(args) > 0:
+		parser.print_help()
+		exit()
+
+	parse_config()
+
+	setup()
+
+	populate_tree('tree/tree.xml')
+
+	exit()
+
+if __name__ == "__main__":
+	curr_user = os.getenv('USER')
+	if curr_user == 'root':
+		print 'cannot run as root!'
+		exit()
+
+	main()
