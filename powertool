@@ -114,7 +114,7 @@ def config(cfg):
 	name = get_user_info()
 	
 	now = date.today()
-	term = "csg%d%d" % (now.year % 100, (now.month + 1) / 2)
+	term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
 
 	if cfg == 'entrance':
 		mail = '12345678@qq.com'

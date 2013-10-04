@@ -1,2 +1,2 @@
-apps = msmtp mutt
+apps = msmtp
 post = check.sh
