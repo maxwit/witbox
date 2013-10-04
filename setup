@@ -7,10 +7,42 @@ from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
 
-sys.path.append('configs')
-
 curr_user = ''
 conf_list = {}
+
+# fixme!
+def setup_msmtp(distrib, version, config):
+	user = config['user']
+	email = config['email']
+	epass = config['epass']
+	domain = email.split('@')[1]
+	# host = 'smtp.' + domain
+
+	print 'setup msmtp ...'
+	fd_rept = open(os.getenv('HOME') + '/.msmtprc', 'w+')
+#defaults
+#
+#account qq
+#host smtp.qq.com
+#user 1450028115@qq.com
+#from 1450028115@qq.com
+#password ???
+#auth login
+#
+#account default: qq
+	fd_rept.write('defaults\n\n')
+	fd_rept.write('account %s\n' % domain)
+	fd_rept.write('host smtp.%s\n' % domain)
+	fd_rept.write('user %s\n' % email)
+	fd_rept.write('from %s\n' % email)
+	fd_rept.write('password %s\n' % epass)
+	fd_rept.write('auth login\n\n')
+	fd_rept.write('account default: %s' % domain)
+	fd_rept.close()
+
+	os.chmod(os.getenv('HOME') + '/.msmtprc', 0600)
+
+do_setup = {"msmtp": setup_msmtp}
 
 def traverse(node, path):
 	if not os.path.exists(path):
@@ -90,13 +122,15 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 
 							if install_list[0] == 'ALL' or pkg in re.split('\s+', app_node.text):
 								attr_group = app_node.get('group')
-								attr_post = app_node.get('post')
+								#attr_post = app_node.get('post')
 
 								print 'Installing %s:\n  %s' % (attr_group.upper(), app_node.text)
 								os.system('sudo ' + install + ' ' +  app_node.text)
 
-								if attr_post != None:
-									os.system('cd app/%s && ./%s' % (attr_group, attr_post))
+								#if attr_post != None:
+								#	os.system('cd app/%s && ./%s' % (attr_group, attr_post))
+								if do_setup.has_key(attr_group):
+									do_setup[attr_group](curr_distrib, curr_version, conf_list)
 
 								print
 
@@ -105,7 +139,7 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 
 def config():
 	conf_list['user'] = get_user_info()
-	conf_list['apps'] = 'ALL'
+	conf_list['apps'] = 'msmtp'
 
 def setup():
 	distrib = platform.dist()[0].lower()
