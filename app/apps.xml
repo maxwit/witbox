@@ -61,6 +61,8 @@
 			<app group="minicom" post="setup.sh">minicom</app>
 			<app group="evince">evince poppler-data</app>
 			<app group="cifs">cifs-utils fuse ntfs-3g</app>
+			<app group="patch">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
+			<app group="ncurses">ncurses-devel ncurses-libs zlib zlib-devel SDL SDL-devel alsa-lib alsa-lib-devel</app>
 		</release>
 	</distri>
 	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
