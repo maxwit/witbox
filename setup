@@ -116,7 +116,7 @@ def config(cfg):
 	name = get_user_info()
 	
 	now = date.today()
-	term = "csg%d%d" % (now.year % 100, (now.month + 1) / 2)
+	term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
 
 	if cfg == 'entrance':
 		mail = '12345678@qq.com'
@@ -134,7 +134,7 @@ def config(cfg):
 	fd_rept.write('mail.pass = maxwit%s\n' % term) # fixme
 	fd_rept.write('mail.to = %s\n' % mailto)
 	fd_rept.write('mail.cc = %s\n' % mailcc)
-	fd_rept.write('apps = evince nfs-common cifs-utils ntfs-3g gcc openjdk-7-jdk git mutt\n') # fixme
+	fd_rept.write('apps = ALL\n') # fixme
 	fd_rept.close()
 
 def setup():
@@ -157,7 +157,7 @@ def main():
 	(options, args) = parser.parse_args()
 
 	if options.version:
-		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.4-alpha2"
+		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.4-beta"
 		exit()
 
 	if options.config:
