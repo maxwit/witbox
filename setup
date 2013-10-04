@@ -139,7 +139,7 @@ def config(cfg):
 
 def setup():
 	distrib = platform.dist()[0].lower()
-	version = platform.dist()[2].lower()
+	version = platform.dist()[1].lower()
 	arch = platform.processor()
 	apps = re.split('\s+', conf_list['apps'])
 
