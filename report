@@ -74,7 +74,7 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 			upgrade = dist_node.attrib['upgrade']
 			install = dist_node.attrib['install']
 
-			#if upgrade <> '':
+			#if upgrade != '':
 			#	os.system('sudo ' + upgrade)
 
 			os.system('sudo ' + install + ' ' + install_list)
@@ -94,7 +94,7 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 		#					os.system('sudo ' + install + ' ' +  app_node.text)
 	
 		#					attr_post = app_node.get('post')
-		#					if attr_post <> None:
+		#					if attr_post != None:
 		#						os.system('cd app/%s && ./%s' % (attr_class, attr_post))
 		#					print ''
 
@@ -104,9 +104,9 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 def parse_config():
 	fd_rept = open('.config')
 	for line in fd_rept:
-		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
+		if re.match(r'^\s*[a-zA-Z].*=.*', line) != None:
 			elem = re.split('\s*=\s*', line[:-1])
-			if elem[0] <> '' and elem[1] <> '':
+			if elem[0] != '' and elem[1] != '':
 				conf_list[elem[0]] = elem[1]
 	fd_rept.close()
 
@@ -144,7 +144,7 @@ def setup():
 
 	fd_rept = open('configs/%s/setup' % conf_list['config'])
 	for line in fd_rept:
-		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
+		if re.match(r'^\s*[a-zA-Z].*=.*', line) != None:
 			elem = re.split('\s*=\s*', line[:-1])
 			#elem = line[:-1].split('=')
 			if elem[0].strip() == 'apps':
@@ -155,7 +155,7 @@ def setup():
 	version = platform.dist()[2].lower()
 	arch = platform.processor()
 
-	if apps <> None:
+	if apps != None:
 		do_install(distrib, version, arch, apps);
 
 	do_setup(distrib, version, conf_list)
@@ -260,7 +260,7 @@ def main():
 		exit()
 
 	if options.config:
-		if len(args) <> 1:
+		if len(args) != 1:
 			print 'Usage: ./powertool -c <help|arg>'
 			exit()
 
@@ -294,7 +294,7 @@ def main():
 		exit()
 
 	if options.report:
-		if len(args) <> 1:
+		if len(args) != 1:
 			print 'Usage: ./powertool -r <...>'
 			exit()
 

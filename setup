@@ -75,7 +75,7 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 			upgrade = dist_node.attrib['upgrade']
 			install = dist_node.attrib['install']
 
-			if upgrade <> '':
+			if upgrade != '':
 				os.system('sudo ' + upgrade)
 				print
 
@@ -85,7 +85,7 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 				if version == 'all' or version == curr_version:
 					for pkg in install_list:
 						for app_node in release.getchildren():
-							if curr_arch <> app_node.get('arch', curr_arch):
+							if curr_arch != app_node.get('arch', curr_arch):
 								continue
 
 							if install_list[0] == 'ALL' or pkg in re.split('\s+', app_node.text):
@@ -94,8 +94,8 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 
 								print 'Installing %s:\n  %s' % (attr_group.upper(), app_node.text)
 								os.system('sudo ' + install + ' ' +  app_node.text)
-	
-								if attr_post <> None:
+
+								if attr_post != None:
 									os.system('cd app/%s && ./%s' % (attr_group, attr_post))
 
 								print
@@ -103,39 +103,9 @@ def do_install(curr_distrib, curr_version, curr_arch, install_list):
 					if version == curr_version:
 						return
 
-def parse_config():
-	fd_rept = open('.config')
-	for line in fd_rept:
-		if re.match(r'^\s*[a-zA-Z].*=.*', line) <> None:
-			elem = re.split('\s*=\s*', line[:-1])
-			if elem[0] <> '' and elem[1] <> '':
-				conf_list[elem[0]] = elem[1]
-	fd_rept.close()
-
-def config(cfg):
-	name = get_user_info()
-	
-	now = date.today()
-	term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
-
-	if cfg == 'entrance':
-		mail = '12345678@qq.com'
-		mailto = 'success@maxwit.com'
-		mailcc = 'devel@maxwit.com'
-	else:
-		mail = name.lower().replace(' ', '.') + '@maxwit.com'
-		mailto = 'devel@maxwit.com'
-		mailcc = term + '@maxwit.com'
-
-	fd_rept = open('.config', 'w+')
-	fd_rept.write('config = %s\n' % cfg)
-	fd_rept.write('user.name = %s\n' % name)
-	fd_rept.write('user.mail = %s\n' % mail)
-	fd_rept.write('mail.pass = maxwit%s\n' % term) # fixme
-	fd_rept.write('mail.to = %s\n' % mailto)
-	fd_rept.write('mail.cc = %s\n' % mailcc)
-	fd_rept.write('apps = ALL\n') # fixme
-	fd_rept.close()
+def config():
+	conf_list['user'] = get_user_info()
+	conf_list['apps'] = 'ALL'
 
 def setup():
 	distrib = platform.dist()[0].lower()
@@ -147,48 +117,27 @@ def setup():
 
 def main():
 	parser = OptionParser()
-	parser.add_option('-c', '--config', dest='config',
-					  default=False, action='store_true',
-					  help="PowerTool configuration")
+	parser.add_option('-m', '--email', dest='email',
+					  help="E-mail Account")
+	parser.add_option('-p', '--epass', dest='epass',
+					  help="E-mail Password")
 	parser.add_option('-v', '--version', dest='version',
 					  default=False, action='store_true',
 					  help="show PowerTool version and exit")
 
-	(options, args) = parser.parse_args()
+	(opts, args) = parser.parse_args()
 
-	if options.version:
+	if opts.version:
 		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.4-beta"
 		exit()
 
-	if options.config:
-		if len(args) <> 1:
-			print 'Usage: ./powertool -c <help|arg>'
-			exit()
+	if opts.email != None:
+		conf_list['email'] = opts.email
 
-		dl = os.listdir('./configs')
-		for cfg in dl:
-			if cfg == args[0]:
-				config(cfg)
-				try:
-					config(cfg)
-					print 'Finished.'
-				except:
-					print 'Fail to configure!'
-				finally:
-					exit()
+	if opts.epass != None:
+		conf_list['epass'] = opts.epass
 
-		print "configs currently supported:"
-		for dir in dl:
-			if os.path.isdir('configs/' + dir):
-				print '  ' + dir
-
-		exit()
-
-	if len(args) > 0:
-		parser.print_help()
-		exit()
-
-	parse_config()
+	config()
 
 	setup()
 
