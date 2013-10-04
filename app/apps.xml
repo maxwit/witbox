@@ -50,8 +50,9 @@
 		</release>
 	</distri>
 	<distri name="fedora" upgrade="yum upgrade -y" install="yum install -y">
-		<release version="langhlin">
-			<app group="vim" post="setup.sh">vim ctags dos2unix</app>
+		<release version="all">
+			<app group="gcc">gcc gcc-c++</app>
+			<app group="vim" post="setup.sh">vim-enhanced ctags dos2unix</app>
 		</release>
 	</distri>
 	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
