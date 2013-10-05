@@ -19,10 +19,10 @@ mailboxes "=Inbox" "=Draft" "=Sent"
 #set mbox="~/Mail/inbox"
 set mbox_type=maildir
 #set mbox_type=mbox
-set spoolfile="~/Mail/Inbox"
+set spoolfile="~/Mail/Inbox/"
 # set record="~/Mail/sent-`date +%Y%m`"
-set record="~/Mail/Sent"
-set postponed="~/Mail/Draft"
+set record="~/Mail/Sent/"
+set postponed="~/Mail/Draft/"
 
 set sort=reverse-date
 

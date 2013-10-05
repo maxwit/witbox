@@ -31,6 +31,10 @@ def setup_email(distrib, version, group):
 
 	domain = email.split('@')[1]
 
+	maildir = 'Mail'
+	if not os.path.exists(g_home + '/' + maildir):
+		os.mkdir(g_home + '/' + maildir)
+
 	for pkg in group:
 		rc = '%s/.%src' % (g_home, pkg)
 
