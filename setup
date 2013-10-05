@@ -14,6 +14,7 @@ g_conf = {}
 
 # fixme!
 def setup_email(distrib, version, group):
+	name = g_conf['name']
 	# host = 'smtp.' + domain
 	now = date.today()
 	term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
@@ -21,7 +22,7 @@ def setup_email(distrib, version, group):
 	if g_conf.has_key('email'):
 		email = g_conf['email']
 	else:
-		email = user_to_mail(g_conf['name'])
+		email = name_to_mail(name)
 
 	if g_conf.has_key('epass'):
 		epass = g_conf['epass']
@@ -109,12 +110,12 @@ def setup_email(distrib, version, group):
 			fd.write('\n')
 			# general setting
 			fd.write('# general setting\n')
-			fd.write('my_hdr From: %s\n' % mail)
+			fd.write('my_hdr From: %s\n' % email)
 			#fd.write('my_hdr Reply-To: %s\n' % mail)
-			#fd.write('my_hdr Reply-To: \"%s\" <%s>\n' % (user, mail))
+			#fd.write('my_hdr Reply-To: \"%s\" <%s>\n' % (name, mail))
 			fd.write('\n')
 
-			fd_rc = open('app/mail/muttrc.common')
+			fd_rc = open('app/mutt/muttrc.common')
 			for line in fd_rc:
 				fd.write(line)
 			fd_rc.close()
@@ -123,7 +124,7 @@ def setup_email(distrib, version, group):
 
 			# signature
 			fd = open(g_home + '/Mail/signature', 'w+')
-			fd.write('Regards,\n%s\n' % user)
+			fd.write('Regards,\n%s\n' % name)
 			fd.close()
 		else:
 			print '%s not configured' % pkg
@@ -131,15 +132,15 @@ def setup_email(distrib, version, group):
 
 		os.chmod(rc, 0600)
 
-def user_to_mail(user):
-	return user.lower().replace(' ', '.') + '@maxwit.com'
+def name_to_mail(name):
+	return name.lower().replace(' ', '.') + '@maxwit.com'
 
 def setup_git(distrib, version, group):
 	fname = g_conf['name']
 	if g_conf.has_key('email'):
 		email = g_conf['email']
 	else:
-		email = user_to_mail(fname)
+		email = name_to_mail(fname)
 
 	# fixme
 	os.system('app/git/setup.sh "%s" "%s"' % (fname, email))

@@ -57,6 +57,7 @@
 			<app group="lzo">lzo lzo-devel</app>
 			<app group="glibc" arch="x86_64">glibc-devel</app>
 			<app group="openjdk">java-1.8.0-openjdk eclipse eclipse-cdt</app>
+			<app group="mutt">mutt msmtp fetchmail procmail</app>
 			<app group="serial">ckermit minicom</app>
 			<app group="tftp">tftp tftp-server xinetd</app>
 			<app group="evince">evince poppler-data</app>
