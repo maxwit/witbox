@@ -53,7 +53,7 @@
 	</distri>
 	<distri name="fedora" upgrade="yum upgrade -y" install="yum install -y">
 		<release version="19">
-			<app group="pkg-dev">rpm-devel</app>
+			<app group="pkg-dev">redhat-lsb rpm-devel</app>
 			<app group="lzo">lzo lzo-devel</app>
 			<app group="glibc" arch="x86_64">glibc-devel</app>
 			<app group="openjdk">java-1.8.0-openjdk eclipse eclipse-cdt</app>
@@ -71,6 +71,8 @@
 			<app group="vim">vim-enhanced ctags dos2unix</app>
 			<app group="openssh">openssh</app>
 			<app group="latex">texlive-beamer texlive-collection-fontsextra texlive-collection-latexextra texlive-collection-fontsrecommended</app>
+			<app group="w3">w3m wget</app>
+			<app group="git">git git-email</app>
 		</release>
 	</distri>
 	<distri name="rhel" upgrade="yum upgrade -y" install="yum install -y">
