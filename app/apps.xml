@@ -70,7 +70,7 @@
 			<app group="gcc">gcc gcc-c++</app>
 			<app group="vim">vim-enhanced ctags dos2unix</app>
 			<app group="openssh">openssh</app>
-			<app group="latex">texlive-beamer texlive-collection-fontsextra texlive-collection-latexextra texlive-collection-fontsrecommended</app>
+			<app group="latex">texlive-xetex texlive-xetex-def texlive-xecjk texlive-euenc texlive-beamer texlive-collection-fontsextra texlive-collection-latexextra texlive-collection-fontsrecommended</app>
 			<app group="w3">w3m wget</app>
 			<app group="git">git git-email</app>
 		</release>
