@@ -1,3 +1,0 @@
-#!/bin/sh
-
-sudo -u git /usr/lib/git-core/git-daemon --reuseaddr --base-path=/server/git/repositories
