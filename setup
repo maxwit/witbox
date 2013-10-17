@@ -101,7 +101,8 @@ def setup_email(distrib, version, group):
 		elif pkg == "mutt":
 			if os.path.exists(rc):
 				if g_conf.has_key('email'):
-					os.system('sed -i "s/my_hdr\s+Reply-To:.*/my_hdr Reply-To: %s/" %s' % (email, rc))
+					os.system('sed -i "s/my_hdr\s\+From:.*/my_hdr From: %s/" %s' % (email, rc))
+					#os.system('sed -i "s/my_hdr\s\+Reply-To:.*/my_hdr Reply-To: %s/" %s' % (email, rc))
 
 				continue
 
