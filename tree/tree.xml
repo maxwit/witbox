@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<dir name="maxwit" version="2.0" init="clone.sh">
+	<dir name="build">
+		<dir name="cstart"/>
+	</dir>
+	<dir name="document" init="document/populate.sh"/>
+	<dir name="ebook">
+	</dir>
+	<dir name="mm">
+		<dir name="audio"/>
+		<dir name="video"/>
+		<dir name="picture"/>
+	</dir>
+	<dir name="platform">
+	</dir>
+	<dir name="project">
+	</dir>
+	<dir name="source">
+	</dir>
+	<dir name="toolchain">
+	</dir>
+	<dir name="utility">
+	</dir>
+	<dir name="image">
+		<dir name="vmware"/>
+		<dir name="vbox"/>
+		<dir name="xen"/>
+		<dir name="qemu"/>
+		<dir name="armv7"/>
+		<dir name="iso"/>
+	</dir>
+</dir>

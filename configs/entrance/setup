@@ -1,0 +1,2 @@
+apps = msmtp
+post = check.sh

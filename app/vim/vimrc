@@ -1,0 +1,4 @@
+set ts=4
+set nu
+set hlsearch
+let c_space_errors=1

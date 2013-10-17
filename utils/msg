@@ -1,0 +1,10 @@
+Firstly, download the attachment and configure your E-mail client:
+$ tar xvf ~/Download/powertool-alpha-x.tar.bz2
+$ cd powertool-alpha-x
+$ ./powertool
+$ gedit ~/.msmtprc
+and replace the line "password ???" with your real password
+
+Secondly, report your work with the PowerTool:
+$ ./powertool -r install
+$ ./powertool -r command
