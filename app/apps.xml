@@ -15,7 +15,6 @@
 			<app group="gcc">gcc g++</app>
 			<app group="mono-mcs">mono-mcs</app>
 			<app group="gobjc">gobjc gobjc++ gnustep gnustep-devel</app>
-			<app group="libc6" arch="x86_64">libc6-dev-i386 ia32-libs</app>
 			<app group="patch">patch autoconf automake bison flex gawk gettext libtool m4 sed texinfo</app>
 			<app group="devhelp">devhelp</app>
 			<app group="vim">vim ctags dos2unix</app>
@@ -28,12 +27,9 @@
 			<app group="evince">evince poppler-data</app>
 			<app group="nfs">nfs-common cifs-utils ntfs-3g</app>
 			<app group="mesa">mesa-utils</app>
-			<app group="texlive">texlive-xetex texlive-latex-extra latex-beamer</app>
-			<?app group="texlive">texlive-xetex texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended latex-beamer</app?>
+			<app group="texlive">texlive-xetex texlive-latex-extra latex-beamer texlive-fonts-extra texlive-fonts-recommended</app>
 			<app group="qemu">qemu qemu-kvm</app>
 			<app group="chromium">chromium-browser chromium-codecs-ffmpeg flashplugin-installer</app>
-			<app group="apache2">apache2 libapache2-mod-python libapache2-mod-auth-mysql</app>
-			<app group="mysql">mysql-server mysql-client mysql-common python-mysqldb php5 php5-mysql</app>
 			<app group="sqlite3">sqlite3 sqlite3-doc python-pysqlite2 php5-sqlite</app>
 			<app group="kmplayer">kmplayer gstreamer1.0-plugins-base gstreamer1.0-plugins-ugly gstreamer1.0-plugins-good gstreamer1.0-libav</app>
 			<app group="mythes">mythes-en-us libreoffice-l10n-en-za mythes-en-au hunspell-en-ca thunderbird-locale-en myspell-en-za libreoffice-help-en-gb wbritish libreoffice-l10n-en-gb openoffice.org-hyphenation myspell-en-gb thunderbird-locale-en-gb hyphen-en-us myspell-en-au thunderbird-locale-en-us kde-l10n-engb</app>
@@ -41,9 +37,7 @@
 		</release>
 		<release version="raring">
 			<app group="libstdc">libstdc++6-4.7-dev</app>
-		</release>
-		<release version="maverick">
-			<app group="libstdc">libstdc++6-4.5-dev</app>
+			<app group="libc6" arch="x86_64">libc6-dev-i386 ia32-libs</app>
 		</release>
 	</distri>
 	<distri name="debian" upgrade="apt-get upgrade -y" install="apt-get install -y">
