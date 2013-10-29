@@ -6,6 +6,6 @@ PROJECT_NAME=`echo $PROJECT|awk -F '.' '{print $1}'`
 DOCUMENT_PUB="/maxwit/share"
 
 cd $DOCUMENT_PATH/$PROJECT_NAME
-su emily -c "git pull"
-su emily -c "make"
-cp *.pdf $DOCUMENT_PUB
+su texbuild -c "git pull"
+su texbuild -c "make"
+cp *.pdf $DOCUMENT_PUB/$PROJECT_NAME
