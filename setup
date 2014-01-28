@@ -148,7 +148,20 @@ def setup_git(distrib, version, group):
 		email = name_to_mail(fname)
 
 	# fixme
-	os.system('app/git/setup.sh "%s" "%s"' % (fname, email))
+	#os.system('app/git/setup.sh "%s" "%s"' % (fname, email))
+
+	rc = '%s/.gitconfig' % (g_home)
+	fd_rc = open(rc, 'w+')
+	fd_rc.write('[color]\n')
+	fd_rc.write('\tui = auto\n')
+	fd_rc.write('[user]\n')
+	fd_rc.write('\tname = %s\n' % fname)
+	fd_rc.write('\temail = %s\n' % email)
+	fd_rc.write('[sendemail]\n')
+	fd_rc.write('\tsmtpserver = /usr/bin/msmtp\n')
+	fd_rc.write('[push]\n')
+	fd_rc.write('\tdefault = matching')
+	fd_rc.close()
 
 def setup_vim(distrib, version, group):
 	print 'configuring vimrc ...'
