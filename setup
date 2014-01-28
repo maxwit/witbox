@@ -3,6 +3,7 @@
 import os,sys,re
 import shutil
 import platform
+import fileinput
 from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
@@ -47,14 +48,25 @@ def setup_email(distrib, version, group):
 
 		if pkg == 'msmtp':
 			if os.path.exists(rc):
-				if g_conf.has_key('email'):
-					os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
-					os.system('sed -i "s/from\s.*/from %s/" %s' % (email, rc))
+				for line in fileinput.input(rc, 1):
+					#os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
+					#os.system('sed -i "s/from\s.*/from %s/" %s' % (email, rc))
+					s = line.split()
+					if len(s) > 0 and (s[0] == 'user' or s[0] == 'from'):
+						if g_conf.has_key('email'):
+							print line.replace(s[1], email),
 
-				if g_conf.has_key('epass'):
-					os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+					#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+					elif len(s) > 0 and (s[0] == 'password'):
+						if g_conf.has_key('epass'):
+							print line.replace(s[1], epass),
 
-				os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
+					#os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
+					elif len(s) > 0 and (s[0] == 'host'):
+						print line.replace(s[1], 'smtp.%s' % domain),
+
+					else:
+						print line,
 
 				continue
 
@@ -70,14 +82,25 @@ def setup_email(distrib, version, group):
 			fd.close()
 		elif pkg == 'fetchmail':
 			if os.path.exists(rc):
-				if g_conf.has_key('email'):
-					os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
-					os.system('sed -i "s/poll\s.*/poll pop.%s with protocol pop3/"' % domain)
+				for line in fileinput.input(rc, 1):
+					#os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
+					#os.system('sed -i "s/poll\s.*/poll pop.%s with protocol pop3/"' % domain)
+					s = line.split()
+					if len(s) > 0 and (s[0] == 'user'):
+						if g_conf.has_key('email'):
+							print line.replace(s[1], email),
 
-				if g_conf.has_key('epass'):
-					os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+					elif len(s) > 0 and (s[0] == 'poll'):
+						if g_conf.has_key('email'):
+							print line.replace(s[1], 'pop.%s' % domain),
 
-				os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
+					#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+					elif len(s) > 0 and (s[0] == 'password'):
+						if g_conf.has_key('epass'):
+							print line.replace(s[1], epass),
+
+					else:
+						print line,
 
 				continue
 
@@ -100,9 +123,15 @@ def setup_email(distrib, version, group):
 			fd.close()
 		elif pkg == "mutt":
 			if os.path.exists(rc):
-				if g_conf.has_key('email'):
-					os.system('sed -i "s/my_hdr\s\+From:.*/my_hdr From: %s/" %s' % (email, rc))
+				for line in fileinput.input(rc, 1):
+					#os.system('sed -i "s/my_hdr\s\+From:.*/my_hdr From: %s/" %s' % (email, rc))
 					#os.system('sed -i "s/my_hdr\s\+Reply-To:.*/my_hdr Reply-To: %s/" %s' % (email, rc))
+					s = line.split()
+					if len(s) > 0 and (s[0] == 'my_hdr'):
+						if g_conf.has_key('email'):
+							print line.replace(s[2], email),
+					else:
+						print line,
 
 				continue
 
@@ -247,7 +276,7 @@ def do_install(distrib, version, curr_arch, install_list):
 			install = dist_node.attrib['install']
 
 			if upgrade != '':
-				os.system('sudo ' + upgrade)
+				#os.system('sudo ' + upgrade)
 				print
 
 			release_list = dist_node.getchildren()
