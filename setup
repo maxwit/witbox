@@ -266,13 +266,11 @@ def do_install(distrib, version, curr_arch, install_list):
 
 def config():
 	g_conf['name'] = get_user_info()
-	g_conf['apps'] = 'ALL'
 
-def setup():
+def setup(apps):
 	distrib = platform.dist()[0].lower()
 	version = platform.dist()[1].lower()
 	arch = platform.processor()
-	apps = re.split('\s+', g_conf['apps'])
 
 	do_install(distrib, version, arch, apps);
 
@@ -298,9 +296,14 @@ def main():
 	if opts.epass != None:
 		g_conf['epass'] = opts.epass
 
+	if len(args) != 0:
+		apps  = args
+	else:
+		apps  = ['ALL']
+
 	config()
 
-	setup()
+	setup(apps)
 
 	populate_tree('tree/tree.xml')
 
