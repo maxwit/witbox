@@ -141,7 +141,7 @@ class setup:
 				fd.write('MAILDIR=$HOME/Mail\n')
 				fd.write('DEFAULT=$MAILDIR/Inbox/\n')
 				fd.close()
-			elif pkg == "mutt":
+			elif pkg == 'mutt':
 				if os.path.exists(rc):
 					for line in fileinput.input(rc, 1):
 						#os.system('sed -i "s/my_hdr\s\+From:.*/my_hdr From: %s/" %s' % (email, rc))
@@ -233,7 +233,7 @@ class setup:
 
 	def traverse(self, node, path):
 		if not os.path.exists(path):
-			print "creating \"%s\"" % path
+			print 'creating "%s"' % path
 			os.mkdir(path)
 		#else:
 		#	print "skipping \"%s\"" % path
@@ -342,17 +342,17 @@ class setup:
 def main(setup):
 	parser = OptionParser()
 	parser.add_option('-m', '--email', dest='email',
-					  help="E-mail Account")
+					  help='E-mail Account')
 	parser.add_option('-p', '--epass', dest='epass',
-					  help="E-mail Password")
+					  help='E-mail Password')
 	parser.add_option('-v', '--version', dest='version',
 					  default=False, action='store_true',
-					  help="show PowerTool version and exit")
+					  help='show PowerTool version and exit')
 
 	(opts, args) = parser.parse_args()
 
 	if opts.version:
-		print "  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)" % "v3.4-beta"
+		print '  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)' % 'v3.4-beta'
 		exit()
 
 	if opts.email != None:
@@ -374,7 +374,7 @@ def main(setup):
 
 	exit()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	setup = setup()
 	if setup.get_user() == 'root':
 		print 'cannot run as root!'
