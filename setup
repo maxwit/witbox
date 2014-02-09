@@ -8,327 +8,338 @@ from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
 
-# fixme
-g_home = ''
-g_user = ''
-g_conf = {}
+class setup:
+	# fixme!
+	def __init__(self):
+		self.user = os.getenv('USER')
+		self.home = os.getenv('HOME')
+		self.conf = {}
 
-# fixme!
-def setup_email(distrib, version, group):
-	name = g_conf['name']
-	# host = 'smtp.' + domain
-	now = date.today()
-	term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
+	def get_user(self):
+		return self.user
 
-	if g_conf.has_key('email'):
-		email = g_conf['email']
-	else:
-		email = name_to_mail(name)
+	def set_email(self, email):
+		self.conf['email'] = email
 
-	if g_conf.has_key('epass'):
-		epass = g_conf['epass']
-	else:
-		epass = 'MW%s' % term
+	def set_epass(self, epass):
+		self.conf['epass'] = epass
 
-	domain = email.split('@')[1]
+	def setup_email(self, distrib, version, group):
+		name = self.conf['name']
+		# host = 'smtp.' + domain
+		now = date.today()
+		term = "cs%d%d" % (now.year % 100, (now.month + 1) / 2)
 
-	maildir = 'Mail'
-	if not os.path.exists(g_home + '/' + maildir):
-		os.mkdir(g_home + '/' + maildir)
-
-	for pkg in group:
-		rc = '%s/.%src' % (g_home, pkg)
-
-		if os.path.exists(rc):
-			if not g_conf.has_key('email') and not g_conf.has_key('epass'):
-				continue
-			print 'updating %src ...' % pkg
+		if self.conf.has_key('email'):
+			email = self.conf['email']
 		else:
-			print 'generating %src ...' % pkg
+			email = self.name_to_mail(name)
 
-		if pkg == 'msmtp':
-			if os.path.exists(rc):
-				for line in fileinput.input(rc, 1):
-					#os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
-					#os.system('sed -i "s/from\s.*/from %s/" %s' % (email, rc))
-					s = line.split()
-					if len(s) > 0 and (s[0] == 'user' or s[0] == 'from'):
-						if g_conf.has_key('email'):
-							print line.replace(s[1], email),
-						else:
-							print line,
-
-					#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
-					elif len(s) > 0 and (s[0] == 'password'):
-						if g_conf.has_key('epass'):
-							print line.replace(s[1], epass),
-						else:
-							print line,
-
-					#os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
-					elif len(s) > 0 and (s[0] == 'host'):
-						print line.replace(s[1], 'smtp.%s' % domain),
-
-					else:
-						print line,
-
-				continue
-
-			fd = open(rc, 'w+')
-			fd.write('defaults\n\n')
-			fd.write('account %s\n' % domain)
-			fd.write('host smtp.%s\n' % domain)
-			fd.write('user %s\n' % email)
-			fd.write('from %s\n' % email)
-			fd.write('password %s\n' % epass)
-			fd.write('auth login\n\n')
-			fd.write('account default: %s' % domain)
-			fd.close()
-		elif pkg == 'fetchmail':
-			if os.path.exists(rc):
-				for line in fileinput.input(rc, 1):
-					#os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
-					#os.system('sed -i "s/poll\s.*/poll pop.%s with protocol pop3/"' % domain)
-					s = line.split()
-					if len(s) > 0 and (s[0] == 'user'):
-						if g_conf.has_key('email'):
-							print line.replace(s[1], email),
-						else:
-							print line,
-
-					elif len(s) > 0 and (s[0] == 'poll'):
-						if g_conf.has_key('email'):
-							print line.replace(s[1], 'pop.%s' % domain),
-						else:
-							print line,
-
-					#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
-					elif len(s) > 0 and (s[0] == 'password'):
-						if g_conf.has_key('epass'):
-							print line.replace(s[1], epass),
-						else:
-							print line,
-
-					else:
-						print line,
-
-				continue
-
-			fd = open(rc, 'w+')
-			fd.write('set daemon 600\n')
-			fd.write('poll pop.%s with protocol pop3\n' % domain)
-			fd.write('uidl\n')
-			fd.write('user "%s"\n' % email)
-			fd.write('password "%s"\n' % epass)
-			fd.write('keep\n')
-			fd.write('mda "/usr/bin/procmail -d %T"\n')
-			fd.close()
-		elif pkg == 'procmail':
-			if os.path.exists(rc):
-				continue
-
-			fd = open(rc, 'w+')
-			fd.write('MAILDIR=$HOME/Mail\n')
-			fd.write('DEFAULT=$MAILDIR/Inbox/\n')
-			fd.close()
-		elif pkg == "mutt":
-			if os.path.exists(rc):
-				for line in fileinput.input(rc, 1):
-					#os.system('sed -i "s/my_hdr\s\+From:.*/my_hdr From: %s/" %s' % (email, rc))
-					#os.system('sed -i "s/my_hdr\s\+Reply-To:.*/my_hdr Reply-To: %s/" %s' % (email, rc))
-					s = line.split()
-					if len(s) > 0 and (s[0] == 'my_hdr'):
-						if g_conf.has_key('email'):
-							print line.replace(s[2], email),
-						else:
-							print line,
-					else:
-						print line,
-
-				continue
-
-			fd = open(rc, 'w+')
-			# smtp setting
-			fd.write('# smtp setting\n')
-			fd.write('set sendmail = /usr/bin/msmtp\n')
-			fd.write('# set use_from = yes\n')
-			fd.write('# set envelope_from = yes\n')
-			fd.write('\n')
-			# general setting
-			fd.write('# general setting\n')
-			fd.write('my_hdr From: %s\n' % email)
-			#fd.write('my_hdr Reply-To: %s\n' % mail)
-			#fd.write('my_hdr Reply-To: \"%s\" <%s>\n' % (name, mail))
-			fd.write('\n')
-
-			fd_rc = open('app/mutt/muttrc.common')
-			for line in fd_rc:
-				fd.write(line)
-			fd_rc.close()
-
-			fd.close()
-
-			# signature
-			fd = open(g_home + '/Mail/signature', 'w+')
-			fd.write('Regards,\n%s\n' % name)
-			fd.close()
+		if self.conf.has_key('epass'):
+			epass = self.conf['epass']
 		else:
-			print '%s not configured' % pkg
-			continue
+			epass = 'MW%s' % term
 
-		os.chmod(rc, 0600)
+		domain = email.split('@')[1]
 
-def name_to_mail(name):
-	return name.lower().replace(' ', '.') + '@maxwit.com'
+		maildir = 'Mail'
+		if not os.path.exists(self.home + '/' + maildir):
+			os.mkdir(self.home + '/' + maildir)
 
-def setup_git(distrib, version, group):
-	fname = g_conf['name']
-	if g_conf.has_key('email'):
-		email = g_conf['email']
-	else:
-		email = name_to_mail(fname)
+		for pkg in group:
+			rc = '%s/.%src' % (self.home, pkg)
 
-	# fixme
-	#os.system('app/git/setup.sh "%s" "%s"' % (fname, email))
+			if os.path.exists(rc):
+				if not self.conf.has_key('email') and not self.conf.has_key('epass'):
+					continue
+				print 'updating %src ...' % pkg
+			else:
+				print 'generating %src ...' % pkg
 
-	rc = '%s/.gitconfig' % (g_home)
-	fd_rc = open(rc, 'w+')
-	fd_rc.write('[color]\n')
-	fd_rc.write('\tui = auto\n')
-	fd_rc.write('[user]\n')
-	fd_rc.write('\tname = %s\n' % fname)
-	fd_rc.write('\temail = %s\n' % email)
-	fd_rc.write('[sendemail]\n')
-	fd_rc.write('\tsmtpserver = /usr/bin/msmtp\n')
-	fd_rc.write('[push]\n')
-	fd_rc.write('\tdefault = matching')
-	fd_rc.close()
+			if pkg == 'msmtp':
+				if os.path.exists(rc):
+					for line in fileinput.input(rc, 1):
+						#os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
+						#os.system('sed -i "s/from\s.*/from %s/" %s' % (email, rc))
+						s = line.split()
+						if len(s) > 0 and (s[0] == 'user' or s[0] == 'from'):
+							if self.conf.has_key('email'):
+								print line.replace(s[1], email),
+							else:
+								print line,
 
-def setup_vim(distrib, version, group):
-	print 'configuring vimrc ...'
-	dst = open(g_home + '/.vimrc', 'w+')
-	src = open('app/vim/vimrc')
-	for line in src:
-		dst.write(line)
-	src.close()
-	dst.close()
+						#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+						elif len(s) > 0 and (s[0] == 'password'):
+							if self.conf.has_key('epass'):
+								print line.replace(s[1], epass),
+							else:
+								print line,
 
-def setup_serial(distrib, version, group):
-	dst = open(g_home + '/.kermrc', 'w+')
-	src = open('app/kermit/kermrc')
-	for line in src:
-		dst.write(line)
-	src.close()
-	dst.close()
+						#os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
+						elif len(s) > 0 and (s[0] == 'host'):
+							print line.replace(s[1], 'smtp.%s' % domain),
 
-def traverse(node, path):
-	if not os.path.exists(path):
-		print "creating \"%s\"" % path
-		os.mkdir(path)
-	#else:
-	#	print "skipping \"%s\"" % path
-	lst = node.getchildren()
-	for n in lst:
-		traverse(n, path + '/' + n.attrib['name'])
+						else:
+							print line,
 
-# population the target directory
-def populate_tree(fn):
-	tree = ElementTree.parse(fn)
-	root = tree.getroot()
+					continue
 
-	top = '/' + root.attrib['name']
+				fd = open(rc, 'w+')
+				fd.write('defaults\n\n')
+				fd.write('account %s\n' % domain)
+				fd.write('host smtp.%s\n' % domain)
+				fd.write('user %s\n' % email)
+				fd.write('from %s\n' % email)
+				fd.write('password %s\n' % epass)
+				fd.write('auth login\n\n')
+				fd.write('account default: %s' % domain)
+				fd.close()
+			elif pkg == 'fetchmail':
+				if os.path.exists(rc):
+					for line in fileinput.input(rc, 1):
+						#os.system('sed -i "s/user\s.*/user %s/" %s' % (email, rc))
+						#os.system('sed -i "s/poll\s.*/poll pop.%s with protocol pop3/"' % domain)
+						s = line.split()
+						if len(s) > 0 and (s[0] == 'user'):
+							if self.conf.has_key('email'):
+								print line.replace(s[1], email),
+							else:
+								print line,
 
-	mounted = False
-	fd_chk = open('/proc/mounts')
-	for line in fd_chk:
-		mount = line.split(' ')
-		if mount[1] == top:
-			mounted = True
-			break
-	fd_chk.close()
+						elif len(s) > 0 and (s[0] == 'poll'):
+							if self.conf.has_key('email'):
+								print line.replace(s[1], 'pop.%s' % domain),
+							else:
+								print line,
 
-	if mounted == False:
-		print '"%s" NOT mounted!' % top
-		exit()
+						#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
+						elif len(s) > 0 and (s[0] == 'password'):
+							if self.conf.has_key('epass'):
+								print line.replace(s[1], epass),
+							else:
+								print line,
 
-	if not os.access(top, 7):
-		print 'Fail to access "' + top + '", permission denied!'
-		exit()
-		#os.system('sudo chown $USER ' + top) # fixme!
+						else:
+							print line,
 
-	traverse(root, top)
+					continue
 
-def get_user_info():
-	fd_rept = open('/etc/passwd', 'r')
+				fd = open(rc, 'w+')
+				fd.write('set daemon 600\n')
+				fd.write('poll pop.%s with protocol pop3\n' % domain)
+				fd.write('uidl\n')
+				fd.write('user "%s"\n' % email)
+				fd.write('password "%s"\n' % epass)
+				fd.write('keep\n')
+				fd.write('mda "/usr/bin/procmail -d %T"\n')
+				fd.close()
+			elif pkg == 'procmail':
+				if os.path.exists(rc):
+					continue
 
-	for line in fd_rept:
-		account = line.split(':')
-		user_name = account[0]
-		if user_name == g_user:
-			full_name = account[4].split(',')[0]
-			break
+				fd = open(rc, 'w+')
+				fd.write('MAILDIR=$HOME/Mail\n')
+				fd.write('DEFAULT=$MAILDIR/Inbox/\n')
+				fd.close()
+			elif pkg == "mutt":
+				if os.path.exists(rc):
+					for line in fileinput.input(rc, 1):
+						#os.system('sed -i "s/my_hdr\s\+From:.*/my_hdr From: %s/" %s' % (email, rc))
+						#os.system('sed -i "s/my_hdr\s\+Reply-To:.*/my_hdr Reply-To: %s/" %s' % (email, rc))
+						s = line.split()
+						if len(s) > 0 and (s[0] == 'my_hdr'):
+							if self.conf.has_key('email'):
+								print line.replace(s[2], email),
+							else:
+								print line,
+						else:
+							print line,
 
-	fd_rept.close()
+					continue
 
-	return full_name
+				fd = open(rc, 'w+')
+				# smtp setting
+				fd.write('# smtp setting\n')
+				fd.write('set sendmail = /usr/bin/msmtp\n')
+				fd.write('# set use_from = yes\n')
+				fd.write('# set envelope_from = yes\n')
+				fd.write('\n')
+				# general setting
+				fd.write('# general setting\n')
+				fd.write('my_hdr From: %s\n' % email)
+				#fd.write('my_hdr Reply-To: %s\n' % mail)
+				#fd.write('my_hdr Reply-To: \"%s\" <%s>\n' % (name, mail))
+				fd.write('\n')
 
-def do_install(distrib, version, curr_arch, install_list):
-	upgrade  = ''
-	install  = ''
-	tree = ElementTree.parse(r'app/apps.xml')
-	root = tree.getroot()
-	dist_list = root.getchildren()
+				fd_rc = open('app/mutt/muttrc.common')
+				for line in fd_rc:
+					fd.write(line)
+				fd_rc.close()
 
-	do_setup = {'mutt': setup_email, 'git': setup_git, 'vim': setup_vim,
-	'serial': setup_serial}
+				fd.close()
 
-	for dist_node in dist_list:
-		if dist_node.attrib['name'] == distrib:
-			upgrade = dist_node.attrib['upgrade']
-			install = dist_node.attrib['install']
+				# signature
+				fd = open(self.home + '/Mail/signature', 'w+')
+				fd.write('Regards,\n%s\n' % name)
+				fd.close()
+			else:
+				print '%s not configured' % pkg
+				continue
 
-			if upgrade != '':
-				#os.system('sudo ' + upgrade)
-				print
+			os.chmod(rc, 0600)
 
-			release_list = dist_node.getchildren()
-			for release in release_list:
-				ver = release.attrib['version']
-				if ver == 'all' or ver == version:
-					for pkg in install_list:
-						for app_node in release.getchildren():
-							if curr_arch != app_node.get('arch', curr_arch):
-								continue
+	def name_to_mail(self, name):
+		return name.lower().replace(' ', '.') + '@maxwit.com'
 
-							members = re.split('\s+', app_node.text)
-							if install_list[0] == 'ALL' or pkg in members:
-								group = app_node.get('group')
-								#attr_post = app_node.get('post')
+	def setup_git(self, distrib, version, group):
+		fname = self.conf['name']
+		if self.conf.has_key('email'):
+			email = self.conf['email']
+		else:
+			email = self.name_to_mail(fname)
 
-								print 'Installing %s:\n  %s' % (group.upper(), app_node.text)
-								os.system('sudo ' + install + ' ' +  app_node.text)
+		# fixme
+		#os.system('app/git/setup.sh "%s" "%s"' % (fname, email))
 
-								#if attr_post != None:
-								#	os.system('cd app/%s && ./%s' % (group, attr_post))
-								if do_setup.has_key(group):
-									do_setup[group](distrib, version, members)
+		rc = '%s/.gitconfig' % (self.home)
+		fd_rc = open(rc, 'w+')
+		fd_rc.write('[color]\n')
+		fd_rc.write('\tui = auto\n')
+		fd_rc.write('[user]\n')
+		fd_rc.write('\tname = %s\n' % fname)
+		fd_rc.write('\temail = %s\n' % email)
+		fd_rc.write('[sendemail]\n')
+		fd_rc.write('\tsmtpserver = /usr/bin/msmtp\n')
+		fd_rc.write('[push]\n')
+		fd_rc.write('\tdefault = matching')
+		fd_rc.close()
 
-								print
+	def setup_vim(self, distrib, version, group):
+		print 'configuring vimrc ...'
+		dst = open(self.home + '/.vimrc', 'w+')
+		src = open('app/vim/vimrc')
+		for line in src:
+			dst.write(line)
+		src.close()
+		dst.close()
 
-					if ver == version:
-						return
+	def setup_serial(self, distrib, version, group):
+		dst = open(self.home + '/.kermrc', 'w+')
+		src = open('app/kermit/kermrc')
+		for line in src:
+			dst.write(line)
+		src.close()
+		dst.close()
 
-def config():
-	g_conf['name'] = get_user_info()
+	def traverse(self, node, path):
+		if not os.path.exists(path):
+			print "creating \"%s\"" % path
+			os.mkdir(path)
+		#else:
+		#	print "skipping \"%s\"" % path
+		lst = node.getchildren()
+		for n in lst:
+			self.traverse(n, path + '/' + n.attrib['name'])
 
-def setup(apps):
-	distrib = platform.dist()[0].lower()
-	version = platform.dist()[1].lower()
-	arch = platform.processor()
+	# population the target directory
+	def populate_tree(self, fn):
+		tree = ElementTree.parse(fn)
+		root = tree.getroot()
 
-	do_install(distrib, version, arch, apps);
+		top = '/' + root.attrib['name']
 
-def main():
+		mounted = False
+		fd_chk = open('/proc/mounts')
+		for line in fd_chk:
+			mount = line.split(' ')
+			if mount[1] == top:
+				mounted = True
+				break
+		fd_chk.close()
+
+		if mounted == False:
+			print '"%s" NOT mounted!' % top
+			exit()
+
+		if not os.access(top, 7):
+			print 'Fail to access "' + top + '", permission denied!'
+			exit()
+			#os.system('sudo chown $USER ' + top) # fixme!
+
+		self.traverse(root, top)
+
+	def get_user_info(self):
+		fd_rept = open('/etc/passwd', 'r')
+		full_name = ''
+
+		for line in fd_rept:
+			account = line.split(':')
+			user_name = account[0]
+			if user_name == self.user:
+				full_name = account[4].split(',')[0]
+				break
+
+		fd_rept.close()
+
+		return full_name
+
+	def do_install(self, distrib, version, curr_arch, install_list):
+		upgrade  = ''
+		install  = ''
+		tree = ElementTree.parse(r'app/apps.xml')
+		root = tree.getroot()
+		dist_list = root.getchildren()
+
+		do_setup = {'mutt': self.setup_email, 'git': self.setup_git, 'vim': self.setup_vim,
+		'serial': self.setup_serial}
+
+		for dist_node in dist_list:
+			if dist_node.attrib['name'] == distrib:
+				upgrade = dist_node.attrib['upgrade']
+				install = dist_node.attrib['install']
+
+				if upgrade != '':
+					#os.system('sudo ' + upgrade)
+					print
+
+				release_list = dist_node.getchildren()
+				for release in release_list:
+					ver = release.attrib['version']
+					if ver == 'all' or ver == version:
+						for pkg in install_list:
+							for app_node in release.getchildren():
+								if curr_arch != app_node.get('arch', curr_arch):
+									continue
+
+								members = re.split('\s+', app_node.text)
+								if install_list[0] == 'ALL' or pkg in members:
+									group = app_node.get('group')
+									#attr_post = app_node.get('post')
+
+									print 'Installing %s:\n  %s' % (group.upper(), app_node.text)
+									os.system('sudo ' + install + ' ' +  app_node.text)
+
+									#if attr_post != None:
+									#	os.system('cd app/%s && ./%s' % (group, attr_post))
+									if do_setup.has_key(group):
+										do_setup[group](distrib, version, members)
+
+									print
+
+						if ver == version:
+							return
+
+	def config(self):
+		self.conf['name'] = self.get_user_info()
+
+	def setup(self, apps):
+		distrib = platform.dist()[0].lower()
+		version = platform.dist()[1].lower()
+		arch = platform.processor()
+
+		self.do_install(distrib, version, arch, apps);
+
+def main(setup):
 	parser = OptionParser()
 	parser.add_option('-m', '--email', dest='email',
 					  help="E-mail Account")
@@ -345,29 +356,28 @@ def main():
 		exit()
 
 	if opts.email != None:
-		g_conf['email'] = opts.email
+		setup.set_email(opts.email)
 
 	if opts.epass != None:
-		g_conf['epass'] = opts.epass
+		setup.set_epass(opts.epass)
 
 	if len(args) != 0:
 		apps  = args
 	else:
 		apps  = ['ALL']
 
-	config()
+	setup.config()
 
-	setup(apps)
+	setup.setup(apps)
 
-	populate_tree('tree/tree.xml')
+	setup.populate_tree('tree/tree.xml')
 
 	exit()
 
 if __name__ == "__main__":
-	g_user = os.getenv('USER')
-	g_home = os.getenv('HOME')
-	if g_user == 'root':
+	setup = setup()
+	if setup.get_user() == 'root':
 		print 'cannot run as root!'
 		exit()
 
-	main()
+	main(setup)
