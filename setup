@@ -55,11 +55,15 @@ def setup_email(distrib, version, group):
 					if len(s) > 0 and (s[0] == 'user' or s[0] == 'from'):
 						if g_conf.has_key('email'):
 							print line.replace(s[1], email),
+						else:
+							print line,
 
 					#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
 					elif len(s) > 0 and (s[0] == 'password'):
 						if g_conf.has_key('epass'):
 							print line.replace(s[1], epass),
+						else:
+							print line,
 
 					#os.system('sed -i "s/host\s.*/host smtp.%s/" %s' % (domain, rc))
 					elif len(s) > 0 and (s[0] == 'host'):
@@ -89,15 +93,21 @@ def setup_email(distrib, version, group):
 					if len(s) > 0 and (s[0] == 'user'):
 						if g_conf.has_key('email'):
 							print line.replace(s[1], email),
+						else:
+							print line,
 
 					elif len(s) > 0 and (s[0] == 'poll'):
 						if g_conf.has_key('email'):
 							print line.replace(s[1], 'pop.%s' % domain),
+						else:
+							print line,
 
 					#os.system('sed -i "s/password\s.*/password %s/" %s' % (epass, rc))
 					elif len(s) > 0 and (s[0] == 'password'):
 						if g_conf.has_key('epass'):
 							print line.replace(s[1], epass),
+						else:
+							print line,
 
 					else:
 						print line,
@@ -130,6 +140,8 @@ def setup_email(distrib, version, group):
 					if len(s) > 0 and (s[0] == 'my_hdr'):
 						if g_conf.has_key('email'):
 							print line.replace(s[2], email),
+						else:
+							print line,
 					else:
 						print line,
 
