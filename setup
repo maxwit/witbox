@@ -290,8 +290,12 @@ class setup:
 		root = tree.getroot()
 		dist_list = root.getchildren()
 
-		do_setup = {'mutt': self.setup_email, 'git': self.setup_git, 'vim': self.setup_vim,
-		'serial': self.setup_serial}
+		do_setup = {}
+		tree_conf = ElementTree.parse(r'app/config.xml')
+		root_conf = tree_conf.getroot()
+		list_conf = root_conf.getchildren()
+		for node in list_conf:
+			do_setup[node.attrib['name']] = node.text
 
 		for dist_node in dist_list:
 			if dist_node.attrib['name'] == distrib:
@@ -322,7 +326,7 @@ class setup:
 									#if attr_post != None:
 									#	os.system('cd app/%s && ./%s' % (group, attr_post))
 									if do_setup.has_key(group):
-										do_setup[group](distrib, version, members)
+										getattr(self, do_setup[group])(distrib, version, members)
 
 									print
 
