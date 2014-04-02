@@ -8,21 +8,14 @@ from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
 
+version = '4.2'
+
 class setup:
 	# fixme!
-	def __init__(self):
-		self.user = os.getenv('USER')
+	def __init__(self, user):
+		self.user = user
 		self.home = os.getenv('HOME')
 		self.conf = {}
-
-	def get_user(self):
-		return self.user
-
-	def set_email(self, email):
-		self.conf['email'] = email
-
-	def set_epass(self, epass):
-		self.conf['epass'] = epass
 
 	def setup_email(self, distrib, version, group):
 		name = self.conf['name']
@@ -333,8 +326,8 @@ class setup:
 						if ver == version:
 							return
 
-	def config(self):
-		self.conf['name'] = self.get_user_info()
+	def config(self, key, val):
+		self.conf[key] = val
 
 	def setup(self, apps):
 		distrib = platform.dist()[0].lower()
@@ -343,7 +336,14 @@ class setup:
 
 		self.do_install(distrib, version, arch, apps);
 
-def main(setup):
+if __name__ == '__main__':
+	user = os.getenv('USER')
+	if user == 'root':
+		print 'cannot run as root!'
+		exit()
+
+	s = setup(user)
+
 	parser = OptionParser()
 	parser.add_option('-m', '--email', dest='email',
 					  help='E-mail Account')
@@ -356,32 +356,21 @@ def main(setup):
 	(opts, args) = parser.parse_args()
 
 	if opts.version:
-		print '  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)' % 'v3.4-beta'
+		print '  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)' % version
 		exit()
 
 	if opts.email != None:
-		setup.set_email(opts.email)
+		s.config('email', opts.email)
 
 	if opts.epass != None:
-		setup.set_epass(opts.epass)
+		s.config('epass', opts.epass)
 
 	if len(args) != 0:
 		apps  = args
 	else:
 		apps  = ['ALL']
 
-	setup.config()
+	s.config('name', s.get_user_info())
+	s.setup(apps)
 
-	setup.setup(apps)
-
-	setup.populate_tree('tree/tree.xml')
-
-	exit()
-
-if __name__ == '__main__':
-	setup = setup()
-	if setup.get_user() == 'root':
-		print 'cannot run as root!'
-		exit()
-
-	main(setup)
+	#s.populate_tree('tree/tree.xml')
