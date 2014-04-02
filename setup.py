@@ -10,14 +10,14 @@ from datetime import date
 
 version = '4.2'
 
-class setup:
+class powertool:
 	# fixme!
 	def __init__(self, user):
 		self.user = user
 		self.home = os.getenv('HOME')
 		self.conf = {}
 
-	def setup_email(self, distrib, version, group):
+	def setup_mutt(self, distrib, version, group):
 		name = self.conf['name']
 		# host = 'smtp.' + domain
 		now = date.today()
@@ -208,7 +208,6 @@ class setup:
 		fd_rc.close()
 
 	def setup_vim(self, distrib, version, group):
-		print 'configuring vimrc ...'
 		dst = open(self.home + '/.vimrc', 'w+')
 		src = open('app/vim/vimrc')
 		for line in src:
@@ -296,13 +295,6 @@ class setup:
 		root = tree.getroot()
 		dist_list = root.getchildren()
 
-		do_setup = {}
-		tree_conf = ElementTree.parse(r'app/config.xml')
-		root_conf = tree_conf.getroot()
-		list_conf = root_conf.getchildren()
-		for node in list_conf:
-			do_setup[node.attrib['name']] = node.text
-
 		for dist_node in dist_list:
 			if dist_node.attrib['name'] == distrib:
 				upgrade = dist_node.attrib['upgrade']
@@ -316,28 +308,32 @@ class setup:
 				for release in release_list:
 					ver = release.attrib['version']
 					if ver == 'all' or ver == version:
-						for pkg in install_list:
-							for app_node in release.getchildren():
-								if curr_arch != app_node.get('arch', curr_arch):
-									continue
-
-								members = re.split('\s+', app_node.text)
-								if install_list[0] == 'ALL' or pkg in members:
-									group = app_node.get('group')
-									#attr_post = app_node.get('post')
-
-									print 'Installing %s:\n  %s' % (group.upper(), app_node.text)
-									os.system('sudo ' + install + ' ' +  app_node.text)
-
-									#if attr_post != None:
-									#	os.system('cd app/%s && ./%s' % (group, attr_post))
-									if do_setup.has_key(group):
-										getattr(self, do_setup[group])(distrib, version, members)
-
-									print
-
+						self.distri_install(curr_arch, distrib, version, install, install_list, release.getchildren())
 						if ver == version:
 							return
+
+	def distri_install(self, arch, distrib, version, install, install_list, release_list):
+		for pkg in install_list:
+			for app_node in release_list:
+				if arch != app_node.get('arch', arch):
+					continue
+
+				members = re.split('\s+', app_node.text)
+				if install_list[0] == 'ALL' or pkg in members:
+					group = app_node.get('group')
+					#attr_post = app_node.get('post')
+
+					print 'Installing %s:\n  %s' % (group.upper(), app_node.text)
+					os.system('sudo ' + install + ' ' +  app_node.text)
+
+					#if attr_post != None:
+					#	os.system('cd app/%s && ./%s' % (group, attr_post))
+					config = getattr(self, 'setup_'+group, None)
+					if config != None:
+						print 'Configuring %s ...' % group
+						config(distrib, version, members)
+
+					print
 
 	def config(self, key, val):
 		self.conf[key] = val
@@ -355,7 +351,7 @@ if __name__ == '__main__':
 		print 'cannot run as root!'
 		exit()
 
-	s = setup(user)
+	power = powertool(user)
 
 	parser = OptionParser()
 	parser.add_option('-m', '--email', dest='email',
@@ -373,18 +369,16 @@ if __name__ == '__main__':
 		exit()
 
 	if opts.email != None:
-		s.config('email', opts.email)
+		power.config('email', opts.email)
 
 	if opts.epass != None:
-		s.config('epass', opts.epass)
+		power.config('epass', opts.epass)
 
 	if len(args) != 0:
 		apps  = args
 	else:
 		apps  = ['ALL']
 
-	s.config('name', s.get_user_info())
-
-	s.setup(apps)
-
-	s.populate()
+	power.config('name', power.get_user_info())
+	power.setup(apps)
+	power.populate()

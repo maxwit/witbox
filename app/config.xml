@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<apps>
-	<app name="mutt">setup_email</app>
-	<app name="git">setup_git</app>
-	<app name="vim">setup_vim</app>
-	<app name="serial">setup_serial</app>
-</apps>
