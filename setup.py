@@ -264,6 +264,12 @@ class setup:
 				print 'Fail to access "' + top + '", permission denied!'
 				exit()
 
+			readme = top + '/readme'
+			if not os.path.exists(readme):
+				fd = open(readme, 'w+')
+				fd.write('MaxWit PowerTool v%s\n' % version)
+				fd.close()
+
 			print 'Populating %s ...' % top
 			self.traverse(root, top)
 			print

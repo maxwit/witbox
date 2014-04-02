@@ -1,8 +1,8 @@
 #!/bin/sh
 
 TMP_DIR=`mktemp -d`
-#SERVER=192.168.0.1
-SERVER=conke.oicp.net
+SERVER=192.168.1.1
+#SERVER=conke.oicp.net
 
 wget -r -l 1 -A ttf,ttc,TTF,TTC -P $TMP_DIR --cut-dirs=9 http://$SERVER/pub/utility/fonts/ && \
 sudo mkdir -vp /usr/share/fonts/truetype/ && \
