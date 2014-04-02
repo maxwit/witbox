@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<dir name="$HOME" version="3.0">
+	<dir name="build">
+		<dir name="c-like"/>
+		<dir name="shell"/>
+		<dir name="python"/>
+	</dir>
+	<dir name="document">
+	</dir>
+	<dir name="project">
+	</dir>
+</dir>

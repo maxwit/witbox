@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os,sys,re
+import os, sys, re
 import shutil
 import platform
 import fileinput
@@ -235,31 +235,38 @@ class setup:
 			self.traverse(n, path + '/' + n.attrib['name'])
 
 	# population the target directory
-	def populate_tree(self, fn):
-		tree = ElementTree.parse(fn)
-		root = tree.getroot()
+	def populate(self):
+		for fn in ['home.xml', 'maxwit.xml']:
+			tree = ElementTree.parse('tree/'+fn)
+			root = tree.getroot()
 
-		top = '/' + root.attrib['name']
+			top = root.attrib['name'].strip()
+			if top[0] == '$':
+				top = os.getenv(top[1:])
+				if top == None:
+					print '"%s" does NOT exists!' % top
+					exit()
+			elif top == '/maxwit':
+				mounted = False
+				fd_chk = open('/proc/mounts')
+				for line in fd_chk:
+					mount = line.split(' ')
+					if mount[1] == top:
+						mounted = True
+						break
+				fd_chk.close()
 
-		mounted = False
-		fd_chk = open('/proc/mounts')
-		for line in fd_chk:
-			mount = line.split(' ')
-			if mount[1] == top:
-				mounted = True
-				break
-		fd_chk.close()
+				if mounted == False:
+					print '"%s" NOT mounted!' % top
+					exit()
 
-		if mounted == False:
-			print '"%s" NOT mounted!' % top
-			exit()
+			if not os.access(top, 7):
+				print 'Fail to access "' + top + '", permission denied!'
+				exit()
 
-		if not os.access(top, 7):
-			print 'Fail to access "' + top + '", permission denied!'
-			exit()
-			#os.system('sudo chown $USER ' + top) # fixme!
-
-		self.traverse(root, top)
+			print 'Populating %s ...' % top
+			self.traverse(root, top)
+			print
 
 	def get_user_info(self):
 		fd_rept = open('/etc/passwd', 'r')
@@ -356,7 +363,7 @@ if __name__ == '__main__':
 	(opts, args) = parser.parse_args()
 
 	if opts.version:
-		print '  MaxWit PowerTool %s (by MaxWit Software, http://www.maxwit.com)' % version
+		print '  PowerTool v%s (MaxWit Software, http://www.maxwit.com)' % version
 		exit()
 
 	if opts.email != None:
@@ -371,6 +378,7 @@ if __name__ == '__main__':
 		apps  = ['ALL']
 
 	s.config('name', s.get_user_info())
+
 	s.setup(apps)
 
-	#s.populate_tree('tree/tree.xml')
+	s.populate()

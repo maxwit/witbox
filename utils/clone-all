@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TOP_DIR="$HOME/maxwit"
+TOP_DIR="$HOME"
 SERVER="192.168.1.1"
 GITADMIN="gitolite-admin"
 
