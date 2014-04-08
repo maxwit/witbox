@@ -7,6 +7,9 @@ import fileinput
 from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
+import urllib
+import zipfile
+import tarfile
 
 version = '4.2'
 
@@ -223,26 +226,38 @@ class powertool:
 		src.close()
 		dst.close()
 
+	def extract_file(self, file, path, type):
+		print 'extract ' + file
+		if type == 'tar':
+			tfile = tarfile.open(file)
+			for tarinfo in tfile:
+				tfile.extract(tarinfo.name, path)
+			tfile.close()
+		elif type == 'zip':
+			zfile = zipfile.ZipFile(file,'r')
+			zfile.extractall(path)
+
 	def setup_eclipse(self, distrib, version, curr_arch):
 		path = '/maxwit/source'
 		if not os.path.exists(path):
 			os.mkdir(path)
 
-		file_name = ''
-		if curr_arch == 'x86_64':
-			file_name = 'eclipse_64.tar.gz'
-			url = 'http://mirrors.ustc.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk-x86_64.tar.gz'
-			os.system('wget ' + url + ' -O /maxwit/source/' + file_name)
-		else:
-			file_name = 'eclipse.tar.gz'
-			url = 'http://mirrors.neusoft.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk.tar.gz'
-			os.system('wget ' + url + ' -O /maxwit/source/' + file_name)
-
 		path = self.home + '/build/'
 		if not os.path.exists(path):
 			os.mkdir(path)
 
-		os.system('tar xvf /maxwit/source/' + file_name + ' -C ' + path)
+		file_name = ''
+		url = ''
+		if curr_arch == 'x86_64':
+			file_name = 'eclipse_64.tar.gz'
+			url = 'http://mirrors.ustc.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk-x86_64.tar.gz'
+		else:
+			file_name = 'eclipse.tar.gz'
+			url = 'http://mirrors.neusoft.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk.tar.gz'
+
+		urllib.urlretrieve(url, '/maxwit/source/' + file_name)
+		self.extract_file('/maxwit/source/' + file_name, path, 'tar')
+
 		fd_rc = open('/tmp/eclipse.desktop', 'w+')
 		fd_rc.write('[Desktop Entry]\n')
 		fd_rc.write('\tEncoding=UTF-8\n')
@@ -258,8 +273,9 @@ class powertool:
 		os.system('sudo cp /tmp/eclipse.desktop /usr/share/applications/')
 		os.system('sudo chmod u+x /usr/share/applications/eclipse.desktop')
 
-		os.system('wget http://jaist.dl.sourceforge.net/project/pydev/pydev/PyDev%203.4.1/PyDev%203.4.1.zip -O /maxwit/source/PyDev203.4.1.zip')
-		os.system('unzip /maxwit/source/PyDev203.4.1.zip -d ' + path + 'eclipse')
+		url = 'http://jaist.dl.sourceforge.net/project/pydev/pydev/PyDev%203.4.1/PyDev%203.4.1.zip'
+		urllib.urlretrieve(url, '/maxwit/source/PyDev203.4.1.zip')
+		self.extract_file('/maxwit/source/PyDev203.4.1.zip', path + 'eclipse', 'zip')
 
 	def traverse(self, node, path):
 		if not os.path.exists(path):
