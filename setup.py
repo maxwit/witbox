@@ -223,6 +223,30 @@ class powertool:
 		src.close()
 		dst.close()
 
+	def setup_eclipse(self, distrib, version, curr_arch):
+		path = '/maxwit/source'
+		if not os.path.exists(path):
+			os.mkdir(path)
+
+		file_name = ''
+		if curr_arch == 'x86_64':
+			file_name = 'eclipse_64.tar.gz'
+			url = 'http://mirrors.ustc.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk-x86_64.tar.gz'
+			os.system('wget ' + url + ' -O /maxwit/source/' + file_name)
+		else:
+			file_name = 'eclipse.tar.gz'
+			url = 'http://mirrors.neusoft.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk.tar.gz'
+			os.system('wget ' + url + ' -O /maxwit/source/' + file_name)
+
+		path = self.home + '/build/'
+		if not os.path.exists(path):
+			os.mkdir(path)
+
+		os.system('tar xvf /maxwit/source/' + file_name + ' -C ' + path)
+
+		os.system('wget http://jaist.dl.sourceforge.net/project/pydev/pydev/PyDev%203.4.1/PyDev%203.4.1.zip -O /maxwit/source/PyDev203.4.1.zip')
+		os.system('unzip /maxwit/source/PyDev203.4.1.zip -d ' + path + 'eclipse')
+
 	def traverse(self, node, path):
 		if not os.path.exists(path):
 			print 'creating "%s"' % path
@@ -303,6 +327,9 @@ class powertool:
 				if upgrade != '':
 					#os.system('sudo ' + upgrade)
 					print
+
+				if install_list[0] == 'ALL' or 'eclipse' in install_list:
+					self.setup_eclipse(distrib, version, curr_arch)
 
 				release_list = dist_node.getchildren()
 				for release in release_list:
