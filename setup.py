@@ -10,6 +10,7 @@ from datetime import date
 import urllib
 import zipfile
 import tarfile
+import shutil
 
 version = '4.2'
 
@@ -38,9 +39,9 @@ class powertool:
 
 		domain = email.split('@')[1]
 
-		maildir = 'Mail'
+		maildir = 'Mail/Inbox/cur'
 		if not os.path.exists(self.home + '/' + maildir):
-			os.mkdir(self.home + '/' + maildir)
+			os.makedirs(self.home + '/' + maildir)
 
 		for pkg in group:
 			rc = '%s/.%src' % (self.home, pkg)
@@ -255,7 +256,11 @@ class powertool:
 			file_name = 'eclipse.tar.gz'
 			url = 'http://mirrors.neusoft.edu.cn/eclipse/technology/epp/downloads/release/kepler/SR2/eclipse-jee-kepler-SR2-linux-gtk.tar.gz'
 
-		urllib.urlretrieve(url, '/maxwit/source/' + file_name)
+		if not os.path.exists('/maxwit/source/' + file_name):
+			urllib.urlretrieve(url, '/maxwit/source/' + file_name)
+		if os.path.exists(path + 'eclipse'):
+			shutil.rmtree(path + 'eclipse')
+
 		self.extract_file('/maxwit/source/' + file_name, path, 'tar')
 
 		fd_rc = open('/tmp/eclipse.desktop', 'w+')
@@ -273,8 +278,9 @@ class powertool:
 		os.system('sudo cp /tmp/eclipse.desktop /usr/share/applications/')
 		os.system('sudo chmod u+x /usr/share/applications/eclipse.desktop')
 
-		url = 'http://jaist.dl.sourceforge.net/project/pydev/pydev/PyDev%203.4.1/PyDev%203.4.1.zip'
-		urllib.urlretrieve(url, '/maxwit/source/PyDev203.4.1.zip')
+		if not os.path.exists('/maxwit/source/PyDev203.4.1.zip'):
+			url = 'http://jaist.dl.sourceforge.net/project/pydev/pydev/PyDev%203.4.1/PyDev%203.4.1.zip'
+			urllib.urlretrieve(url, '/maxwit/source/PyDev203.4.1.zip')
 		self.extract_file('/maxwit/source/PyDev203.4.1.zip', path + 'eclipse', 'zip')
 
 	def traverse(self, node, path):
