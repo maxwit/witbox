@@ -1,12 +1,11 @@
 #!/bin/sh
 
-TOP_DIR="$HOME"
 SERVER="192.168.1.1"
 GITADMIN="gitolite-admin"
 
 check_out()
 {
-	cd $TOP_DIR
+	cd
 
 	echo "$1:"
 
@@ -20,9 +19,7 @@ check_out()
 check_out ${GITADMIN}
 echo
 
-DIRS=`grep repo $TOP_DIR/${GITADMIN}/conf/gitolite.conf | sed -e 's/repo //' -e 's/gitolite-admin//'`
-
-for dir in $DIRS
+for dir in `grep repo ~/${GITADMIN}/conf/gitolite.conf | sed -e 's/repo //' -e 's/gitolite-admin//'`
 do
 	check_out $dir
 	echo
