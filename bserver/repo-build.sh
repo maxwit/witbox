@@ -5,7 +5,7 @@ build()
 	repo=$1
 
 	cd $HOME
-	if [ -d $repo ];
+	if [ -d $repo ]; then
 		cd $repo
 		git pull
 	else
@@ -13,7 +13,7 @@ build()
 		cd $repo
 	fi
 
-	case $repo in)
+	case $repo in
 	document/*)
 		cd $repo
 		make
@@ -49,12 +49,12 @@ path=(`echo $path | sed 's:/: :g'`)
 
 repo=''
 
-for dir in $path
+for dir in ${path[@]}
 do
 	entry=${dir%.git}
 
 	if [ -z $repo ]; then
-		repo = $entry
+		repo=$entry
 	else
 		repo=$repo/$entry
 	fi
