@@ -1,0 +1,31 @@
+#!/bin/bash
+
+tab=`mktemp`
+
+for user in `cat /etc/incron.allow`
+do
+	rc="/home/$user/.wit/build.rc"
+	[ -e $rc ] || continue
+
+	if [ -e "/home/$user/bin/wit-build" ]; then
+		build="/home/$user/bin/wit-build"
+	else
+		build="/usr/bin/wit-build"
+	fi
+
+	chown $user $tab
+	incrontab -u $user -l > $tab
+
+	for repo in `cat $rc`
+	do
+		inode="/home/git/repositories/${repo}.git/refs/heads"
+		grep "$inode" $tab > /dev/null || echo $inode IN_CLOSE_WRITE $build \$@ >> $tab
+	done
+
+	incrontab -u $user $tab
+	incrontab -u $user -d
+	incrontab -u $user -l
+	echo
+done
+
+rm $tab
