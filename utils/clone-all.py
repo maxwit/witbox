@@ -5,13 +5,13 @@ import os
 server = '192.168.1.1'
 home = os.getenv('HOME')
 
-def check_out(mode, repo):
+def check_out(repo, rw):
 	os.chdir(home)
 
 	if os.path.exists(repo):
 		os.chdir(repo)
 		os.system('git pull')
-	elif mode == 'W':
+	elif rw:
 		os.system('git clone git@%s:%s.git %s' % (server, repo, repo))
 	else:
 		os.system('git clone git://%s/%s.git %s' % (server, repo, repo))
@@ -23,13 +23,20 @@ except Exception, e:
 	exit()
 
 for line in fd:
-	repo = line.split()
-	if len(repo) != 3 or repo[0] != 'R':
-		continue
+	perm = line.split()
 
-	print '[%s]' % repo[2]
-	check_out(repo[1], repo[2])
+	if (len(perm) == 2 or len(perm) == 3) and perm[0] == 'R':
+		if len(perm) == 2:
+			repo = perm[1]
+			rw = False
+		else:
+			repo = perm[2]
+			rw = True
 
-	print
+		print '[%s]' % repo
+		check_out(repo, rw)
+		print
+	else:
+		print line,
 
 fd.close()
