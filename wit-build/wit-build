@@ -4,32 +4,36 @@ repo=$1
 repo=${repo#/home/git/repositories/}
 repo=${repo%.git/refs/heads}
 
+if [ $# -eq 2 ]; then
+	dest=$2/$repo
+else
+	dest=/tmp/$repo
+fi
+
 clone_repo()
 {
-	cd $1
+	cd
 
-	if [ -d $2 ]; then
-		cd $2
+	if [ -d $1 ]; then
+		cd $1
 		git pull
 	else
-		git clone git@192.168.1.1:$2.git $2
-		cd $2
+		git clone git@192.168.1.1:$1.git $1
+		cd $1
 	fi
+
+	make
 }
 
 case $repo in
-document/*|book/*|testing/*)
-	clone_repo $HOME/Documents $repo
+book/*|book/*|testing/*)
+	clone_repo $repo
 
-	make
-
-	dest=/tmp/$repo
 	mkdir -p $dest
 	cp -v *.pdf $dest
 	;;
 
 project/*)
-	clone_repo $HOME $repo
-	make
+	clone_repo $repo
 	;;
 esac
