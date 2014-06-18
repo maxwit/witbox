@@ -4,12 +4,6 @@ repo=$1
 repo=${repo#/home/git/repositories/}
 repo=${repo%.git/refs/heads}
 
-if [ $# -eq 2 ]; then
-	dest=$2/$repo
-else
-	dest=/tmp/$repo
-fi
-
 clone_repo()
 {
 	cd
@@ -29,8 +23,11 @@ case $repo in
 book/*|book/*|testing/*)
 	clone_repo $repo
 
-	mkdir -p $dest
-	cp -v *.pdf $dest
+	if [ $# -eq 2 ]; then
+		dest=$2/$repo
+		mkdir -p $dest
+		cp -v *.pdf $dest
+	fi
 	;;
 
 project/*)
