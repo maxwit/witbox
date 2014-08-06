@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<tasks>
-	<task id = "install" check = "install.py"> Install applications </task>
-	<task id = "mail" check = "mail.py"> Check email setting </task>
-</tasks>
