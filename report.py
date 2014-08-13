@@ -3,6 +3,7 @@
 import os,sys,re
 import shutil
 import platform
+import pwd
 from optparse import OptionParser
 from xml.etree import ElementTree
 from datetime import date
@@ -50,18 +51,11 @@ def populate_tree(fn):
 	traverse(root, top)
 
 def get_user_info():
-	fd_rept = open('/etc/passwd', 'r')
+	for struct_pwd in pwd.getpwall():
+		if struct_pwd.pw_name == curr_user:
+			full_name = struct_pwd.pw_gecos.split(',')[0].strip()
+			return full_name
 
-	for line in fd_rept:
-		account = line.split(':')
-		user_name = account[0]
-		if user_name == curr_user:
-			full_name = account[4].split(',')[0]
-			break
-
-	fd_rept.close()
-
-	return full_name
 
 def do_install(curr_distrib, curr_version, curr_arch, install_list):
 	upgrade  = ''

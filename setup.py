@@ -11,6 +11,7 @@ import urllib
 import zipfile
 import tarfile
 import shutil
+import pwd
 
 version = '4.2'
 
@@ -334,19 +335,10 @@ class powertool:
 			print
 
 	def get_user_info(self):
-		fd_rept = open('/etc/passwd', 'r')
-		full_name = ''
-
-		for line in fd_rept:
-			account = line.split(':')
-			user_name = account[0]
-			if user_name == self.user:
-				full_name = account[4].split(',')[0]
-				break
-
-		fd_rept.close()
-
-		return full_name
+		for struct_pwd in pwd.getpwall():
+			if struct_pwd.pw_name == self.user:
+				full_name = struct_pwd.pw_gecos.split(',')[0].strip()
+				return full_name
 
 	def do_install(self, distrib, version, curr_arch, install_list):
 		upgrade  = ''
