@@ -10,6 +10,7 @@ def check_out(repo, rw):
 
 	if os.path.exists(repo):
 		os.chdir(repo)
+		#os.system('sed -i.bk "s/git@.*:/git@192.168.3.3:/" .git/config')
 		os.system('git pull')
 	elif rw:
 		os.system('git clone git@%s:%s.git %s' % (server, repo, repo))
@@ -32,6 +33,9 @@ for line in fd:
 		else:
 			repo = perm[2]
 			rw = True
+
+		if repo.startswith('team'):
+			continue
 
 		print '[%s]' % repo
 		check_out(repo, rw)
