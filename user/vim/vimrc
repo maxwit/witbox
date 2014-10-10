@@ -1,0 +1,6 @@
+set ts=4
+set sw=4
+set nu
+set hlsearch
+let c_space_errors=1
+"filetype plugin indent on
