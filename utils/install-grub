@@ -1,0 +1,29 @@
+#!/bin/sh
+
+if [ $# != 1 ]
+then
+	echo "usage: $0 <boot directory>"
+	exit 1
+fi
+
+boot=${1%/}
+
+disk=$(mount | while read mnt
+do
+	mnt=($mnt)
+	if [ ${mnt[2]} == $boot ]
+	then
+		echo ${mnt[0]}
+	fi
+done)
+
+if [ "$disk" == "" ]
+then
+	echo "No such mount point found! ($boot)"
+	exit 1
+fi
+
+disk=${disk%%[0-9]}
+
+echo "installing grub to $boot for $disk ..."
+grub2-install --boot-directory=$boot $disk
