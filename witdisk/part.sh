@@ -64,8 +64,11 @@ exit 0
 
 #kpartx -a $disk
 
-mkfs.vfat -F32 ${disk}1
-dosfslabel ${disk}1 WINDOWS
+mkfs.ntfs ${disk}1
+ntfslabel ${disk}1 WINDOWS
 
-mkfs.ext4 -F ${disk}2
-e2label ${disk}2 linux
+mkfs.vfat -F32 ${disk}2
+dosfslabel ${disk}2 OSX
+
+mkfs.ext4 -F ${disk}3
+e2label ${disk}3 linux
