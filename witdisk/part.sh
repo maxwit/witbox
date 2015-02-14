@@ -60,7 +60,7 @@ do
 		part_type[$i]="ext4"
 		if [ "$size" == "" ]
 		then
-			size=1536M
+			size=6G
 		fi
 		;;
 	x|x=*)
@@ -68,7 +68,7 @@ do
 		part_type[$i]="vfat"
 		if [ "$size" == "" ]
 		then
-			size=9G
+			size=8G
 		fi
 		;;
 	*)

@@ -2,20 +2,17 @@
 
 if [ $# != 1 ]
 then
-	echo "usage: $0 <boot directory>"
+	echo "usage: $0 <mount point>"
 	exit 1
 fi
 
 boot=${1%/}
 
 part=""
-mp=""
 while read mnt
 do
 	mnt=($mnt)
-	mp=${mnt[1]}
-	#if [ ${boot:0:${#mp}} == $mp ]
-	if [ ${boot} == $mp ]
+	if [ ${boot} == ${mnt[1]} ]
 	then
 		part=${mnt[0]}
 		break
@@ -30,6 +27,29 @@ fi
 
 disk=${part%%[0-9]}
 index=${part#$disk}
+repo="/maxwit/os/linux"
+
+############### copy ISO ###############
+mkdir -p $boot/iso
+
+iso_list=(`ls $repo/*.iso`)
+prev=""
+i=$((${#iso_list[@]}-1))
+
+while ((i>=0))
+do
+	iso=${iso_list[$i]}
+	fn=`basename $iso`
+	dist=(${fn//-/ })
+
+	curr=${dist[0]}
+	if [ $curr != "$prev" ]; then
+		cp -v $iso $boot/iso
+	fi
+
+	prev=$curr
+	((i--))
+done
 
 ############# install grub #############
 echo "installing grub to $boot for $disk ..."
@@ -43,12 +63,12 @@ fi
 $grub_cmd --boot-directory=$boot $disk
 
 ############# generate grub.cfg #############
-if [ -d "$mp/grub2" ]
+if [ -d "$boot/grub2" ]
 then
-	grub_cfg="$mp/grub2/grub.cfg"
-elif [ -d "$mp/grub" ]
+	grub_cfg="$boot/grub2/grub.cfg"
+elif [ -d "$boot/grub" ]
 then
-	grub_cfg="$mp/grub/grub.cfg"
+	grub_cfg="$boot/grub/grub.cfg"
 else
 	echo "The grub directory does not exist!"
 	exit 1
@@ -57,7 +77,7 @@ fi
 echo "Generating $grub_cfg ..."
 echo "GRUB_TIMEOUT=5" > $grub_cfg
 
-for iso in `ls $mp/iso/*.iso`
+for iso in `ls $boot/iso/*.iso`
 do
 	fn=`basename $iso`
 	# FIXME!
