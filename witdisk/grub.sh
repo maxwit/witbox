@@ -69,14 +69,13 @@ do
 	case $id in
 	CentOS|RHEL|Fedora|OLinux)
 		uuid=`blkid $part | sed 's/.*\sUUID="\([a-z0-9-]*\)"\s.*/\1/'`
-		cfg="\tlinux (lo)/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/\n"
-		cfg=$cfg"\tinitrd (lo)/isolinux/initrd.img"
+		linux="linux (lo)/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
+		initrd="initrd (lo)/isolinux/initrd.img"
 		;;
 
 	ubuntu)
-		# FIXME
-		cfg="\tlinux (lo)/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn\n"
-		cfg=$cfg"\tinitrd (lo)/casper/initrd.lz"
+		linux="linux (lo)/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
+		initrd="initrd (lo)/casper/initrd.lz"
 		;;
 	*)
 		echo "Warning: distribution $id not supported (skipped)!"
@@ -86,7 +85,8 @@ do
 
 	echo -e "\nmenuentry '$id $ver Install' {" >> $grub_cfg
 	echo -e "\tloopback lo /iso/$fn" >> $grub_cfg
-	echo -e $cfg >> $grub_cfg
+	echo -e "\t$linux" >> $grub_cfg
+	echo -e "\t$initrd" >> $grub_cfg
 	echo -e "}" >> $grub_cfg
 done
 
