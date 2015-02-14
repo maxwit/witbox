@@ -27,8 +27,7 @@ then
 	exit 1
 fi
 
-umount ${disk}*
-#umount ${disk}* 2>/dev/null
+umount ${disk}[1-9]* 2>/dev/null
 
 part_label=()
 part_type=()
