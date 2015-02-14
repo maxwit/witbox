@@ -125,3 +125,5 @@ do
 
 	echo
 done
+
+sync
