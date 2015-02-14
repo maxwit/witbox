@@ -20,25 +20,24 @@ fi
 
 umount ${disk}*
 
-sch=""
 sys=$2
+sch=""
 
 for s in ${sys//,/ }
 do
-	size=0
-	sch=$sch"n\n\n\n\n"
+	size=""
 
 	case $s in
 	w|w=*)
-		echo windows;
-		size=4G
+		echo windows
+		size=5G
 		;;
 	l|l=*)
-		echo linux;
-		size=4G
+		echo linux
+		size=1536M
 		;;
 	x|x=*)
-		echo OS X;
+		echo OS X
 		size=1G
 		;;
 	*)
@@ -46,18 +45,17 @@ do
 		exit 1
 	esac
 
-	if [ $size == 0 ]; then
-		sch=$sch"\n"
-	else
-		sch=$sch"+${size}\n"
+	if [ "$size" != "" ]; then
+		size="+$size"
 	fi
+	sch=$sch"n\n\n\n\n${size}\n"
 done
 
+#sch=$sch"w\n"
 sch=$sch"p\nw\n"
 
 echo "creating partitions ..."
 parted -s $disk mktable msdos
-
 echo -e $sch | fdisk $disk
 
 exit 0
