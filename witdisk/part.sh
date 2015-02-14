@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ $USER != root ]; then
+	echo "must run as super user!"
+	exit 1
+fi
+
 if [ $# != 3 ]; then
 	echo "usage: $0 -s <system list> <disk>"
 	echo "i.e.: $0 -s w,x,l /dev/sdb"
