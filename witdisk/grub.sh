@@ -29,6 +29,7 @@ then
 fi
 
 disk=${part%%[0-9]}
+index=${part#$disk}
 
 ############# install grub #############
 echo "installing grub to $boot for $disk ..."
@@ -83,11 +84,16 @@ do
 		;;
 	esac
 
-	echo -e "\nmenuentry '$id $ver Install' {" >> $grub_cfg
-	echo -e "\tloopback lo /iso/$fn" >> $grub_cfg
-	echo -e "\t$linux" >> $grub_cfg
-	echo -e "\t$initrd" >> $grub_cfg
-	echo -e "}" >> $grub_cfg
+cat >> $grub_cfg << OEF
+
+menuentry '$id $ver Install' {
+	set root='hd0,$index'
+	loopback lo /iso/$fn
+	$linux
+	$initrd
+}
+OEF
+
 done
 
 echo
