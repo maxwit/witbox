@@ -2,7 +2,7 @@
 
 import os
 
-server = '192.168.3.3'
+server = 'git.maxwit.org'
 home = os.getenv('HOME')
 
 def check_out(repo, rw):
