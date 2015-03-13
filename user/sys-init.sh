@@ -7,9 +7,11 @@ dist=`lsb_release -si`
 
 case "$dist" in
 Ubuntu|Debian)
-	sudo apt-get update -y
+	sudo apt-get upgrade -y
+	sudo ln -svf bash /bin/sh
 	sudo update-alternatives --set editor /usr/bin/vim.basic
 	sudo apt-get install -y git gcc g++ vim
+	# FIXME with dpkg-reconfigure
 	;;
 *) # FIXME
 	sudo yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
@@ -18,7 +20,6 @@ Ubuntu|Debian)
 	sudo cp -v /usr/bin/vim /bin/vi
 	;;
 esac
-
 
 for part in `ls /dev/sda[0-9]*`
 do
