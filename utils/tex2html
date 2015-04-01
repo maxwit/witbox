@@ -1,0 +1,83 @@
+#!/bin/sh
+
+if [ $# -eq 1 ]; then
+    SRC=$1
+else
+    echo -e "usage: $0 <input file>\n"
+    exit 1
+fi
+
+DST=${SRC%tex}html
+TMP=$(mktemp)
+
+
+while read line
+do
+    case $line in
+    \chapter{*)
+        #chapter=$(echo $line | perl -p -e 's|.*{(.*)}.*|\1|')
+        echo "processing $line ..."
+	echo \\$line >> $TMP 
+	echo >> $TMP
+	;;
+    \input{*)
+        input=$(echo $line | perl -p -e 's|.*{(.*)}.*|\1|')
+	if [ ${input::8} == 'chapter-' ]; then
+		tex=$input.tex
+		ifs=($(sed -n '/\\ifx/=' $tex))
+    		fis=($(sed -n '/\\fi/=' $tex))
+    		begin=$((${fis[0]}+1))
+    		end=$((${ifs[1]}-1))
+
+    		sed -n "$begin,${end}p" $tex >> $TMP
+	    	echo >> $TMP
+	fi
+	;;
+    esac
+done < $SRC
+
+cp -v $TMP $DST
+
+sed -i -e '/^%/d' $DST
+perl -p -i -e 's:\\chapter{(.*)}:<h1 class="chapter">\1</h1>:' $DST
+perl -p -i -e 's:\\section{(.*)}:<h2 class="section">\1</h2>:' $DST
+perl -p -i -e 's:\\subsection{(.*)}:<h3 class="subsection">\1</h3>:' $DST
+
+perl -p -i -e 's:\\begin{enumerate}.*:<ol>:' $DST
+perl -p -i -e 's:\\end{enumerate}.*:</ol>:' $DST
+perl -p -i -e 's:\\begin{itemize}.*:<ul>:' $DST
+perl -p -i -e 's:\\end{itemize}.*:</ul>:' $DST
+perl -p -i -e 's:\\item\s+(.*):<li>\1</li>:' $DST
+
+perl -p -i -e 's:\\begin{tabular}.*:<table border="1" cellspacing="0" align="center">:' $DST
+perl -p -i -e 's:\\end{tabular}.*:</table>:' $DST
+sed -i -e '/hline$/s:\s*&\s*:</td> <td>:g' $DST
+sed -i -e '/hline\s*$/s:\(.*\)\s*\\\\\s*\\hline:<tr> <td>\1</td> <tr>:g' $DST
+sed -i -e '/hline\s*$/s:\(.*\)\s*\\hline:<tr> <td>\1</td> <tr>:g' $DST
+sed -i -e '/begin{table}/d' $DST
+sed -i -e '/end{table}/d' $DST
+sed -i -e '/\\centering/d' $DST
+
+perl -p -i -e 's:\\begin{lstlisting}.*:<pre>:' $DST
+perl -p -i -e 's:\\end{lstlisting}.*:</pre>:' $DST
+perl -p -i -e 's:\\lstinputlisting.*{(.*)}:<pre>\n\1\n</pre>:' $DST
+
+perl -p -i -e 's:\\begin{centering}.*:<div align="center">:' $DST
+perl -p -i -e 's:\\end{centering}.*:</div>:' $DST
+
+perl -p -i -e 's:\\textbf{([a-zA-Z0-9]\+)}:<b>\1</b>:g' $DST
+perl -p -i -e 's:\\footnote{(.*)}:\1:g' $DST
+perl -p -i -e 's:\\\\:<br/>:' $DST
+perl -p -i -e 's:\\_:_:g' $DST
+perl -p -i -e 's:\\/:/:g' $DST
+perl -p -i -e 's:\\noindent{}::g' $DST
+perl -p -i -e 's:\\indent{}::g' $DST
+perl -p -i -e 's:\$\\rightarrow\$:\&rarr;:g' $DST
+perl -p -i -e 's:\$\\Rightarrow\$:\&rArr;:g' $DST
+perl -p -i -e 's:\\sim:&sim;:g' $DST
+perl -p -i -e 's:\\ldots:...:g' $DST
+perl -p -i -e 's:\\#:#:g' $DST
+perl -p -i -e 's:\\&:&:g' $DST
+perl -p -i -e 's:\\%:%:g' $DST
+perl -p -i -e 's:\$(.*?)\$:\1:g' $DST
+perl -p -i -e "s:``(.*?)''\$:\"\1\":g" $DST
