@@ -65,7 +65,8 @@ perl -p -i -e 's:\\lstinputlisting.*{(.*)}:<pre>\n\1\n</pre>:' $DST
 perl -p -i -e 's:\\begin{centering}.*:<div align="center">:' $DST
 perl -p -i -e 's:\\end{centering}.*:</div>:' $DST
 
-perl -p -i -e 's:\\textbf{([a-zA-Z0-9]\+)}:<b>\1</b>:g' $DST
+perl -p -i -e 's:\\textbf{(.*?)}:<b>\1</b>:g' $DST
+perl -p -i -e 's:\\bf{(.*?)}:<b>\1</b>:g' $DST
 perl -p -i -e 's:\\footnote{(.*)}:\1:g' $DST
 perl -p -i -e 's:\\\\:<br/>:' $DST
 perl -p -i -e 's:\\_:_:g' $DST
