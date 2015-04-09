@@ -8,6 +8,10 @@ let c_space_errors=1
 let java_space_errors=1
 EOF
 
+cat > ~/.emacs << EOF
+(global-linum-mode t)
+EOF
+
 if [ ! -e ~/.ssh/id_rsa ]; then
 	scp -r build.maxwit.com:~/.ssh ~/
 fi
