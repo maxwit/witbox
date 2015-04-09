@@ -9,13 +9,19 @@ let java_space_errors=1
 EOF
 
 if [ ! -e ~/.ssh/id_rsa ]; then
-	scp -r file.maxwit.org:~/.ssh ~/
+	scp -r build.maxwit.com:~/.ssh ~/
 fi
 
-git config --global user.name "Conke Hu"
-git config --global user.email conke.hu@maxwit.com
+fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
+fullname=${fullname/,*}
+account=${fullname// /.}
+account=$(echo $account | tr A-Z a-z)
+
+git config --global user.name "$fullname"
+git config --global user.email $account@maxwit.com
 git config --global color.ui auto
 git config --global push.default simple
+git config --global sendemail.smtpserver /usr/bin/msmtp
 git config --list
 
 echo
