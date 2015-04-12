@@ -10,7 +10,6 @@ fi
 DST=${SRC%tex}html
 TMP=$(mktemp)
 
-
 while read line
 do
     case $line in
@@ -60,7 +59,7 @@ sed -i -e '/\\centering/d' $DST
 
 perl -p -i -e 's:\\begin{lstlisting}.*:<pre>:' $DST
 perl -p -i -e 's:\\end{lstlisting}.*:</pre>:' $DST
-perl -p -i -e 's:\\lstinputlisting.*{(.*)}:<pre>\n\1\n</pre>:' $DST
+perl -p -i -e 's:\\lstinputlisting.*{(.*)}:<pre data-src="\1"></pre>:' $DST
 
 perl -p -i -e 's:\\begin{centering}.*:<div align="center">:' $DST
 perl -p -i -e 's:\\end{centering}.*:</div>:' $DST
@@ -81,4 +80,4 @@ perl -p -i -e 's:\\#:#:g' $DST
 perl -p -i -e 's:\\&:&:g' $DST
 perl -p -i -e 's:\\%:%:g' $DST
 perl -p -i -e 's:\$(.*?)\$:\1:g' $DST
-perl -p -i -e "s:``(.*?)''\$:\"\1\":g" $DST
+perl -p -i -e "s:``(.*?)'':\"\1\":g" $DST
