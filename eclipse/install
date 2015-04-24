@@ -6,12 +6,16 @@ if [ $# != 1 ]; then
 	exit 1
 fi
 
-epath=$1
 dir=`dirname $0`
+epath=$1
+
+if [ -f "$epath" ]; then
+    epath=$(dirname "$epath")
+fi
 
 if [ -x "$epath/eclipse" -a -f "$epath/icon.xpm" ]; then
-	cp -v $dir/eclipse.desktop ~/Desktop/eclipse.desktop
-	sed -i "s:_EPATH_:$epath:" ~/Desktop/eclipse.desktop
+	sed "s:_EPATH_:$epath:" $dir/eclipse.desktop > ~/Desktop/eclipse.desktop
+	chmod +x ~/Desktop/eclipse.desktop
 else
 	echo "Invalid eclipse path ($epath)!"
 fi
