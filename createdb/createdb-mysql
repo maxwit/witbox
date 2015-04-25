@@ -31,7 +31,8 @@ _EOF_
 	mysql -uroot -pmaxwit -Dmysql < $tmp
 
 cat > $tmp << _EOF_
-create database if not exists $dbname character set=utf8;
+drop database if exists $dbname;
+create database $dbname character set=utf8;
 grant all on $dbname.* to $user@'localhost';
 _EOF_
 	cat $tmp
