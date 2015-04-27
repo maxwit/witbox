@@ -11,14 +11,14 @@ case "$dist" in
 Ubuntu|Debian)
 	sed -i 's/\(^%sudo\s\+.*\s\)ALL/\1NOPASSWD:ALL/' /etc/sudoers
 	apt-get upgrade -y
-	apt-get install -y git gcc g++ vim emacs
+	apt-get install -y git gcc g++ vim emacs tree
 	# FIXME with dpkg-reconfigure
 	ln -svf bash /bin/sh
 	update-alternatives --set editor /usr/bin/vim.basic
 	;;
 *) # FIXME
 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-	yum install -y git gcc gcc-c++ vim emacs
+	yum install -y git gcc gcc-c++ vim emacs tree
 	# FIXME
 	cp -v /usr/bin/vim /bin/vi
 	;;
@@ -26,11 +26,11 @@ esac
 
 groupadd -g 3000 devel
 groupadd -g 5000 maxwit
-usermod -g devel -a -G maxwit $USER
-groupdel $USER
+usermod -g devel -a -G maxwit $SUDO_USER
+groupdel $SUDO_USER
 
 # groups=$(groups $SUDO_USER)
-# groups=${groups/$USER /}
+# groups=${groups/$SUDO_USER /}
 # groups=${groups// /,}
 # useradd -g devel -G maxwit,$groups -c "Ting Yang" ting
 # passwd ting 
