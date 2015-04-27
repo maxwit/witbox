@@ -17,7 +17,7 @@ dbms=(${0//-/ })
 dbms=${dbms[1]}
 #host='localhost'
 
-tmp=`mktemp`.sql
+tmp=$(mktemp).sql
 
 case $dbms in
 	mysql|mariadb)
@@ -25,18 +25,12 @@ case $dbms in
 # create user IF NOT EXISTS $user identified by '$pass';
 cat > $tmp << _EOF_
 create user $user@'localhost' identified by '$pass';
-\q
-_EOF_
-	cat $tmp
-	mysql -uroot -pmaxwit -Dmysql < $tmp
-
-cat > $tmp << _EOF_
 drop database if exists $dbname;
 create database $dbname character set=utf8;
 grant all on $dbname.* to $user@'localhost';
 _EOF_
 	cat $tmp
-	mysql -uroot -pmaxwit -Dmysql < $tmp
+	sudo mysql -uroot -Dmysql < $tmp
 
 	echo "status" | mysql -u$user -p$pass -D$dbname
 	;;
