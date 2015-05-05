@@ -13,6 +13,13 @@ else
 	exit 1
 fi
 
+release=`lsb_release -sc`
+if [ "$release" = vivid ]; then
+	mysqlroot="sudo mysql"
+else
+	mysqlroot="mysql -uroot -pmaxwit"
+fi
+
 dbms=(${0//-/ })
 dbms=${dbms[1]}
 #host='localhost'
@@ -27,7 +34,7 @@ cat > $tmp << _EOF_
 create user $user@'localhost' identified by '$pass';
 _EOF_
 	cat $tmp
-	sudo mysql -Dmysql < $tmp
+	$mysqlroot -Dmysql < $tmp
 
 cat > $tmp << _EOF_
 drop database if exists $dbname;
@@ -35,7 +42,7 @@ create database $dbname character set=utf8;
 grant all on $dbname.* to $user@'localhost';
 _EOF_
 	cat $tmp
-	sudo mysql -Dmysql < $tmp
+	$mysqlroot -Dmysql < $tmp
 
 	echo "status" | mysql -u$user -p$pass -D$dbname
 	;;
