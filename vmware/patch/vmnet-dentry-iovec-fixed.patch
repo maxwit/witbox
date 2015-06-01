@@ -1,0 +1,40 @@
+diff --git a/driver.c b/driver.c
+index 2e1e643..507a509 100644
+--- a/driver.c
++++ b/driver.c
+@@ -266,7 +266,7 @@ LinuxDriver_Ioctl32_Handler(unsigned int fd,     // IN: (unused)
+    int ret = -ENOTTY;
+ 
+    if (filp && filp->f_op && filp->f_op->ioctl == VNetFileOpIoctl) {
+-      ret = VNetFileOpIoctl(filp->f_dentry->d_inode, filp, iocmd, ioarg);
++      ret = VNetFileOpIoctl(filp->f_path.dentry->d_inode, filp, iocmd, ioarg);
+    }
+    return ret;
+ }
+@@ -1191,8 +1191,8 @@ VNetFileOpUnlockedIoctl(struct file    *filp,  // IN:
+    struct inode *inode = NULL;
+    long err;
+ 
+-   if (filp && filp->f_dentry) {
+-      inode = filp->f_dentry->d_inode;
++   if (filp && filp->f_path.dentry) {
++      inode = filp->f_path.dentry->d_inode;
+    }
+    err = VNetFileOpIoctl(inode, filp, iocmd, ioarg);
+    return err;
+diff --git a/userif.c b/userif.c
+index e68d4ce..692976b 100644
+--- a/userif.c
++++ b/userif.c
+@@ -523,7 +523,10 @@ VNetCopyDatagram(const struct sk_buff *skb,	// IN: skb to copy
+       .iov_base = buf,
+       .iov_len  = len,
+    };
+-   return skb_copy_datagram_iovec(skb, 0, &iov, len);
++   struct iov_iter msg_iter;
++
++   iov_iter_init(&msg_iter, WRITE | READ, &iov, 1, skb->len);
++   return skb_copy_datagram_iter(skb, 0, &msg_iter, len);
+ }
+ 
+ 
