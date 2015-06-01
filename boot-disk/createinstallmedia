@@ -1,11 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
-if [ $# != 1 ]; then
-	echo "usage: $0 <mount point>"
+if [ $# = 1 ]; then
+	boot=${1%/}
+	repo="$1/iso"
+elif [ $# = 2 ]; then
+	boot=${2%/}
+	repo="$1"
+else
+	echo "usage: $0 [iso path] <mount point>"
 	exit 1
 fi
-
-boot=${1%/}
 
 part=""
 while read mnt
@@ -24,29 +28,44 @@ fi
 
 disk=${part%%[0-9]}
 index=${part#$disk}
-repo="/maxwit/os/linux"
 
 ############### copy ISO ###############
-mkdir -p $boot/iso
+boot_iso=$boot/iso
+mkdir -p $boot_iso
 
-iso_list=(`ls $repo/*.iso`)
-prev=""
-i=$((${#iso_list[@]}-1))
+if [ -f $repo ]; then
+	iso_list=($repo)
+elif [ -d $repo ]; then
+	iso_list=(`ls $repo/*.iso`)
+else
+	echo "'$repo' is invalid!"
+	exit 1
+fi
 
-while ((i>=0))
+for img in ${iso_list[@]}
 do
-	iso=${iso_list[$i]}
-	fn=`basename $iso`
-	dist=(${fn//-/ })
-
-	curr=${dist[0]}
-	if [ $curr != "$prev" ]; then
-		cp -v $iso $boot/iso
+	if [ ! -e $boot_iso/$img ]; then
+		cp -v $img $boot_iso
 	fi
-
-	prev=$curr
-	((i--))
 done
+
+# prev=""
+# i=$((${#iso_list[@]}-1))
+# 
+# while ((i>=0))
+# do
+# 	iso=${iso_list[$i]}
+# 	fn=`basename $iso`
+# 	dist=(${fn//-/ })
+# 
+# 	curr=${dist[0]}
+# 	if [ $curr != "$prev" ]; then
+# 		cp -v $iso $boot/iso
+# 	fi
+# 
+# 	prev=$curr
+# 	((i--))
+# done
 
 ############# install grub #############
 echo "installing grub to $boot for $disk ..."
@@ -71,7 +90,7 @@ fi
 echo "Generating $grub_cfg ..."
 echo "GRUB_TIMEOUT=5" > $grub_cfg
 
-for iso in `ls $boot/iso/*.iso`
+for iso in `ls $boot_iso/*.iso`
 do
 	fn=`basename $iso`
 	# FIXME!
@@ -84,13 +103,13 @@ do
 	case $id in
 	RHEL | CentOS | OLinux | Fedora)
 		uuid=`blkid $part | sed 's/.*\sUUID="\([a-z0-9-]*\)"\s.*/\1/'`
-		linux="linux (lo)/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
-		initrd="initrd (lo)/isolinux/initrd.img"
+		linux="(lo)/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
+		initrd="(lo)/isolinux/initrd.img"
 		;;
 
 	ubuntu | deiban)
-		linux="linux (lo)/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
-		initrd="initrd (lo)/casper/initrd.lz"
+		linux="(lo)/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
+		initrd="(lo)/casper/initrd.lz"
 		;;
 	*)
 		echo "Warning: distribution $id not supported (skipped)!"
@@ -103,8 +122,8 @@ cat >> $grub_cfg << OEF
 menuentry '$id $ver Install' {
 	set root='hd0,$index'
 	loopback lo /iso/$fn
-	$linux
-	$initrd
+	linux $linux
+	initrd $initrd
 }
 OEF
 
