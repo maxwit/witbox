@@ -36,7 +36,7 @@ mkdir -p $boot_iso
 if [ -f $repo ]; then
 	iso_list=$repo
 elif [ -d $repo ]; then
-	iso_list=$(ls $repo/*.iso)
+	iso_list=`ls $repo/*.iso`
 else
 	echo "'$repo' is invalid!"
 	exit 1
@@ -68,10 +68,17 @@ echo "GRUB_TIMEOUT=5" > $grub_cfg
 
 for iso in `ls $boot_iso/*.iso`
 do
+	fn=`basename $iso`
+
 	dist=`blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
+	if [ -z $dist ]; then
+		echo "'$iso' is NOT a valid ISO image!"
+		echo
+		continue
+	fi
 
 	echo "generating menuentry for $dist ..."
-	case $dist in
+	case "$dist" in
 	RHEL* | CentOS* | OL* | Fedora*)
 		uuid=`blkid $part | perl -p -e 's/.*\sUUID="(.*?)".*/\1/'`
 		linux="/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
@@ -79,19 +86,18 @@ do
 		;;
 
 	Ubuntu* | Deiban*)
-		fn=`basename $iso`
 		linux="/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
 		initrd="/casper/initrd.lz"
 		;;
 	*)
-		echo "Warning: distribution $id not supported (skipped)!"
+		echo "Warning: distribution $dist not supported (skipped)!"
 		continue
 		;;
 	esac
 
 cat >> $grub_cfg << OEF
 
-menuentry '$id $ver Install' {
+menuentry '$dist' {
 	set root='hd0,$index'
 	loopback lo /iso/$fn
 	linux (lo)/$linux
