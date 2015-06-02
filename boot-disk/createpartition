@@ -1,0 +1,57 @@
+#!/bin/sh
+
+if [ $USER != root ]; then
+	echo "must run as super user!"
+	exit 1
+fi
+
+if [ $# = 1 ]; then
+	if [ -d /sys/firmware/efi ]; then
+		table="gpt"
+	else
+		table="msdos"
+	fi
+	device=$1
+elif [ $# = 3 ]; then
+	table=$2
+	device=$3
+else
+	echo "usage: $0 [-t <partition table type>] <disk>"
+	echo "i.e.: $0 -t gpt /dev/sdb"
+	exit 1
+fi
+
+# FIXME
+disk=${device%%[0-9]}
+if [ "$disk" != "$device" ]; then
+	echo "warning: $device does NOT seem a disk, fall back to $disk"
+fi
+
+if [ ! -b $disk ]; then
+	echo "No such device: $disk!"
+	exit 1
+fi
+
+umount ${disk}[1-9]* 2>/dev/null
+###################
+parted -s $disk mktable $table
+
+last=8192
+
+echo "mkpart primary fat32 1M -${last}M" | parted $disk
+mkfs.vfat -F32 -n DATA ${disk}1
+
+if [ $table = "gpt" ]; then
+	echo "mkpart primary fat32 -${last} -$((last-100))M" | parted $disk
+	mkfs.vfat -F32 -n ESP ${disk}2
+
+	echo "mkpart primary ext4 -$((last-100))M -1M" | parted $disk
+	mkfs.ext4 -L linux ${disk}3
+
+	echo "toggle 2 boot" | parted $disk
+else
+	echo "mkpart primary ext4 -${last}M -1M" | parted $disk
+	mkfs.ext4 -L linux ${disk}2
+fi
+
+parted $disk print
