@@ -1,11 +1,11 @@
 #!/bin/sh
 
 if [ $# = 1 ]; then
-	boot=${1%/}
-	repo="$1/iso"
+	boot=$1
+	repo=$1/iso
 elif [ $# = 2 ]; then
-	boot=${2%/}
-	repo="$1"
+	boot=$2
+	repo=$1
 else
 	echo "usage: $0 [iso path] <mount point>"
 	exit 1
@@ -34,82 +34,54 @@ boot_iso=$boot/iso
 mkdir -p $boot_iso
 
 if [ -f $repo ]; then
-	iso_list=($repo)
+	iso_list=$repo
 elif [ -d $repo ]; then
-	iso_list=(`ls $repo/*.iso`)
+	iso_list=$(ls $repo/*.iso)
 else
 	echo "'$repo' is invalid!"
 	exit 1
 fi
 
-for img in ${iso_list[@]}
+for img in $iso_list
 do
 	if [ ! -e $boot_iso/$img ]; then
 		cp -v $img $boot_iso
 	fi
 done
 
-# prev=""
-# i=$((${#iso_list[@]}-1))
-# 
-# while ((i>=0))
-# do
-# 	iso=${iso_list[$i]}
-# 	fn=`basename $iso`
-# 	dist=(${fn//-/ })
-# 
-# 	curr=${dist[0]}
-# 	if [ $curr != "$prev" ]; then
-# 		cp -v $iso $boot/iso
-# 	fi
-# 
-# 	prev=$curr
-# 	((i--))
-# done
-
 ############# install grub #############
 echo "installing grub to $boot for $disk ..."
 
-grub_cmd=`which grub2-install`
-if [ -z $grub_cmd ]; then
-	grub_cmd="grub-install"
+which grub2-install
+if [ $? = 0 ]; then
+    grub_cmd="grub2-install"
+    grub_cfg="$boot/grub2/grub.cfg"
+else
+    grub_cmd="grub-install"
+    grub_cfg="$boot/grub/grub.cfg"
 fi
 
 $grub_cmd --boot-directory=$boot $disk
-
-############# generate grub.cfg #############
-if [ -d "$boot/grub2" ]; then
-	grub_cfg="$boot/grub2/grub.cfg"
-elif [ -d "$boot/grub" ]; then
-	grub_cfg="$boot/grub/grub.cfg"
-else
-	echo "The grub directory does not exist!"
-	exit 1
-fi
 
 echo "Generating $grub_cfg ..."
 echo "GRUB_TIMEOUT=5" > $grub_cfg
 
 for iso in `ls $boot_iso/*.iso`
 do
-	fn=`basename $iso`
-	# FIXME!
-	dist=(${fn//-/ })
+	dist=`blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
 
-	id=${dist[0]}
-	ver=${dist[1]} # FIXME
-
-	echo "generating menuentry for $id-$ver ..."
-	case $id in
-	RHEL | CentOS | OLinux | Fedora)
-		uuid=`blkid $part | sed 's/.*\sUUID="\([a-z0-9-]*\)"\s.*/\1/'`
-		linux="(lo)/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
-		initrd="(lo)/isolinux/initrd.img"
+	echo "generating menuentry for $dist ..."
+	case $dist in
+	RHEL* | CentOS* | OL* | Fedora*)
+		uuid=`blkid $part | perl -p -e 's/.*\sUUID="(.*?)".*/\1/'`
+		linux="/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
+		initrd="/isolinux/initrd.img"
 		;;
 
-	ubuntu | deiban)
-		linux="(lo)/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
-		initrd="(lo)/casper/initrd.lz"
+	Ubuntu* | Deiban*)
+		fn=`basename $iso`
+		linux="/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
+		initrd="/casper/initrd.lz"
 		;;
 	*)
 		echo "Warning: distribution $id not supported (skipped)!"
@@ -122,8 +94,8 @@ cat >> $grub_cfg << OEF
 menuentry '$id $ver Install' {
 	set root='hd0,$index'
 	loopback lo /iso/$fn
-	linux $linux
-	initrd $initrd
+	linux (lo)/$linux
+	initrd (lo)/$initrd
 }
 OEF
 
