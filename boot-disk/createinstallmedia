@@ -90,6 +90,9 @@ $grub_cmd --boot-directory=$boot $disk
 
 echo "Generating $grub_cfg ..."
 echo "GRUB_TIMEOUT=5" > $grub_cfg
+if [ $table = "gpt" ]; then
+	echo "insmod part_gpt" >> $grub_cfg
+fi
 
 for iso in `ls $root_iso/*.iso`
 do
