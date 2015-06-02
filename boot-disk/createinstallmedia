@@ -79,7 +79,7 @@ if [ $table = "gpt" ]; then
 		echo "ESP partition not found!"
 		exit 1
 	fi
-	umount $disk$esp
+	umount $disk$esp 2>/dev/null
 	mkdir -p $boot/efi
 	mount $disk$esp $boot/efi
 else
