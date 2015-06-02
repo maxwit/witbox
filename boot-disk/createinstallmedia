@@ -1,40 +1,41 @@
 #!/bin/sh
 
 if [ $# = 1 ]; then
-	boot=$1
+	root=$1
 	repo=$1/iso
 elif [ $# = 2 ]; then
-	boot=$2
+	root=$2
 	repo=$1
 else
 	echo "usage: $0 [iso path] <mount point>"
 	exit 1
 fi
 
-boot=${boot%%/}
+root=${root%%/}
 part=""
 
 while read mnt
 do
 	mnt=($mnt)
-	if [ ${boot} == ${mnt[1]} ]; then
+	if [ ${root} == ${mnt[1]} ]; then
 		part=${mnt[0]}
 		break
 	fi
 done < /proc/mounts
 
 if [ "$part" == "" ]; then
-	echo "No such mount point found! ($boot)"
+	echo "No such mount point found! ($root)"
 	exit 1
 fi
 
 disk=${part%%[0-9]}
 index=${part#$disk}
 
-############### copy ISO ###############
-boot_iso=$boot/iso
-mkdir -p $boot_iso
+boot=$root/boot
+root_iso=$root/iso
+mkdir -vp $boot $root_iso
 
+############### copy ISO ###############
 if [ -f $repo ]; then
 	iso_list=$repo
 elif [ -d $repo ]; then
@@ -47,8 +48,8 @@ fi
 for iso in $iso_list
 do
 	fn=`basename $iso`
-	if [ ! -e $boot_iso/$fn ]; then
-		cp -v $iso $boot_iso
+	if [ ! -e $root_iso/$fn ]; then
+		cp -v $iso $root_iso
 	fi
 done
 
@@ -69,7 +70,7 @@ $grub_cmd --boot-directory=$boot $disk
 echo "Generating $grub_cfg ..."
 echo "GRUB_TIMEOUT=5" > $grub_cfg
 
-for iso in `ls $boot_iso/*.iso`
+for iso in `ls $root_iso/*.iso`
 do
 	fn=`basename $iso`
 
