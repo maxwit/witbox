@@ -11,7 +11,9 @@ else
 	exit 1
 fi
 
+boot=${boot%%/}
 part=""
+
 while read mnt
 do
 	mnt=($mnt)
@@ -42,10 +44,11 @@ else
 	exit 1
 fi
 
-for img in $iso_list
+for iso in $iso_list
 do
-	if [ ! -e $boot_iso/$img ]; then
-		cp -v $img $boot_iso
+	fn=`basename $iso`
+	if [ ! -e $boot_iso/$fn ]; then
+		cp -v $iso $boot_iso
 	fi
 done
 
@@ -71,7 +74,7 @@ do
 	fn=`basename $iso`
 
 	dist=`blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
-	if [ -z $dist ]; then
+	if [ -z "$dist" ]; then
 		echo "'$iso' is NOT a valid ISO image!"
 		echo
 		continue
@@ -81,13 +84,13 @@ do
 	case "$dist" in
 	RHEL* | CentOS* | OL* | Fedora*)
 		uuid=`blkid $part | perl -p -e 's/.*\sUUID="(.*?)".*/\1/'`
-		linux="/isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
-		initrd="/isolinux/initrd.img"
+		linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
+		initrd="isolinux/initrd.img"
 		;;
 
 	Ubuntu* | Deiban*)
-		linux="/casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
-		initrd="/casper/initrd.lz"
+		linux="casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
+		initrd="casper/initrd.lz"
 		;;
 	*)
 		echo "Warning: distribution $dist not supported (skipped)!"
