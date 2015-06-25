@@ -26,6 +26,7 @@ git config --global user.email $account@maxwit.com
 git config --global color.ui auto
 git config --global push.default simple
 git config --global sendemail.smtpserver /usr/bin/msmtp
+git config --global merge.ours.driver true
 git config --list
 
 echo
