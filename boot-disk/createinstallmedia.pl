@@ -4,29 +4,35 @@ if ($> != 0) {
  	die "must run as root!"
 }
 
-#if [ $# = 1 ]; then
-#	root=$1
-#	repo=$1/iso
-#elif [ $# = 2 ]; then
-#	root=$2
-#	repo=$1
-#else
-#	echo "usage: $0 [iso path] <mount point>"
-#	exit 1
-#fi
+my $root;
+my $repo;
 
-#root=${root%%/}
-#part=""
-#
-#while read mnt
-#do
-#	mnt=($mnt)
-#	if [ ${root} == ${mnt[1]} ]; then
-#		part=${mnt[0]}
-#		break
-#	fi
-#done < /proc/mounts
-#
+if ($#ARGV == 0) {
+	$root = shift(@ARGV);
+	$repo = "$root/iso";
+} elsif ($#ARGV == 1) {
+	$repo = shift(@ARGV);
+	$root = shift(@ARGV);
+} else {
+	die "usage: createinstallmedia [iso path] <mount point>"
+}
+
+$root =~ s:/+$::;
+my $part = "";
+
+open my $fh, '<', "/proc/mounts" or die "fail to open mounts!\n";
+
+foreach (<$fh>) {
+	my @mnt = split /\s/;
+	if ($mnt[1] =~ $root) {
+		$part = $mnt[0];
+		print $part."\n";
+		last;
+	}
+}
+
+close $fh;
+
 #if [ "$part" == "" ]; then
 #	echo "No such mount point found! ($root)"
 #	exit 1
