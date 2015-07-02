@@ -26,84 +26,85 @@ foreach (<$fh>) {
 	my @mnt = split /\s/;
 	if ($mnt[1] =~ $root) {
 		$part = $mnt[0];
-		print $part."\n";
+		print "$part\n";
 		last;
 	}
 }
 
 close $fh;
+#--------------------------------------
+#--------------------------------------
+if ($part eq "") {
+	die "No such mount point found! $root\n";
+}
 
-#if [ "$part" == "" ]; then
-#	echo "No such mount point found! ($root)"
-#	exit 1
-#fi
+$disk = $part;
+$disk =~ s/\d//g;
+print "$disk\n";
 
-#disk=${part%%[0-9]}
-#index=${part#$disk}
+$index = $part;
+$index =~ s/\D//g;
+print "$index\n";
 
-#boot=$root/boot
-#root_iso=$root/iso
-#mkdir -vp $boot $root_iso
+$boot = "$root/boot";
+$root_iso = "$root/iso";
+system("mkdir -vp $boot $root_iso");
+print "$boot\n";
+print "$root_iso\n";
 
 ################ copy ISO ###############
-#if [ -f $repo ]; then
-#	iso_list=$repo
-#elif [ -d $repo ]; then
-#	iso_list=`ls $repo/*.iso`
-#else
-#	echo "'$repo' is invalid!"
-#	exit 1
-#fi
-#
-#for iso in $iso_list
-#do
-#	fn=`basename $iso`
-#	if [ ! -e $root_iso/$fn ]; then
-#		cp -v $iso $root_iso
-#	fi
-#done
+if ( -f $repo ) {
+	$iso_list = $repo;
+} elsif ( -s $repo ) {
+	@iso_list=`ls $repo/*.iso`;
+} else
+	die "$repo is invalid!";
+
+use File::Basename;
+
+foreach $iso (@iso_list) {
+	$fn = basename $iso;
+	if ( ! -e "$root_iso/$fn" )
+		system("cp -v $iso $root_iso");
+}
 
 ############## install grub #############
-#echo "installing grub to $boot for $disk ..."
-#
-#which grub2-install
-#if [ $? = 0 ]; then
-#    grub_cmd="grub2-install"
-#    grub_cfg="$boot/grub2/grub.cfg"
-#else
-#    grub_cmd="grub-install"
-#    grub_cfg="$boot/grub/grub.cfg"
-#fi
-#
-#table=`parted $disk print | awk '{if ($1 == "Partition") {print $3}}'`
-#if [ $table = "gpt" ]; then
-#	grub_cmd="$grub_cmd --target=x86_64-efi"
-#
-#	esp=`parted $disk print | awk '{if ($1 >= 1 && $1 <=128 && $8 == "esp") {print $1} }'`
-#	if [ -z $esp ]; then
-#		echo "ESP partition not found!"
-#		exit 1
-#	fi
-#	umount $disk$esp 2>/dev/null
-#	mkdir -p $boot/efi
-#	mount $disk$esp $boot/efi
-#else
-#	grub_cmd="$grub_cmd --target=i386-pc"
-#fi
-#
-#$grub_cmd --boot-directory=$boot $disk
+print "installing grub to $boot for $disk ...";
 
-#echo "Generating $grub_cfg ..."
+`which grub2-install`;
+if ( $? = 1 ) {
+    $grub_cmd = "grub2-install";
+    $grub_cfg = "$boot/grub2/grub.cfg";
+} else {
+    $grub_cmd = "grub-install";
+    $grub_cfg = "$boot/grub/grub.cfg";
+}
+
+#table=`parted $disk print | awk '{if ($1 == "Partition") {print $3}}'`
+if ( $table eq "gpt" ) {
+	$grub_cmd = "$grub_cmd --target=x86_64-efi";
+
+#	esp=`parted $disk print | awk '{if ($1 >= 1 && $1 <=128 && $8 == "esp") {print $1} }'`
+	if ( -z $esp ) {
+	die "ESP partition not found!";
+	}
+#	umount $disk$esp 2>/dev/null
+system("mkdir -p $boot/efi");
+system("mount $disk$esp $boot/efi");
+} else {
+	$grub_cmd = "$grub_cmd --target=i386-pc";
+}
+system("$grub_cmd --boot-directory=$boot $disk");
+
+print "Generating $grub_cfg ...";
 #echo "GRUB_TIMEOUT=5" > $grub_cfg
-#if [ $table = "gpt" ]; then
+if ( $table eq "gpt" ) {
 #	echo "insmod part_gpt" >> $grub_cfg
-#fi
-#
-#for iso in `ls $root_iso/*.iso`
-#do
-#	fn=`basename $iso`
-#
-#	dist=`blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
+}
+for $iso in `ls $root_iso/*.iso` {
+	$fn = basename $iso;
+
+#	$dist = `blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
 #	if [ -z "$dist" ]; then
 #		echo "'$iso' is NOT a valid ISO image!"
 #		echo
