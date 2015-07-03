@@ -16,7 +16,7 @@ if ($#ARGV == 0) {
 } else {
 	die "usage: createinstallmedia [iso path] <mount point>"
 }
-
+         
 $root =~ s:/+$::;
 my $part = "";
 
@@ -24,7 +24,7 @@ open my $fh, '<', "/proc/mounts" or die "fail to open mounts!\n";
 
 foreach (<$fh>) {
 	my @mnt = split /\s/;
-	if ($mnt[1] =~ $root) {
+	if ($mnt[1] eq $root) {
 		$part = $mnt[0];
 		print "$part\n";
 		last;
@@ -32,38 +32,38 @@ foreach (<$fh>) {
 }
 
 close $fh;
-#--------------------------------------
-#--------------------------------------
+
 if ($part eq "") {
 	die "No such mount point found! $root\n";
 }
 
-$disk = $part;
-$disk =~ s/\d//g;
+my $disk = $part;
+$disk =~ s/\d+$//g;
 print "$disk\n";
 
-$index = $part;
-$index =~ s/\D//g;
+my $index = $part;
+$index =~ s/^\D+//g;
 print "$index\n";
 
-$boot = "$root/boot";
-$root_iso = "$root/iso";
+my $boot = "$root/boot";
+my $root_iso = "$root/iso";
 system("mkdir -vp $boot $root_iso");
 print "$boot\n";
 print "$root_iso\n";
 
 ################ copy ISO ###############
+
 if ( -f $repo ) {
-	$iso_list = $repo;
+	my $iso_list = $repo;
 } elsif ( -s $repo ) {
-	@iso_list=`ls $repo/*.iso`;
+	my @iso_list = `ls $repo/*.iso`;
 } else
 	die "$repo is invalid!";
 
 use File::Basename;
 
-foreach $iso (@iso_list) {
-	$fn = basename $iso;
+foreach my $iso (@iso_list) {
+	my $fn = basename $iso;
 	if ( ! -e "$root_iso/$fn" )
 		system("cp -v $iso $root_iso");
 }
@@ -73,72 +73,76 @@ print "installing grub to $boot for $disk ...";
 
 `which grub2-install`;
 if ( $? = 1 ) {
-    $grub_cmd = "grub2-install";
-    $grub_cfg = "$boot/grub2/grub.cfg";
+    my $grub_cmd = "grub2-install";
+    my $grub_cfg = "$boot/grub2/grub.cfg";
 } else {
-    $grub_cmd = "grub-install";
-    $grub_cfg = "$boot/grub/grub.cfg";
+    my $grub_cmd = "grub-install";
+    my $grub_cfg = "$boot/grub/grub.cfg";
 }
 
-#table=`parted $disk print | awk '{if ($1 == "Partition") {print $3}}'`
+my @parted = `parted $disk print`;
+my @tbl = split /\s+/, $parted[3];
+print "$tbl[2]\n";
+my $table = $tbl[2];  
+
 if ( $table eq "gpt" ) {
 	$grub_cmd = "$grub_cmd --target=x86_64-efi";
-
-#	esp=`parted $disk print | awk '{if ($1 >= 1 && $1 <=128 && $8 == "esp") {print $1} }'`
+  
+	@tbl = split /\s+/, $parted[8];
+	print "$tbl[10]\n";
+	my $esp = $tbl[10];  
 	if ( -z $esp ) {
 	die "ESP partition not found!";
 	}
-#	umount $disk$esp 2>/dev/null
-system("mkdir -p $boot/efi");
-system("mount $disk$esp $boot/efi");
+	system("umount $disk$esp 2>/dev/null");
+	system("mkdir -p $boot/efi");
+	system("mount $disk$esp $boot/efi");
 } else {
 	$grub_cmd = "$grub_cmd --target=i386-pc";
 }
 system("$grub_cmd --boot-directory=$boot $disk");
 
 print "Generating $grub_cfg ...";
-#echo "GRUB_TIMEOUT=5" > $grub_cfg
+system("echo 'GRUB_TIMEOUT=5' > $grub_cfg");
 if ( $table eq "gpt" ) {
-#	echo "insmod part_gpt" >> $grub_cfg
+	system("echo 'insmod part_gpt' >> $grub_cfg");
 }
-for $iso in `ls $root_iso/*.iso` {
+
+foreach $iso (`ls $root_iso/*.iso`) {
 	$fn = basename $iso;
 
-#	$dist = `blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
-#	if [ -z "$dist" ]; then
-#		echo "'$iso' is NOT a valid ISO image!"
-#		echo
-#		continue
-#	fi
-#
-#	echo "generating menuentry for $dist ..."
-#	case "$dist" in
-#	RHEL* | CentOS* | OL* | Fedora*)
-#		uuid=`blkid $part | perl -p -e 's/.*\sUUID="(.*?)".*/\1/'`
-#		linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
-#		initrd="isolinux/initrd.img"
-#		;;
-#
-#	Ubuntu* | Deiban*)
-#		linux="casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
-#		initrd="casper/initrd.lz"
-#		;;
-#	*)
-#		echo "Warning: distribution $dist not supported (skipped)!"
-#		continue
-#		;;
-#	esac
-#
-#cat >> $grub_cfg << OEF
-#
-#menuentry '$dist' {
-#	set root='hd0,$index'
-#	loopback lo /iso/$fn
-#	linux (lo)/$linux
-#	initrd (lo)/$initrd
-#}
-#OEF
-#
-#done
-#
-#echo
+	my $dist = `blkid $iso`;
+	$dist =~ s/.*\sLABEL="(.*?)".*/\1/;
+	if ( $dist eq "") {
+		print "$iso is NOT a valid ISO image!";
+		print "\n";
+		next;
+	}
+
+	print "generating menuentry for $dist ...";
+
+	if ( $dist =~ "RHEL*" || $dist =~ "Centos*" || $dist =~ "OL*" || $dist =~ "Fedora*" ) {
+		my $uuid = `blkid $part`;
+		$uuid =~ s/.*\sUUID="(.*?)".*/\1/;
+		my $linux = "isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/";
+		my $initrd = "isolinux/initrd.img";
+	} elsif ( $dist =~ "Ubuntu*" || $dist =~ "Deiban*" ) {
+		my $linux = "casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn";
+		my $initrd = "casper/initrd.lz";
+		#	*)
+	} 
+	print "Warning: distribution $dist not supported (skipped)!";
+	next;
+
+	use 5.010;
+   	open $fh, '>', "$grub_cfg";
+
+	say $fh "menuentry '$dist' {";
+	say $fh	"        set root='hd0,$index'";
+	say $fh "	     loopback lo /iso/$fn";
+	say $fh "        linux (lo)/$linux";
+  	say $fh "        initrd (lo)/$initrd";
+    say $fh "}";
+}
+
+print "\n";
