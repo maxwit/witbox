@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 
-use 5.010;
 use File::Basename;
 
 if ($> != 0) {
@@ -29,7 +28,6 @@ foreach (<$fh>) {
 	my @mnt = split /\s/;
 	if ($mnt[1] eq $root) {
 		$part = $mnt[0];
-		print "$part\n";
 		last;
 	}
 }
@@ -37,22 +35,15 @@ foreach (<$fh>) {
 close $fh;
 
 if ($part eq "") {
-	die "No such mount point found! $root\n";
+	die "No such mount point found! ($root)\n";
 }
 
-my $disk = $part;
-$disk =~ s/\d+$//;
-print "$disk\n";
-
-my $index = $part;
-$index =~ s/^$disk//;
-print "$index\n";
+my $disk = $part =~ s/\d+$//r;
+my $index = $part =~ s/^$disk//r;
 
 my $boot = "$root/boot";
 my $root_iso = "$root/iso";
 system("mkdir -vp $boot $root_iso");
-print "$boot\n";
-print "$root_iso\n";
 
 ################ copy ISO ###############
 my $iso_list;
@@ -72,7 +63,7 @@ foreach (@iso_list) {
 }
 
 ############## install grub #############
-print "installing grub to $boot for $disk ...";
+print "installing grub to $boot for $disk ...\n";
 
 my $grub_cmd = `which grub2-install`;
 my $grub_cfg;
@@ -85,18 +76,14 @@ if ($grub_cmd eq "") {
     $grub_cfg = "$boot/grub2/grub.cfg";
 }
 
-my @parted = `parted $disk print`;
-my @tbl = split /\s+/, $parted[3];
-print "$tbl[2]\n";
-my $table = $tbl[2];  
+my $table = dev_tag($part, 'PTTYPE');  
 
 if ( $table eq "gpt" ) {
 	$grub_cmd .= " --target=x86_64-efi";
   
-	@tbl = split /\s+/, $parted[8];
-	print "$tbl[10]\n";
-	my $esp = $tbl[10];  
-	if ( -z $esp ) {
+	my $esp = dev_tag($part, 'LABEL');
+  
+	if ($esp eq "") {
 		die "ESP partition not found!";
 	}
 
@@ -108,37 +95,34 @@ if ( $table eq "gpt" ) {
 }
 system("$grub_cmd --boot-directory=$boot $disk");
 
-print "Generating $grub_cfg ...";
+print "Generating $grub_cfg ...\n";
 
 open $fh, '>', "$grub_cfg"; 
 
-say $fh "GRUB_TIMEOUT=5";
+print $fh "GRUB_TIMEOUT=5\n";
 if ($table eq "gpt") {
-	say $fh 'insmod part_gpt';
+	print $fh "insmod part_gpt\n";
 }
-say $fh "\n";
 
-foreach $iso (`ls $root_iso/*.iso`) {
-	my $fn = basename $iso;
-
-	my $dist = `blkid $iso`;
-	$dist =~ s/.*\sLABEL="(.*?)".*/\1/;
+foreach (`ls $root_iso/*.iso`) {
+	my $fn = basename $_;
+	my $dist = dev_tag($iso, 'LABEL');
+	
 	if ($dist eq "") {
 		print "$iso is NOT a valid ISO image!\n";
 		next;
 	}
 
-	print "generating menuentry for $dist ...";
+	print "generating menuentry for $dist ...\n";
 
 	my $linux;
 	my $initrd;
 
-	if ($dist =~ "RHEL*" || $dist =~ "Centos*" || $dist =~ "OL*" || $dist =~ "Fedora*") {
-		my $uuid = `blkid $part`;
-		$uuid =~ s/.*\sUUID="(.*?)".*/\1/;
+	if ($dist =~ /RHEL|Centos|Fedora/) {
+		my $uuid = dev_tag($part, 'UUID');
 		$linux = "isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/";
 		$initrd = "isolinux/initrd.img";
-	} elsif ($dist =~ "Ubuntu*" || $dist =~ "Deiban*") {
+	} elsif ($dist =~ /Ubuntu|Deiban/) {
 		$linux = "casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn";
 		$initrd = "casper/initrd.lz";
 	} else {
@@ -146,14 +130,22 @@ foreach $iso (`ls $root_iso/*.iso`) {
 		next;
 	} 
 
-	say $fh "menuentry '$dist' {";
-	say $fh	"        set root='hd0,$index'";
-	say $fh "	     loopback lo /iso/$fn";
-	say $fh "        linux (lo)/$linux";
-  	say $fh "        initrd (lo)/$initrd";
-    say $fh "}\n";
+	print $fh "menuentry '$dist' {\n";
+	print $fh	"        set root='hd0,$index'\n";
+	print $fh "	     loopback lo /iso/$fn\n";
+	print $fh "        linux (lo)/$linux\n";
+  	print $fh "        initrd (lo)/$initrd\n";
+    print $fh "}\n";
+	print $fh "\n";
 }
 
 close $fh;
 
-print "\n";
+sub dev_tag {
+	my $dev = shift;
+	my $tag = shift;
+	my $value = `blkid -s $tag $dev`;
+	chomp($value);
+	$value =~ s/.*="(.*?)".*/$1/r;
+}
+
