@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ UID!=0 ]; then
+	echo "must run as root!"
+fi
+
 if [ $# = 1 ]; then
 	root=$1
 	repo=$1/iso
