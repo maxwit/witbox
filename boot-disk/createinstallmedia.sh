@@ -137,8 +137,8 @@ done
 echo
 
 function dev_tag(){
-	dev=$1
-	tag=$2
+	local dev=$1
+	local tag=$2
 	value=`blkid -s $tag $dev | perl -p -e 's/.*="(.*?)".*/\1/'`
 	echo $value
 }
