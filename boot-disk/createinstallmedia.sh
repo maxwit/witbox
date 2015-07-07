@@ -69,11 +69,11 @@ else
     grub_cfg="$boot/grub/grub.cfg"
 fi
 
-table=`parted $disk print | awk '{if ($1 == "Partition") {print $3}}'`
+table=`dev_tag $disk 'PTTYPE'`
 if [ $table = "gpt" ]; then
 	grub_cmd="$grub_cmd --target=x86_64-efi"
 
-	esp=`parted $disk print | awk '{if ($1 >= 1 && $1 <=128 && $8 == "esp") {print $1} }'`
+#	esp =`dev_tag $disk 'LABEL'`
 	if [ -z $esp ]; then
 		echo "ESP partition not found!"
 		exit 1
@@ -97,7 +97,7 @@ for iso in `ls $root_iso/*.iso`
 do
 	fn=`basename $iso`
 
-	dist=`blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
+	dist=`dev_tag $iso 'LABEL'`
 	if [ -z "$dist" ]; then
 		echo "'$iso' is NOT a valid ISO image!"
 		echo
@@ -107,7 +107,7 @@ do
 	echo "generating menuentry for $dist ..."
 	case "$dist" in
 	RHEL* | CentOS* | OL* | Fedora*)
-		uuid=`blkid $part | perl -p -e 's/.*\sUUID="(.*?)".*/\1/'`
+		uuid=`dev_tag $part 'UUID'`
 		linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
 		initrd="isolinux/initrd.img"
 		;;
@@ -135,3 +135,10 @@ OEF
 done
 
 echo
+
+function dev_tag(){
+	dev=$1
+	tag=$2
+	value=`blkid -s $tag $dev | perl -p -e 's/.*="(.*?)".*/\1/'`
+	echo $value
+}

@@ -76,12 +76,13 @@ if ($grub_cmd eq "") {
     $grub_cfg = "$boot/grub2/grub.cfg";
 }
 
-my $table = dev_tag($part, 'PTTYPE');  
+my $table = dev_tag($disk, 'PTTYPE');  
 
 if ( $table eq "gpt" ) {
 	$grub_cmd .= " --target=x86_64-efi";
-  
-	my $esp = dev_tag($part, 'LABEL');
+
+	
+#	my $esp = dev_tag($disk, 'LABEL');
   
 	if ($esp eq "") {
 		die "ESP partition not found!";
