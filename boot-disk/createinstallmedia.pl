@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-
+use 5.010;
 use File::Basename;
 
 if ($> != 0) {
@@ -16,9 +16,9 @@ if ($#ARGV == 0) {
 	$repo = shift(@ARGV);
 	$root = shift(@ARGV);
 } else {
-	die "usage: createinstallmedia [iso path] <mount point>"
+	die "usage: createinstallmedia [iso path] <mount point>";
 }
-         
+
 $root =~ s:/+$::;
 my $part = "";
 
@@ -46,9 +46,9 @@ my $root_iso = "$root/iso";
 system("mkdir -vp $boot $root_iso");
 
 ################ copy ISO ###############
-my $iso_list;
+my @iso_list;
 if ( -f $repo ) {
-	$iso_list = $repo;
+	@iso_list = $repo;
 } elsif ( -s $repo ) {
 	@iso_list = `ls $repo/*.iso`;
 } else {
@@ -56,9 +56,11 @@ if ( -f $repo ) {
 }
 
 foreach (@iso_list) {
-	my $fn = basename $_;
-	if ( ! -e "$root_iso/$fn" ) {
-		system("cp -v $_ $root_iso");
+	my $iso=$_;
+	chomp($iso);
+	my $fn = basename $iso;
+	if ( ! -e "$root_iso/$fn") {
+		system("cp -vp $iso $root_iso");
 	}
 }
 
@@ -81,19 +83,24 @@ my $table = dev_tag($disk, 'PTTYPE');
 if ( $table eq "gpt" ) {
 	$grub_cmd .= " --target=x86_64-efi";
 
+		foreach (`parted $disk print`) {
+			my @mnt = split /\s+/;
+			if ( $mnt[8] eq "esp" ) {
+				$esp = $mnt[1]
+			}
+		}
 	
-#	my $esp = dev_tag($disk, 'LABEL');
-  
-	if ($esp eq "") {
+	if ( $esp eq " " ) {
 		die "ESP partition not found!";
 	}
-
+	
 	system("umount $disk$esp 2>/dev/null");
 	system("mkdir -p $boot/efi");
 	system("mount $disk$esp $boot/efi");
 } else {
 	$grub_cmd = "$grub_cmd --target=i386-pc";
 }
+
 system("$grub_cmd --boot-directory=$boot $disk");
 
 print "Generating $grub_cfg ...\n";
@@ -106,7 +113,8 @@ if ($table eq "gpt") {
 }
 
 foreach (`ls $root_iso/*.iso`) {
-	my $fn = basename $_;
+	$iso=$_;
+	my $fn = basename $iso;
 	my $dist = dev_tag($iso, 'LABEL');
 	
 	if ($dist eq "") {
