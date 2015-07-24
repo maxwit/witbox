@@ -1,7 +1,8 @@
 #!/bin/sh
 
-if [ UID!=0 ]; then
-	echo "must run as root!"
+if [ $USER != root ]; then
+	echo "must run as super user!"
+	exit 1
 fi
 
 if [ $# = 1 ]; then
@@ -69,11 +70,18 @@ else
     grub_cfg="$boot/grub/grub.cfg"
 fi
 
-table=`parted $disk print | awk '{if ($1 == "Partition") {print $3}}'`
+function dev_tag(){
+	local dev=$1
+	local tag=$2
+	value=`blkid -s $tag $dev | perl -p -e 's/.*="(.*?)".*/\1/'`
+}
+
+dev_tag $disk 'PTTYPE'
+table=$value
 if [ $table = "gpt" ]; then
 	grub_cmd="$grub_cmd --target=x86_64-efi"
 
-	esp=`parted $disk print | awk '{if ($1 >= 1 && $1 <=128 && $8 == "esp") {print $1} }'`
+	esp=`parted $disk print | awk '{if ($1 >= 1 && $1 <= 128 && $8 == "esp") {print $1} }'`
 	if [ -z $esp ]; then
 		echo "ESP partition not found!"
 		exit 1
@@ -96,8 +104,8 @@ fi
 for iso in `ls $root_iso/*.iso`
 do
 	fn=`basename $iso`
-
-	dist=`blkid $iso | perl -p -e 's/.*\sLABEL="(.*?)".*/\1/'`
+	dev_tag $iso 'LABEL'
+	dist=$value
 	if [ -z "$dist" ]; then
 		echo "'$iso' is NOT a valid ISO image!"
 		echo
@@ -106,23 +114,24 @@ do
 
 	echo "generating menuentry for $dist ..."
 	case "$dist" in
-	RHEL* | CentOS* | OL* | Fedora*)
-		uuid=`blkid $part | perl -p -e 's/.*\sUUID="(.*?)".*/\1/'`
-		linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
-		initrd="isolinux/initrd.img"
-		;;
+		RHEL* | CentOS* | OL* | Fedora*)			
+			dev_tag $part 'UUID'
+			uuid=$value
+			linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
+			initrd="isolinux/initrd.img"
+			;;
 
-	Ubuntu* | Deiban*)
-		linux="casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
-		initrd="casper/initrd.lz"
-		;;
-	*)
-		echo "Warning: distribution $dist not supported (skipped)!"
-		continue
-		;;
+		Ubuntu* | Deiban*)
+			linux="casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$fn"
+			initrd="casper/initrd.lz"
+			;;
+		*)
+			echo "Warning: distribution $dist not supported (skipped)!"
+			continue
+			;;
 	esac
-
-cat >> $grub_cfg << OEF
+	
+	cat >> $grub_cfg << OEF
 
 menuentry '$dist' {
 	set root='hd0,$index'
@@ -135,3 +144,4 @@ OEF
 done
 
 echo
+
