@@ -132,10 +132,10 @@ foreach (`ls $root_iso/*.iso`) {
 	} 
 
 	print $fh "menuentry '$dist' {\n";
-	print $fh	"        set root='hd0,$index'\n";
-	print $fh "	     loopback lo /iso/$fn\n";
-	print $fh "        linux (lo)/$linux\n";
-  	print $fh "        initrd (lo)/$initrd\n";
+	print $fh "    set root='hd0,$index'\n";
+	print $fh "    loopback lo /iso/$fn\n";
+	print $fh "    linux (lo)/$linux\n";
+  	print $fh "    initrd (lo)/$initrd\n";
     print $fh "}\n";
 	print $fh "\n";
 }
