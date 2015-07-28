@@ -6,6 +6,7 @@ if [ $UID != 0 ]; then
 fi
 
 dist=`lsb_release -si`
+ver=`lsb_release -sr`
 
 case "$dist" in
 Ubuntu|Debian)
@@ -17,7 +18,7 @@ Ubuntu|Debian)
 	;;
 *) # FIXME
 	perl -i -pe 's/(^%wheel\s+ALL=\(ALL\)\s+ALL)/#\1/g; s/^#\s*(%wheel\s.*NOPASSWD:)/\1/g;' /etc/sudoers
-	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-$ver.rpm
 	yum install -y git gcc gcc-c++ vim emacs tree
 	# FIXME
 	cp -v /usr/bin/vim /bin/vi
