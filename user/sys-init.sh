@@ -9,14 +9,14 @@ dist=`lsb_release -si`
 
 case "$dist" in
 Ubuntu|Debian)
-	sed -i 's/\(^%sudo\s\+.*\s\)ALL/\1NOPASSWD:ALL/' /etc/sudoers
+	perl -i -pe 's/\(^%sudo\s\+.*\s\)ALL/\1NOPASSWD:ALL/' /etc/sudoers
 	apt-get upgrade -y
 	apt-get install -y git gcc g++ vim emacs tree
-	# FIXME with dpkg-reconfigure
-	ln -svf bash /bin/sh
-	update-alternatives --set editor /usr/bin/vim.basic
+	ln -svf bash /bin/sh # FIXME with dpkg-reconfigure?
+	update-alternatives --set editor /usr/bin/emacs24
 	;;
 *) # FIXME
+	perl -i -pe 's/(^%wheel\s+ALL=\(ALL\)\s+ALL)/#\1/g; s/^#\s*(%wheel\s.*NOPASSWD:)/\1/g;' /etc/sudoers
 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
 	yum install -y git gcc gcc-c++ vim emacs tree
 	# FIXME
@@ -24,8 +24,8 @@ Ubuntu|Debian)
 	;;
 esac
 
-groupadd -g 3000 devel
-groupadd -g 5000 maxwit
+groupadd devel
+groupadd maxwit
 usermod -g devel -a -G maxwit $SUDO_USER
 groupdel $SUDO_USER
 
