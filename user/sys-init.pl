@@ -9,3 +9,5 @@ my $linux = Linux::Distribution->new;
 die 'known Linux' if (not $linux);
 
 print $linux->distribution_version."\n";
+
+system('ls --color=auto');
