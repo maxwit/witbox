@@ -1,0 +1,29 @@
+#!/bin/sh
+
+if [ ! -e pom.xml -o ! -d src/main/java ]; then
+	echo -e "invalid maven project!\n"
+	exit 1
+fi
+
+function run()
+{
+	java=$1
+	class=`echo $java | sed -e 's:^src/main/java/::' -e 's:.java$::' -e 's:/:.:g'`
+	echo "************************************************************************"
+	echo " Running $class ($java) "
+	echo "************************************************************************"
+	mvn exec:java -Dexec.mainClass=$class
+}
+
+if [ $# = 1 ]; then
+	run $1
+	echo
+	exit
+fi
+
+for java in `find src/main/java -name "*.java"`
+do
+	grep "public static void main" $java > /dev/null || continue
+	run $java
+	echo
+done
