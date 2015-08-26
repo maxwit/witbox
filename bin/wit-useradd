@@ -1,0 +1,26 @@
+#!/bin/sh
+
+if [ $UID != 0 ]; then
+	echo "run as root!"
+	echo
+	exit 1
+fi
+
+if [ $# != 2 ]; then
+	cmd=`basename $0`
+	echo "Usage: $cmd <given name> <familly name>"
+	echo
+	exit 1
+fi
+
+user=`echo $1 | tr A-Z a-z`
+pass="maxwit"`date +%m`
+
+useradd -d /home/students/$user -g maxwit -c "$1 $2" $user || exit 1
+echo -e "$pass\n$pass" | passwd $user
+
+echo -e "$pass\n$pass" | smbpasswd -a $user
+
+echo
+echo "$1 $2 ($user) added!"
+echo

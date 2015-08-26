@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ $UID != 0 ]; then
+	echo "run as root!"
+	echo
+	exit 1
+fi
+
+if [ $# != 1 ]; then
+	cmd=`basename $0`
+	echo "Usage: $cmd <username>"
+	echo
+	exit 1
+fi
+
+user=$1
+
+smbpasswd -x $user
+userdel -r $user
+
+echo
+echo "$user deleted!"
+echo
