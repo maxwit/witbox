@@ -6,21 +6,54 @@ if [ $UID != 0 ]; then
 	exit 1
 fi
 
-if [ $# != 2 ]; then
-	cmd=`basename $0`
-	echo "Usage: $cmd <given name> <familly name>"
-	echo
-	exit 1
-fi
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-f|--fullname)
+		shift
+		fullname=($1)
+		;;
 
-user=`echo $1 | tr A-Z a-z`
+	-x|--extra)
+		shift
+		extra="$1"
+		;;
+
+	-s|--service)
+		shift
+		service="$1"
+		;;
+
+	*)
+		echo "Unknown option: '$@'"
+		cmd=`basename $0`
+		echo -e "Usage: $cmd <-f|--fullname 'Full Name'> [-s|--service 'service list'] [-x|--extra 'extra options']\n"
+		exit 1
+		;;
+	esac
+
+	shift
+done
+
+fn="${fullname[@]}"
+user=`echo ${fullname[0]} | tr A-Z a-z`
 pass="maxwit"`date +%m`
 
-useradd -d /home/students/$user -g maxwit -c "$1 $2" $user || exit 1
+useradd -m -d /home/students/$user -g maxwit -c "$fn" $extra $user || exit 1
 echo -e "$pass\n$pass" | passwd $user
 
-echo -e "$pass\n$pass" | smbpasswd -a $user
+for s in $service
+do
+	case $s in
+	smb|samba)
+		echo -e "$pass\n$pass" | smbpasswd -a $user
+		;;
+	*)
+		echo "Warning: service '$s' not supported yet!"
+		;;
+	esac
+done
 
 echo
-echo "$1 $2 ($user) added!"
+echo "$fn ($user) added!"
 echo
