@@ -1,0 +1,2 @@
+/usr/bin/vmrun -T ws start /opt/vmdk/Ubuntu-15.04/Ubuntu-15.04.vmx
+/usr/bin/vmrun -T ws start /opt/vmdk/Windows-10/Windows-10.vmx

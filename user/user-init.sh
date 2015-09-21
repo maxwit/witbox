@@ -12,9 +12,9 @@ cat > ~/.emacs << EOF
 (global-linum-mode t)
 EOF
 
-if [ ! -e ~/.ssh/id_rsa ]; then
-	scp -r build.maxwit.com:~/.ssh ~/
-fi
+#if [ ! -e ~/.ssh/id_rsa ]; then
+#	scp -r build.maxwit.com:~/.ssh ~/
+#fi
 
 fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
 fullname=${fullname/,*}
