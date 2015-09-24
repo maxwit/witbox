@@ -31,6 +31,7 @@ ubuntu|debian)
 	;;
 redhat|centos|fedora|ol) # FIXME
 	# perl -i -pe 's/(^%wheel\s+ALL=\(ALL\)\s+ALL)/#\1/g; s/^#\s*(%wheel\s.*NOPASSWD:)/\1/g;' /etc/sudoers
+	yum update -y
 	perl -i -pe 's/ONBOOT=no/ONBOOT=yes/' /etc/sysconfig/network-scripts/ifcfg-eno*
 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${VERSION_ID}.rpm
 	yum install -y $apps gcc-c++ nfs-utils
