@@ -16,7 +16,7 @@ do
 
 	for branch in ${branchlist[@]}
 	do
-		if [ $branch -eq origin/HEAD* ]
+		if echo $branch | egrep -q HEAD
 		then
 			continue
 		fi
