@@ -19,7 +19,7 @@ fi
 echo "initializing $ID $VERSION_ID ..."
 
 apps="git gcc vim tree gparted"
-sg="maxwit"
+#sg="maxwit"
 
 case "$ID" in
 ubuntu|debian)
@@ -37,42 +37,42 @@ redhat|centos|fedora|ol) # FIXME
 	yum install -y $apps gcc-c++ nfs-utils
 	# FIXME
 	cp -v /usr/bin/vim /bin/vi
-	sg="$sg,wheel"
+	#sg="$sg,wheel"
 	;;
 *)
 	echo -e "'$ID' not supported yet!\n"
 	exit 1
 esac
 
-user=(`ls /home`)
-test ${#user[@]} -eq 1 && {
-	user=${user[0]}
-	pg='devel'
-
-	groupadd $pg
-	groupadd maxwit
-	usermod -g $pg -a -G $sg $user
-	groupdel $user
-
-	chown $user.maxwit -R /opt
-}
-
-for part in `ls /dev/sda[0-9]*`
-do
-	index=${part#/dev/sda}
-	mkdir -vp /mnt/$index
-done
-
-WITPATH="/mnt/witpub"
-mount | grep $WITPATH || {
-	mkdir -vp $WITPATH
-	# FIXME
-	grep "$WITPATH" /etc/fstab || sed -i '$a\'"192.168.3.3:$WITPATH $WITPATH nfs defaults 0 0" /etc/fstab
-	mount $WITPATH || {
-		echo "Fail to mount '$WITPATH', pls check /etc/fstab!"
-		exit 1
-	}
-}
+#user=(`ls /home`)
+#test ${#user[@]} -eq 1 && {
+#	user=${user[0]}
+#	pg='devel'
+#
+#	groupadd $pg
+#	groupadd maxwit
+#	usermod -g $pg -a -G $sg $user
+#	groupdel $user
+#
+#	chown $user.maxwit -R /opt
+#}
+#
+#for part in `ls /dev/sda[0-9]*`
+#do
+#	index=${part#/dev/sda}
+#	mkdir -vp /mnt/$index
+#done
+#
+#WITPATH="/mnt/witpub"
+#mount | grep $WITPATH || {
+#	mkdir -vp $WITPATH
+#	# FIXME
+#	grep "$WITPATH" /etc/fstab || sed -i '$a\'"192.168.3.3:$WITPATH $WITPATH nfs defaults 0 0" /etc/fstab
+#	mount $WITPATH || {
+#		echo "Fail to mount '$WITPATH', pls check /etc/fstab!"
+#		exit 1
+#	}
+#}
 
 test -e /etc/gdm/custom.conf && {
 temp=`mktemp`
@@ -99,4 +99,4 @@ EOF
 cp -v $temp /etc/gdm/custom.conf
 }
 
-poweroff
+#poweroff
