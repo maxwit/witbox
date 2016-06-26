@@ -18,7 +18,7 @@ fi
 
 echo "initializing $ID $VERSION_ID ..."
 
-apps="git maven gcc vim tree gparted"
+apps="git gcc vim tree gparted"
 #sg="maxwit"
 
 case "$ID" in
