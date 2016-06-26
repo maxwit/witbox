@@ -99,4 +99,4 @@ EOF
 cp -v $temp /etc/gdm/custom.conf
 }
 
-#poweroff
+poweroff
