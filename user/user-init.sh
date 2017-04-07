@@ -22,7 +22,7 @@ account=${fullname// /.}
 account=$(echo $account | tr A-Z a-z)
 
 git config --global user.name "$fullname"
-git config --global user.email $account@maxwit.com
+git config --global user.email $account@gmail.com
 git config --global color.ui auto
 git config --global push.default simple
 git config --global sendemail.smtpserver /usr/bin/msmtp
