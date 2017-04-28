@@ -35,10 +35,13 @@ case $os in
 				;;
 			redhat|centos )
 				if [[ $version -ge 7 ]]; then
-					which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils
-					which dnf > /dev/null 2>&1 || alias dnf=yum # should never happen
+					which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
+						echo 'fail to install yum-utils!'
+						exit 1
+					}
+					installer="sudo dnf install -y"
 				else
-					alias dnf=yum
+					installer="sudo yum install -y"
 				fi
 				if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
 					curl https://setup.ius.io/ | sudo bash
@@ -246,6 +249,58 @@ $installer ${pkg_list[@]}
 
 # pkg_install ${pkg_list[@]}
 
+
+test -e /etc/gdm/custom.conf && {
+	temp=`mktemp`
+	cat > $temp << __EOF__
+[daemon]
+AutomaticLoginEnable=true
+AutomaticLogin=$USER
+
+[security]
+
+[xdmcp]
+
+[greeter]
+
+[chooser]
+
+[debug]
+
+__EOF__
+
+	sudo cp -v $temp /etc/gdm/custom.conf
+}
+
+cat > ~/.vimrc << __EOF__
+set nu
+set ts=4
+set hlsearch
+let c_space_errors=1
+let java_space_errors=1
+__EOF__
+
+case $os in
+	Linux )
+		fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
+		fullname=${fullname/,*}
+		;;
+	Darwin )
+		fullname=$USER # FIXME
+		;;
+esac
+
+username=${fullname// /.}
+username=$(echo $username | tr A-Z a-z)
+
+git config --global user.name "$fullname"
+git config --global user.email $username@gmail.com
+git config --global color.ui auto
+git config --global push.default simple
+# git config --global sendemail.smtpserver /usr/bin/msmtp
+git config --global merge.ours.driver true
+git config --list
+
 exit 0
 
 # open-vm-tools
@@ -288,29 +343,6 @@ __EOF__
 	# qemu
 	# virtualbox
 esac
-
-exit 0
-
-case $os in
-	Linux )
-		fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
-		fullname=${fullname/,*}
-		;;
-	Darwin )
-		fullname=$USER # FIXME
-		;;
-esac
-
-username=${fullname// /.}
-username=$(echo $username | tr A-Z a-z)
-
-git config --global user.name "$fullname"
-git config --global user.email $username@gmail.com
-git config --global color.ui auto
-git config --global push.default simple
-# git config --global sendemail.smtpserver /usr/bin/msmtp
-git config --global merge.ours.driver true
-git config --list
 
 exit 0
 
@@ -372,37 +404,6 @@ esac
 #	}
 #}
 
-test -e /etc/gdm/custom.conf && {
-	temp=`mktemp`
-	cat > $temp << __EOF__
-[daemon]
-AutomaticLoginEnable=true
-AutomaticLogin=$USER
-
-[security]
-
-[xdmcp]
-
-[greeter]
-
-[chooser]
-
-[debug]
-
-__EOF__
-
-	sudo cp -v $temp /etc/gdm/custom.conf
-}
-
-### user init
-
-cat > ~/.vimrc << EOF
-set nu
-set ts=4
-set hlsearch
-let c_space_errors=1
-let java_space_errors=1
-EOF
 
 cat > ~/.emacs << EOF
 (global-linum-mode t)
