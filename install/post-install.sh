@@ -6,22 +6,85 @@ case $os in
 	Linux )
 		if [ -e /etc/os-release ]; then
 			. /etc/os-release
+			dist_id=$ID
+			version=$VERSION_ID
 		elif [ -e /etc/redhat-release ]; then
 			dist=(`cat /etc/redhat-release | head -n 1`)
-			ID=`echo ${dist[0]} | tr A-Z a-z`
-			VERSION_ID=${dist[2]%%.*}
+			dist_id=`echo ${dist[0]} | tr A-Z a-z`
+			version=${dist[2]%%.*}
 		else
 			echo -e "Fail to detect the distribution name!\n"
 			exit 1
 		fi
+
+		case $dist_id in
+			ubuntu|debian)
+				installer="sudo apt-get install -y"
+				;;
+			redhat|centos|fedora|ol)
+				installer="sudo yum install -y"
+				;;
+			*)
+				echo "Linux distribution '$ID' not supported!"
+				exit 1
+		esac
+
 		;;
 
 	Darwin )
-		echo 'coming soon!'
-		exit 0
+		which brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+		which brew > /dev/null || {
+			echo "fail to install HomeBrew, pls try again!"
+			exit 1
+		}
+		installer="brew install"
+		;;
+
+	*)
+		echo "'$os' not supported!"
+		exit 1
 		;;
 esac
 
+function install() {
+	for pkg in $@; do
+		loc=`which $pkg`
+		if [[ -z "$loc" ]]; then
+			for (( i = 0; i < 5; i++ )); do
+				$installer $pkg && break
+			done
+		fi
+	done
+}
+
+install git
+
+exit 0
+
+install git
+
+case $os in
+	Linux )
+		fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
+		fullname=${fullname/,*}
+		;;
+	Darwin )
+		fullname="Conke Hu"
+		;;
+esac
+
+account=${fullname// /.}
+account=$(echo $account | tr A-Z a-z)
+
+git config --global user.name "$fullname"
+git config --global user.email $account@gmail.com
+git config --global color.ui auto
+git config --global push.default simple
+# git config --global sendemail.smtpserver /usr/bin/msmtp
+git config --global merge.ours.driver true
+git config --list
+
+exit 0
 
 echo "initializing $ID $VERSION_ID ..."
 
@@ -82,14 +145,11 @@ esac
 #}
 
 test -e /etc/gdm/custom.conf && {
-temp=`mktemp`
-cat > $temp << EOF
+	temp=`mktemp`
+	cat > $temp << __EOF__
 [daemon]
 AutomaticLoginEnable=true
-AutomaticLogin=$user
-TimedLoginEnable=true
-TimedLogin=$user
-TimedLoginDelay=7
+AutomaticLogin=$USER
 
 [security]
 
@@ -101,9 +161,9 @@ TimedLoginDelay=7
 
 [debug]
 
-EOF
+__EOF__
 
-cp -v $temp /etc/gdm/custom.conf
+	sudo cp -v $temp /etc/gdm/custom.conf
 }
 
 ### user init
@@ -119,22 +179,5 @@ EOF
 cat > ~/.emacs << EOF
 (global-linum-mode t)
 EOF
-
-#if [ ! -e ~/.ssh/id_rsa ]; then
-#	scp -r build.maxwit.com:~/.ssh ~/
-#fi
-
-fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
-fullname=${fullname/,*}
-account=${fullname// /.}
-account=$(echo $account | tr A-Z a-z)
-
-git config --global user.name "$fullname"
-git config --global user.email $account@gmail.com
-git config --global color.ui auto
-git config --global push.default simple
-git config --global sendemail.smtpserver /usr/bin/msmtp
-git config --global merge.ours.driver true
-git config --list
 
 echo
