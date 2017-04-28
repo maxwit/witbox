@@ -4,6 +4,8 @@ if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
 	declare -A check
 fi
 
+declare -a pkg_list
+
 os=`uname -s`
 
 # init:
@@ -26,29 +28,32 @@ case $os in
 		fi
 
 		case $os_dist in
-			ubuntu|debian)
-				which apt > /dev/null 2>&1 || alias apt=apt-get
-				installer="sudo apt install -y"
+			ubuntu|debian )
+				which apt > /dev/null 2>&1 && pm='sudo apt' || pm='sudo apt-get'
+				installer="$pm install -y"
 				;;
-			fedora )
-				installer="sudo dnf install -y"
-				;;
-			redhat|centos )
-				if [[ $version -ge 7 ]]; then
-					which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
-						echo 'fail to install yum-utils!'
-						exit 1
-					}
-					installer="sudo dnf install -y"
+			redhat|centos|fedora )
+				if [[ $os_dist == fedora ]]; then
+					# need epel?
+					pm='sudo dnf'
 				else
-					installer="sudo yum install -y"
+					if [[ $version -ge 7 ]]; then
+						which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
+							echo 'fail to install yum-utils!'
+							exit 1
+						}
+						pm='sudo dnf'
+					else
+						pm='sudo yum'
+					fi
+					if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
+						curl https://setup.ius.io/ | sudo bash
+					fi
+					# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
+					# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
+					# fi
 				fi
-				if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
-					curl https://setup.ius.io/ | sudo bash
-				fi
-				# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
-				# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
-				# fi
+				installer="$pm install -y"
 				;;
 			*)
 				echo "Linux distribution '$ID' not supported!"
@@ -100,7 +105,20 @@ esac
 
 ### base and common ###
 
-pkg_list=('git' 'subversion')
+case $os in
+	Linux )
+		case $os_dist in
+			redhat|centos )
+				pkg_list+=(git2u)
+				;;
+		* )
+				pkg_list+=(git)
+				;;
+		esac
+		;;
+esac
+
+pkg_list+=(subversion)
 
 ### Build tools ###
 
@@ -138,21 +156,23 @@ pkg_list+=(cmake)
 
 # PHP
 
-# case $os in
-# 	Linux )
-# 		case $os_dist in
-# 			redhat|centos )
-# 			 	echo FIXME: use remi/scl instead
-# 				;;
-# 			* )
-# 				pkg_list+=(php)
-# 				pkg_list+=(composer)
-# 				;;
-# 		esac
-# 		;;
-# 	Darwin )
-# 		pkg_list+=(homebrew/php/composer)
-# esac
+case $os in
+	Linux )
+		case $os_dist in
+			redhat|centos )
+				# 	echo FIXME: use remi/scl instead
+				pkg_list+=(php56u)
+				;;
+			* )
+				pkg_list+=(php)
+				;;
+		esac
+		;;
+	Darwin )
+		pkg_list+=(homebrew/php/composer)
+esac
+
+# TODO: install composer
 
 # Python
 
@@ -180,8 +200,11 @@ case $os in
 		case $os_dist in
 			redhat|centos|fedora )
 				# Code
-				sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-				sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+				if [ $os_dist == fedora -o $version -ge 7 ]; then
+					sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+					sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+					pkg_list+=(code)
+				fi
 				# VIM
 				pkg_list+=(vim-enhanced)
 				check[vim-enhanced]=vim # or vimdiff
@@ -191,12 +214,12 @@ case $os in
 				curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
 				sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
 				sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+				pkg_list+=(code)
 				# VIM
 				pkg_list+=(vim-gtk3) # FIXME for old ubuntu/debian
 				check[vim-gtk3]=vim.gtk3
 			;;
 		esac
-		pkg_list+=(code)
 		# git_list[atom]='https://github.com/atom/atom.git'
 		;;
 	Darwin )
@@ -212,12 +235,11 @@ case $os in
 	Linux )
 		case "$os_dist" in
 			ubuntu|debian )
-				sudo apt update -y
-				sudo apt upgrade -y
+				$pm update -y
+				$pm upgrade -y
 				;;
 			redhat|centos|fedora )
-				sudo dnf install -y epel-release
-				sudo dnf update -y
+				$pm update -y
 				;;
 		esac
 		;;
@@ -303,15 +325,11 @@ git config --list
 
 exit 0
 
-# open-vm-tools
-vm=`sudo virt-what`
+function instal_vm_tools() {
+	$installer open-vm-tools
+	temp=`mktemp`
 
-case "$vm" in
-	vmware )
-		$installer open-vm-tools
-		temp=`mktemp`
-
-		cat > $temp << __EOF__
+	cat > $temp << __EOF__
 [Unit]
 Description=VMware Shared Folders
 Requires=vmware-vmblock-fuse.service
@@ -329,81 +347,43 @@ ExecStart=/usr/bin/vmhgfs-fuse -o allow_other -o auto_unmount .host:/ /mnt/hgfs
 WantedBy=multi-user.target
 __EOF__
 
-		sudo mkdir -p /mnt/hgfs
-		sudo cp -v $temp /etc/systemd/system/hgfs.service
-		sudo systemctl enable hgfs
-		# sudo systemctl start hgfs
-		;;
-	# vmware
-	# xen
-	# docker
-	# kvm
-	# hyperv
-	# parallels
-	# qemu
-	# virtualbox
-esac
+	sudo mkdir -p /mnt/hgfs
+	sudo cp -v $temp /etc/systemd/system/hgfs.service
+	rm $temp
+	sudo systemctl enable hgfs
+	# sudo systemctl start hgfs
+}
+
+if [[ $os == Linux ]]; then
+	kver=`uname -r`
+	kver=(${kver//./ })
+	kmajor=${kver[0]}
+
+	which virt-what > /dev/null 2>&1 || $installer virt-what
+
+	vm=`sudo virt-what`
+
+	case "$vm" in
+		vmware )
+			# open-vm-tools
+			if [[ $kmajor -ge 4 ]]; then # really begin with 4.0?
+					instal_vm_tools
+			fi
+			;;
+		# vmware
+		# xen
+		# docker
+		# kvm
+		# hyperv
+		# parallels
+		# qemu
+		# virtualbox
+	esac
+fi
 
 exit 0
 
-echo "initializing $ID $VERSION_ID ..."
-
-apps="git gcc vim tree gparted"
-#sg="maxwit"
-
-case "$ID" in
-ubuntu|debian)
-	# perl -i -pe 's/\(^%sudo\s\+.*\s\)ALL/\1NOPASSWD:ALL/' /etc/sudoers
-	apt-get upgrade -y
-	apt-get install -y $apps g++ nfs-common
-	ln -svf bash /bin/sh # FIXME with dpkg-reconfigure?
-	update-alternatives --set editor /usr/bin/vim.basic
-	;;
-redhat|centos|fedora|ol) # FIXME
-	# perl -i -pe 's/(^%wheel\s+ALL=\(ALL\)\s+ALL)/#\1/g; s/^#\s*(%wheel\s.*NOPASSWD:)/\1/g;' /etc/sudoers
-	yum update -y
-	perl -i -pe 's/ONBOOT=no/ONBOOT=yes/' /etc/sysconfig/network-scripts/ifcfg-eno*
-	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${VERSION_ID}.rpm
-	yum install -y $apps gcc-c++ nfs-utils
-	# FIXME
-	cp -v /usr/bin/vim /bin/vi
-	#sg="$sg,wheel"
-	;;
-*)
-	echo -e "'$ID' not supported yet!\n"
-	exit 1
-esac
-
-#user=(`ls /home`)
-#test ${#user[@]} -eq 1 && {
-#	user=${user[0]}
-#	pg='devel'
-#
-#	groupadd $pg
-#	groupadd maxwit
-#	usermod -g $pg -a -G $sg $user
-#	groupdel $user
-#
-#	chown $user.maxwit -R /opt
-#}
-#
-#for part in `ls /dev/sda[0-9]*`
-#do
-#	index=${part#/dev/sda}
-#	mkdir -vp /mnt/$index
-#done
-#
-#WITPATH="/mnt/witpub"
-#mount | grep $WITPATH || {
-#	mkdir -vp $WITPATH
-#	# FIXME
-#	grep "$WITPATH" /etc/fstab || sed -i '$a\'"192.168.3.3:$WITPATH $WITPATH nfs defaults 0 0" /etc/fstab
-#	mount $WITPATH || {
-#		echo "Fail to mount '$WITPATH', pls check /etc/fstab!"
-#		exit 1
-#	}
-#}
-
+# spacemacs
 
 cat > ~/.emacs << EOF
 (global-linum-mode t)
