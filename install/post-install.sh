@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
+	declare -A check
+fi
+
 os=`uname -s`
 
 # init:
@@ -8,8 +12,6 @@ os=`uname -s`
 
 case $os in
 	Linux )
-		declare -A check
-
 		if [ -e /etc/os-release ]; then
 			. /etc/os-release
 			os_dist=$ID
@@ -33,6 +35,14 @@ case $os in
 					sudo yum install -y yum-utils || alias dnf=yum
 				}
 				installer="sudo dnf install -y"
+				if [[ $os_dist != fedora ]]; then
+					if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
+						curl https://setup.ius.io/ | sudo bash
+					fi
+					# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
+					# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
+					# fi
+				fi
 				;;
 			*)
 				echo "Linux distribution '$ID' not supported!"
@@ -122,25 +132,29 @@ pkg_list+=(cmake)
 
 # PHP
 
-case $os in
-	Linux )
-		case $os_dist in
-			redhat|centos )
-			 	echo FIXME: use remi/scl instead
-				;;
-			* )
-				pkg_list+=(php)
-				pkg_list+=(composer)
-				;;
-		esac
-		;;
-	Darwin )
-		pkg_list+=(homebrew/php/composer)
-esac
+# case $os in
+# 	Linux )
+# 		case $os_dist in
+# 			redhat|centos )
+# 			 	echo FIXME: use remi/scl instead
+# 				;;
+# 			* )
+# 				pkg_list+=(php)
+# 				pkg_list+=(composer)
+# 				;;
+# 		esac
+# 		;;
+# 	Darwin )
+# 		pkg_list+=(homebrew/php/composer)
+# esac
 
 # Python
 
-pkg_list+=(anaconda3)
+case $os in
+	Darwin )
+		pkg_list+=(anaconda3)
+		;;
+esac
 
 # Ruby
 
@@ -225,6 +239,7 @@ if [[ $os == Darwin ]]; then
 fi
 
 # now ready for install packages
+$installer ${pkg_list[@]}
 
 # pkg_install ${pkg_list[@]}
 
