@@ -243,6 +243,47 @@ $installer ${pkg_list[@]}
 
 # pkg_install ${pkg_list[@]}
 
+# open-vm-tools
+vm=`sudo virt-what`
+
+case "$vm" in
+	vmware )
+		$installer open-vm-tools
+		temp=`mktemp`
+
+		cat > $temp << __EOF__
+[Unit]
+Description=VMware Shared Folders
+Requires=vmware-vmblock-fuse.service
+After=vmware-vmblock-fuse.service
+ConditionPathExists=/mnt/hgfs
+ConditionVirtualization=vmware
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=
+ExecStart=/usr/bin/vmhgfs-fuse -o allow_other -o auto_unmount .host:/ /mnt/hgfs
+
+[Install]
+WantedBy=multi-user.target
+__EOF__
+
+		sudo mkdir -p /mnt/hgfs
+		sudo cp -v $temp /etc/systemd/system/hgfs.service
+		sudo systemctl enable hgfs
+		sudo systemctl start hgfs
+		;;
+	# vmware
+	# xen
+	# docker
+	# kvm
+	# hyperv
+	# parallels
+	# qemu
+	# virtualbox
+esac
+
 exit 0
 
 case $os in
