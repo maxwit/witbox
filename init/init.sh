@@ -1,20 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ $UID != 0 ]; then
-	echo "pls run as root!"
-	exit
-fi
+os=`uname -s`
 
-if [ -e /etc/os-release ]; then
-	. /etc/os-release
-elif [ -e /etc/redhat-release ]; then
-	dist=(`cat /etc/redhat-release | head -n 1`)
-	ID=`echo ${dist[0]} | tr A-Z a-z`
-	VERSION_ID=${dist[2]%%.*}
-else
-	echo -e "Fail to detect the running OS!\n"
-	exit 1
-fi
+case $os in
+	Linux )
+		if [ -e /etc/os-release ]; then
+			. /etc/os-release
+		elif [ -e /etc/redhat-release ]; then
+			dist=(`cat /etc/redhat-release | head -n 1`)
+			ID=`echo ${dist[0]} | tr A-Z a-z`
+			VERSION_ID=${dist[2]%%.*}
+		else
+			echo -e "Fail to detect the distribution name!\n"
+			exit 1
+		fi
+		;;
+
+	Darwin )
+		echo 'coming soon!'
+		exit 0
+		;;
+esac
+
 
 echo "initializing $ID $VERSION_ID ..."
 
