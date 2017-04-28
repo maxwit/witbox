@@ -3,7 +3,7 @@
 ## Unix-like system (Linux/macOS/FreeBSD)
 
 ```bash
-curl https://raw.githubusercontent.com/conke/witbox/master/init/init.sh | bash
+curl https://raw.githubusercontent.com/conke/witbox/master/install/post-install.sh | bash
 ```
 
 ## Windows
