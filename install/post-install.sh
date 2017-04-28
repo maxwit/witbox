@@ -27,22 +27,25 @@ case $os in
 
 		case $os_dist in
 			ubuntu|debian)
-				which apt > /dev/null || alias apt=apt-get
+				which apt > /dev/null 2>&1 || alias apt=apt-get
 				installer="sudo apt install -y"
 				;;
-			redhat|centos|fedora )
-				which dnf > /dev/null || {
-					sudo yum install -y yum-utils || alias dnf=yum
-				}
+			fedora )
 				installer="sudo dnf install -y"
-				if [[ $os_dist != fedora ]]; then
-					if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
-						curl https://setup.ius.io/ | sudo bash
-					fi
-					# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
-					# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
-					# fi
+				;;
+			redhat|centos )
+				if [[ $version -ge 7 ]]; then
+					which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils
+					which dnf > /dev/null 2>&1 || alias dnf=yum # should never happen
+				else
+					alias dnf=yum
 				fi
+				if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
+					curl https://setup.ius.io/ | sudo bash
+				fi
+				# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
+				# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
+				# fi
 				;;
 			*)
 				echo "Linux distribution '$ID' not supported!"
@@ -52,8 +55,8 @@ case $os in
 		;;
 
 	Darwin )
-		which brew > /dev/null || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-		which brew > /dev/null || {
+		which brew > /dev/null 2>&1 || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+		which brew > /dev/null 2>&1 || {
 			echo "fail to install HomeBrew, pls try again!"
 			exit 1
 		}
@@ -243,6 +246,8 @@ $installer ${pkg_list[@]}
 
 # pkg_install ${pkg_list[@]}
 
+exit 0
+
 # open-vm-tools
 vm=`sudo virt-what`
 
@@ -272,7 +277,7 @@ __EOF__
 		sudo mkdir -p /mnt/hgfs
 		sudo cp -v $temp /etc/systemd/system/hgfs.service
 		sudo systemctl enable hgfs
-		sudo systemctl start hgfs
+		# sudo systemctl start hgfs
 		;;
 	# vmware
 	# xen
