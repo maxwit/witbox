@@ -94,7 +94,7 @@ esac
 
 if [[ -e $HOME/.bashrc ]]; then
 	profile=$HOME/.bashrc
-elif [[ -e $HOME/.bash_profile ]]
+elif [[ -e $HOME/.bash_profile ]]; then
 	profile=$HOME/.bash_profile
 else
 	profile=$HOME/.bashrc
