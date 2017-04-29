@@ -1,6 +1,6 @@
 # Development Environment Setup
 
-## Unix-like system (Linux/macOS/FreeBSD)
+## Linux/macOS/FreeBSD
 
 ```bash
 curl https://raw.githubusercontent.com/conke/witbox/master/install/post-install.sh | bash
