@@ -65,6 +65,7 @@ case $os_dist in
 
 			if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
 				curl https://setup.ius.io/ | sudo bash
+				sudo yum install -y yum-plugin-replace
 			fi
 			# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
 			# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
@@ -91,8 +92,22 @@ case $os_dist in
 		;;
 esac
 
-log="$HOME/witbox-post-install.log"
-echo > $log
+if [[ -e $HOME/.bashrc ]]; then
+	profile=$HOME/.bashrc
+elif [[ -e $HOME/.bash_profile ]]
+	profile=$HOME/.bash_profile
+else
+	profile=$HOME/.bashrc
+	touch $profile
+fi
+
+grep '^export PATH=$HOME/.local/bin:$PATH' > /dev/null 2>&1 $profile || {
+	echo 'export PATH=$HOME/.local/bin:$PATH' >> $profile
+	export PATH=$HOME/.local/bin:$PATH
+}
+
+# log="$HOME/witbox-post-install.log"
+# echo > $log
 
 function install_pkgs() {
 	echo "[$group]"
@@ -116,25 +131,28 @@ function install_pkgs() {
 	# 	loc=`which $exe`
 	# done
 
-	for pkg in ${pkg_list[@]}; do
-		if [[ $os == macOS ]]; then
+	if [[ $os_dist == macOS ]]; then
+		tmp_list=()
+		for pkg in ${pkg_list[@]}; do
 			result=`brew cask search $pkg`
 			if [[ "${result:0:15}" == '==> Exact match' ]]; then # which one is better?
-				pkg="Caskroom/cask/$pkg"
-			# 	installer="brew cask install"
-			# else
-			# 	installer="brew install"
+				tmp_list+=("Caskroom/cask/$pkg")
+				# installer="brew cask install"
+			else
+				tmp_list+=($pkg)
+				# installer="brew install"
 			fi
-		fi
-
-		echo "Installing $pkg ..."
-		for (( i = 0; i < 3; i++ )); do
-			$installer $pkg && break
 		done
-		if [[ $i -eq 3 ]]; then
-			echo "[F] $pkg" >> $log
-		fi
+		pkg_list=(${tmp_list[@]})
+	fi
+
+	echo "Installing ${pkg_list[@]} ..."
+	for (( i = 0; i < 3; i++ )); do
+		$installer ${pkg_list[@]} && break
 	done
+	# if [[ $i -eq 3 ]]; then
+	# 	echo "[F] $pkg" >> $log
+	# fi
 }
 
 group="SCM"
@@ -227,20 +245,69 @@ case "$os_dist" in
 		;;
 esac
 
-# TODO: install composer
-
 install_pkgs
+
+# FIXME
+for (( i = 0; i < 10; i++ )); do
+  [[ -e $HOME/.local/bin/composer ]] && break
+  curl -o composer-setup.php https://getcomposer.org/installer || continue
+  php composer-setup.php --install-dir=$HOME/.local/bin --filename=composer
+  rm composer-setup.php
+done
 
 group="Python"
 pkg_list=()
 
-case $os in
-	macOS )
-		pkg_list+=(anaconda3)
+# TODO: Anaconda supprt
+pycur=(`python --version 2>&1 | awk '{print $2}' | sed 's/\./ /g'`)
+pynew=""
+if [ ${pycur[0]} == 2 ] && [ ${pycur[1]} -lt 7 ]; then
+	pkg_list+=(python27)
+	pynew=2.7
+fi
+
+case $os_dist in
+	redhat|centos )
+		pkg_list+=(python35u python35u-devel) # FIXME: do not hardcode the version
+		;;
+	ubuntu )
+		pkg_list+=(python3 python3-dev)
+		;;
+	* )
+		pkg_list+=(python3)
 		;;
 esac
 
 install_pkgs
+
+for (( i = 0; i < 10; i++ )); do
+	which pip${pynew} > /dev/null 2>&1 && break
+	curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pynew}
+done
+
+wrapper_sh="$HOME/.local/bin/virtualenvwrapper.sh"
+
+for (( i = 0; i < 10; i++ )); do
+	[[ -e $wrapper_sh ]] && break
+	pip${pynew} install --user virtualenvwrapper
+done
+
+if [[ -n "$pynew" ]]; then
+	grep VIRTUALENVWRAPPER_PYTHON $profile > /dev/null || \
+		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pynew}`" >> $profile
+fi
+
+grep WORKON_HOME $profile > /dev/null || {
+	workon_home='/opt/virtualenvs'
+	sudo mkdir -p $workon_home
+	sudo chown $USER $workon_home
+	sudo chmod go+rx $workon_home
+	echo "export WORKON_HOME=$workon_home" >> $profile
+
+	echo "source $wrapper_sh" >> $profile
+
+	source $profile
+}
 
 group="Ruby"
 
@@ -301,11 +368,24 @@ case $os_dist in
 
 	redhat|centos|fedora )
 		# VS Code
-		if [ $os_dist == fedora -o $version -ge 7 ] && [ ! -e /etc/yum.repos.d/vscode.repo ]; then
-			sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-			sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+		if [ $os_dist == fedora -o $version -ge 7 ]; then
+			if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
+				sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+				# sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+				temp=`mktemp`
+				cat > $temp << __EOF__
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+__EOF__
+				sudo cp $temp /etc/yum.repos.d/vscode.repo
+				rm $temp
+			fi
+			pkg_list+=(code)
 		fi
-		pkg_list+=(code)
 	;;
 
 	ubuntu|debian )
