@@ -1,4 +1,4 @@
-# System init
+# Development Environment Setup
 
 ## Unix-like system (Linux/macOS/FreeBSD)
 
@@ -7,3 +7,7 @@ curl https://raw.githubusercontent.com/conke/witbox/master/install/post-install.
 ```
 
 ## Windows
+
+```bash
+@powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/conke/witbox/master/install/post-install.ps1'))"
+```
