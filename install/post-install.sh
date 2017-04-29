@@ -101,6 +101,7 @@ else
 	touch $profile
 fi
 
+mkdir -p $HOME/.local/bin
 grep '^export PATH=$HOME/.local/bin:$PATH' > /dev/null 2>&1 $profile || {
 	echo 'export PATH=$HOME/.local/bin:$PATH' >> $profile
 	export PATH=$HOME/.local/bin:$PATH
