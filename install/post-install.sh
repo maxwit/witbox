@@ -44,8 +44,8 @@ echo -e "### Setup for $os_dist ###\n"
 # get installer ready
 case $os_dist in
 	ubuntu|debian )
-		which apt > /dev/null 2>&1 && pm='sudo apt' || pm='sudo apt-get'
-		installer="$pm install -y"
+		which apt > /dev/null 2>&1 && pm='apt' || pm='apt-get'
+		installer="sudo $pm install -y"
 		# $pm update -y
 		# $pm upgrade -y
 		;;
@@ -53,17 +53,20 @@ case $os_dist in
 	redhat|centos|fedora )
 		if [[ $os_dist == fedora ]]; then
 			# need epel?
-			pm='sudo dnf'
+			pm='dnf'
+			installer="sudo dnf --allowerasing install -y"
 		else
 			if [[ $version -ge 7 ]]; then
 				which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
 					echo 'fail to install yum-utils!'
 					exit 1
 				}
-				pm='sudo dnf --allowerasing'
+				pm='dnf'
+				installer="sudo dnf --allowerasing install -y"
 			else
 				# TODO: add source repo
-				pm='sudo yum'
+				pm='yum'
+				installer="sudo yum install -y"
 			fi
 
 			if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
@@ -75,7 +78,6 @@ case $os_dist in
 			# fi
 			# and SCL ?
 		fi
-		installer="$pm install -y"
 		# $pm update -y
 		;;
 
@@ -268,6 +270,10 @@ group="PHP"
 pkg_list=()
 
 case "$os_dist" in
+	macOS )
+		brew tap homebrew/php
+		pkg_list+=(php56)
+		;;
 	redhat|centos )
 		# use remi/scl instead?
 		pkg_list+=(php56u)
@@ -280,19 +286,19 @@ esac
 
 install_pkgs
 
-# FIXME
-for (( i = 0; i < 10; i++ )); do
-  [[ -e $HOME/.local/bin/composer ]] && break
-  curl -o composer-setup.php https://getcomposer.org/installer || continue
-	# wget -c -O composer-setup.php https://getcomposer.org/installer || continue
-  php composer-setup.php --install-dir=$HOME/.local/bin --filename=composer
-  rm composer-setup.php
-done
-
-mkdir -p $HOME/.composer/vendor/bin
-grep '^export PATH=$HOME/.composer/vendor/bin:$PATH' > /dev/null 2>&1 $profile || {
-	echo 'export PATH=$HOME/.composer/vendor/bin:$PATH' >> $profile
-}
+# # FIXME
+# for (( i = 0; i < 10; i++ )); do
+#   [[ -e $HOME/.local/bin/composer ]] && break
+#   curl -o composer-setup.php https://getcomposer.org/installer || continue
+# 	# wget -c -O composer-setup.php https://getcomposer.org/installer || continue
+#   php composer-setup.php --install-dir=$HOME/.local/bin --filename=composer
+#   rm composer-setup.php
+# done
+#
+# mkdir -p $HOME/.composer/vendor/bin
+# grep '^export PATH=$HOME/.composer/vendor/bin:$PATH' > /dev/null 2>&1 $profile || {
+# 	echo 'export PATH=$HOME/.composer/vendor/bin:$PATH' >> $profile
+# }
 
 group="Python"
 pkg_list=()
@@ -320,7 +326,7 @@ esac
 install_pkgs
 
 for (( i = 0; i < 10; i++ )); do
-	which pip${pynew} > /dev/null 2>&1 && break
+	python${pynew} -m pip --version > /dev/null 2>&1 && break
 	curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pynew}
 done
 
@@ -328,7 +334,7 @@ wrapper_sh="$HOME/.local/bin/virtualenvwrapper.sh"
 
 for (( i = 0; i < 10; i++ )); do
 	[[ -e $wrapper_sh ]] && break
-	pip${pynew} install --user virtualenvwrapper
+	python${pynew} -m pip install --user virtualenvwrapper
 done
 
 if [[ -n "$pynew" ]]; then
@@ -471,6 +477,16 @@ install_pkgs
 # esac
 
 exit 0
+
+### for macOS
+## sudoers
+# sudo sed "s/\(^%admin.*(ALL)\) ALL$/\1 NOPASSWD:ALL/" /etc/sudoers
+## bash
+# brew install bash
+# sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
+# sudo chpass -s /usr/local/bin/bash $USER
+
+$installer tree
 
 test -e /etc/gdm/custom.conf && {
 	temp=`mktemp`
