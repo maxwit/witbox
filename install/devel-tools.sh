@@ -101,7 +101,7 @@ if [[ -e $HOME/.bashrc ]]; then
 	profile=$HOME/.bashrc
 elif [[ -e $HOME/.bash_profile ]]; then
 	profile=$HOME/.bash_profile
-else
+else # FIXME
 	profile=$HOME/.bashrc
 	touch $profile
 fi
@@ -150,10 +150,10 @@ function pm_install {
 		done
 	fi
 
-	for (( i = 0; i < 3; i++ )); do
+	# for (( i = 0; i < 3; i++ )); do
 		echo "$pm install ${pkgs[@]} ..."
-		$installer ${pkgs[@]} && break
-	done
+		$installer ${pkgs[@]} # && break
+	# done
 	# if [[ $i -eq 3 ]]; then
 	# 	echo "[F] $pkg" >> $log
 	# fi
@@ -237,9 +237,33 @@ case $os_dist in
 	macOS )
 		pkg_list+=(java)
 		;;
+	redhat|centos|fedora )
+		pkg_list+=(java-1.7.0-openjdk-devel java-1.8.0-openjdk-devel)
+		;;
+	ubuntu|debian )
+		pkg_list+=(openjdk-7-jdk openjdk-9-jdk openjdk-8-jdk)
+		;;
 esac
 
 pm_install pkg_list[@]
+
+case $os_dist in
+	redhat|centos|fedora )
+		for (( i = 0; i < 10; i++ )); do
+			if [ ! -x /usr/java/jdk1.8.0_131/jre/bin/java ]; then
+				[ -e jdk-8u131-linux-x64.rpm ] || \
+					wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm
+				$installer jdk-8u131-linux-x64.rpm && break
+			fi
+		done
+		;;
+
+	# * )
+	# 	if [[ $os == Linux ]]; then
+	# 		wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
+	# 	fi
+	# 	;;
+esac
 
 set_group 'JavaScript'
 
