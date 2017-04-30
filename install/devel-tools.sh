@@ -6,7 +6,7 @@ fi
 
 declare -a pkg_list
 
-group='undefined'
+current_group='undefined'
 
 os=`uname -s`
 
@@ -115,9 +115,14 @@ grep '^export PATH=$HOME/.local/bin:$PATH' > /dev/null 2>&1 $profile || {
 # log="$HOME/witbox-post-install.log"
 # echo > $log
 
-function install_pkgs() {
-	echo "[$group]"
+function set_group {
+	current_group="$@"
+	pkg_list=()
 
+	echo "[$current_group]"
+}
+
+function install_pkgs() {
 	count=${#pkg_list[@]}
 	echo -n "$count packages to be installed: "
 	if [[ $count -gt 0 ]]; then
@@ -161,8 +166,7 @@ function install_pkgs() {
 	# fi
 }
 
-group="SCM"
-pkg_list=()
+set_group 'SCM'
 
 case "$os_dist" in
 	macOS )
@@ -202,8 +206,7 @@ if [[ ! -e ~/.gitconfig ]]; then
 	git config --list
 fi
 
-group="C/C++"
-pkg_list=()
+set_group 'C/C++'
 
 case $os in
 	Linux )
@@ -227,15 +230,13 @@ pkg_list+=(cmake)
 
 install_pkgs
 
-group="C#"
+set_group 'C#'
 
-group="Go"
+set_group 'Go'
 
-group="Java and Groovy"
+set_group 'Java and Groovy'
 
-group="JavaScript"
-
-echo "[$group]" # FIXME
+set_group 'JavaScript'
 
 echo "Installing nvm ..."
 export NVM_DIR="$HOME/.nvm"
@@ -264,10 +265,9 @@ for (( i = 0; i < 10; i++ )); do
 	npm install -g typescript
 done
 
-group="Perl"
+set_group 'Perl'
 
-group="PHP"
-pkg_list=()
+set_group 'PHP'
 
 case "$os_dist" in
 	macOS )
@@ -300,8 +300,7 @@ install_pkgs
 # 	echo 'export PATH=$HOME/.composer/vendor/bin:$PATH' >> $profile
 # }
 
-group="Python"
-pkg_list=()
+set_group 'Python'
 
 # TODO: Anaconda supprt
 pycur=(`python --version 2>&1 | awk '{print $2}' | sed 's/\./ /g'`)
@@ -352,8 +351,7 @@ grep virtualenvwrapper.sh $profile > /dev/null || {
 	. $profile
 }
 
-group="Ruby"
-echo "[$group]"
+set_group 'Ruby'
 
 for (( i = 0; i < 10; i++ )); do
 	[ -s $HOME/.rvm/scripts/rvm ] && break
@@ -367,14 +365,13 @@ done
 # 	rvm install ruby
 # done
 
-group="Rust"
+set_group 'Rust'
 
-group="Scala"
+set_group 'Scala'
 
-group="Swift"
+set_group 'Swift'
 
-group="VIM/Emacs"
-pkg_list=()
+set_group 'VIM/Emacs'
 
 case "$os_dist" in
 	macOS )
@@ -410,8 +407,7 @@ __EOF__
 
 # Compilers and build tools #
 
-group='Atom/Code/Sublime'
-pkg_list=()
+set_group 'Atom/Code/Sublime'
 
 case $os_dist in
 	macOS )
