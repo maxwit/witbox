@@ -99,6 +99,8 @@ esac
 
 #########################
 
+# macOS: make sure SIP disabled
+
 $installer tree
 
 case $os_dist in

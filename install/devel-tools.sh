@@ -99,18 +99,23 @@ esac
 
 if [[ -e $HOME/.bashrc ]]; then
 	profile=$HOME/.bashrc
-elif [[ -e $HOME/.bash_profile ]]; then
-	profile=$HOME/.bash_profile
 else # FIXME
-	profile=$HOME/.bashrc
+	profile=$HOME/.bash_profile
 	touch $profile
 fi
 
 mkdir -p $HOME/.local/bin
-grep '^export PATH=$HOME/.local/bin:$PATH' > /dev/null 2>&1 $profile || {
+grep '^export PATH=$HOME/.local/bin' > /dev/null 2>&1 $profile || {
 	echo 'export PATH=$HOME/.local/bin:$PATH' >> $profile
-	export PATH=$HOME/.local/bin:$PATH
+	# export PATH=$HOME/.local/bin:$PATH
 }
+
+for dir in bin etc include lib lib64 opt run sbin share usr usr/share var; do
+	if [[ ! -e /usr/local/$dir ]]; then
+		sudo mkdir -p /usr/local/$dir
+		sudo chown $USER /usr/local/$dir
+	fi
+done
 
 # log="$HOME/witbox-post-install.log"
 # echo > $log
@@ -333,18 +338,18 @@ set_group 'Python'
 
 # TODO: Anaconda supprt
 pycur=(`python --version 2>&1 | awk '{print $2}' | sed 's/\./ /g'`)
-pynew=""
+pydef=""
 if [ ${pycur[0]} == 2 ] && [ ${pycur[1]} -lt 7 ]; then
 	pkg_list+=(python27)
-	pynew=2.7
+	pydef=2.7
 fi
 
 case $os_dist in
 	redhat|centos )
-		pkg_list+=(python35u python35u-devel) # FIXME: do not hardcode the version
+		pkg_list+=(python${pydef/./}-devel python35u python35u-devel) # FIXME: do not hardcode the version
 		;;
 	ubuntu )
-		pkg_list+=(python3 python3-dev)
+		pkg_list+=(python${pydef/./}-dev python3 python3-dev)
 		;;
 	* )
 		pkg_list+=(python3)
@@ -354,20 +359,24 @@ esac
 pm_install pkg_list[@]
 
 for (( i = 0; i < 10; i++ )); do
-	python${pynew} -m pip --version > /dev/null 2>&1 && break
-	curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pynew}
+	python${pydef} -m pip --version > /dev/null 2>&1 && break
+	curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
 done
 
-wrapper_sh="$HOME/.local/bin/virtualenvwrapper.sh"
+if [ $os_dist == macOS ]; then
+	wrapper_sh="$HOME/Library/Python/2.7/bin/virtualenvwrapper.sh"
+else
+	wrapper_sh="$HOME/.local/bin/virtualenvwrapper.sh"
+fi
 
 for (( i = 0; i < 10; i++ )); do
 	[[ -e $wrapper_sh ]] && break
-	python${pynew} -m pip install --user virtualenvwrapper
+	python${pydef} -m pip install --user virtualenvwrapper
 done
 
-if [[ -n "$pynew" ]]; then
+if [[ -n "$pydef" ]]; then
 	grep VIRTUALENVWRAPPER_PYTHON $profile > /dev/null || \
-		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pynew}`" >> $profile
+		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pydef}`" >> $profile
 fi
 
 grep virtualenvwrapper.sh $profile > /dev/null || {
