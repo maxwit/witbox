@@ -122,13 +122,11 @@ function set_group {
 	echo "[$current_group]"
 }
 
-function install_pkgs() {
-	count=${#pkg_list[@]}
-	echo -n "$count packages to be installed: "
-	if [[ $count -gt 0 ]]; then
-		echo "${pkg_list[@]}" | sed 's/ /, /g'
-	else
-		echo "(skipped)"
+function pm_install {
+	local pkgs=("${!1}")
+	local count=${#pkgs[@]}
+
+	if [[ $count -eq 0 ]]; then
 		return
 	fi
 
@@ -143,23 +141,18 @@ function install_pkgs() {
 	# done
 
 	if [[ $os_dist == macOS ]]; then
-		tmp_list=()
-		for pkg in ${pkg_list[@]}; do
+		for (( i = 0; i < $count; i++ )); do
+			pkg=${pkgs[$i]}
 			result=`brew cask search $pkg`
-			if [[ "${result:0:15}" == '==> Exact match' ]]; then # which one is better?
-				tmp_list+=("Caskroom/cask/$pkg")
-				# installer="brew cask install"
-			else
-				tmp_list+=($pkg)
-				# installer="brew install"
+			if [[ "${result:0:15}" == '==> Exact match' ]]; then
+				pkgs[$i]="Caskroom/cask/$pkg" # brew cask install
 			fi
 		done
-		pkg_list=(${tmp_list[@]})
 	fi
 
-	echo "Installing ${pkg_list[@]} ..."
 	for (( i = 0; i < 3; i++ )); do
-		$installer ${pkg_list[@]} && break
+		echo "$pm install ${pkgs[@]} ..."
+		$installer ${pkgs[@]} && break
 	done
 	# if [[ $i -eq 3 ]]; then
 	# 	echo "[F] $pkg" >> $log
@@ -181,7 +174,7 @@ case "$os_dist" in
 		;;
 esac
 
-install_pkgs
+pm_install pkg_list[@]
 
 if [[ ! -e ~/.gitconfig ]]; then
 	case $os in
@@ -228,13 +221,25 @@ pkg_list+=(cmake)
 
 # TODO: conan and clang
 
-install_pkgs
+pm_install pkg_list[@]
 
 set_group 'C#'
 
 set_group 'Go'
 
+pkg_list+=('golang')
+
+pm_install pkg_list[@]
+
 set_group 'Java and Groovy'
+
+case $os_dist in
+	macOS )
+		pkg_list+=(java)
+		;;
+esac
+
+pm_install pkg_list[@]
 
 set_group 'JavaScript'
 
@@ -284,7 +289,7 @@ case "$os_dist" in
 		;;
 esac
 
-install_pkgs
+pm_install pkg_list[@]
 
 # # FIXME
 # for (( i = 0; i < 10; i++ )); do
@@ -322,7 +327,7 @@ case $os_dist in
 		;;
 esac
 
-install_pkgs
+pm_install pkg_list[@]
 
 for (( i = 0; i < 10; i++ )); do
 	python${pynew} -m pip --version > /dev/null 2>&1 && break
@@ -367,6 +372,13 @@ done
 
 set_group 'Rust'
 
+# https://www.rust-lang.org/en-US/other-installers.html
+
+for (( i = 0; i < 10; i++ )); do
+	[ -x $HOME/.cargo/bin/rustc ] && break
+	curl -sSf https://sh.rustup.rs | bash -s -- -y
+done
+
 set_group 'Scala'
 
 set_group 'Swift'
@@ -389,7 +401,7 @@ case "$os_dist" in
 		;;
 esac
 
-install_pkgs
+pm_install pkg_list[@]
 
 [[ ! -e ~/.vimrc ]] &&	cat > ~/.vimrc << __EOF__
 set nu
@@ -430,7 +442,7 @@ enabled=1
 gpgcheck=1
 gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 __EOF__
-				sudo cp $temp /etc/yum.repos.d/vscode.repo
+				sudo install -m 0644 $temp /etc/yum.repos.d/vscode.repo
 				rm $temp
 			fi
 			pkg_list+=(code)
@@ -451,4 +463,8 @@ esac
 
 # git_list[atom]='https://github.com/atom/atom.git'
 
-install_pkgs
+pm_install pkg_list[@]
+
+echo
+echo "Done!"
+echo
