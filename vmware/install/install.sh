@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 /usr/lib/vmware/bin/vmware-vmx-debug -version
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ $USER != root ]; then
 	echo "must run as super user!"

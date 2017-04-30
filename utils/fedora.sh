@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 DLPATH="/etc/yum.repos.d/"
 VERSION=`lsb_release -sr`

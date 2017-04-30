@@ -1,25 +1,45 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-if [ $USER != root ]; then
+function usage {
+	echo "usage: $0 [-t gpt|msdos] <disk>"
+	echo "i.e.: $0 -t gpt /dev/sdb"
+}
+
+if [ $UID != 0 ]; then
 	echo "must run as super user!"
 	exit 1
 fi
 
-if [ $# = 1 ]; then
-	if [ -d /sys/firmware/efi ]; then
-		table="gpt"
-	else
-		table="msdos"
-	fi
-	device=$1
-elif [ $# = 3 ]; then
-	table=$2
-	device=$3
+# os=`uname -s`
+device=/dev/sda # FIXME
+if [ -d /sys/firmware/efi ]; then
+	table="gpt"
 else
-	echo "usage: $0 [-t <partition table type>] <disk>"
-	echo "i.e.: $0 -t gpt /dev/sdb"
-	exit 1
+	table="msdos"
 fi
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-t )
+			table=$2
+			shift
+			;;
+		-h )
+			usage
+			exit 0
+			;;
+		/dev/* )
+			device=$1
+			;;
+		* )
+			echo "invalid option '$1'"
+			usage
+			exit 1
+			;;
+	esac
+
+	shift
+done
 
 # FIXME
 disk=${device%%[0-9]}

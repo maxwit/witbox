@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 KEY_FILE="/tmp/${USER}.pub"
 

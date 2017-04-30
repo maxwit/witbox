@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 TOP_PATH=$PWD
 GIT_HOME="/home/git"

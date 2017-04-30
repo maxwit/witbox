@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 LINUX_RELEASE_NAME=`lsb_release -is | tr A-Z a-z`
 LINUX_RELEASE_VER=`lsb_release -cs`

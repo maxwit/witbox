@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #path_to_lablin_arch=${HOME}/Pictures
 cp -v lablin_arch.jpg ${HOME}/Pictures

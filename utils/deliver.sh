@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 TOP_DIR=$PWD
 TMP_DIR=`mktemp -d`

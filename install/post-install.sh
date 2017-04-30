@@ -162,7 +162,6 @@ ConditionVirtualization=vmware
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=
 ExecStart=/usr/bin/vmhgfs-fuse -o allow_other -o auto_unmount .host:/ /mnt/hgfs
 
 [Install]
@@ -202,3 +201,28 @@ if [[ $os == Linux ]]; then
 		# virtualbox
 	esac
 fi
+
+# Bridge
+
+# VPN
+# /usr/lib/networkmanager/nm-l2tp-service --debug
+
+# for (( i = 0; i < 10; i++ )); do
+#   git clone https://aur.archlinux.org/package-query.git
+#   cd package-query && {
+#     makepkg -si || exit 1
+#     cd ..
+#     break
+#   }
+# done
+#
+# for (( i = 0; i < 10; i++ )); do
+#   git clone https://aur.archlinux.org/yaourt.git
+#   cd yaourt && {
+#     makepkg -si
+#     cd ..
+#     break
+#   }
+# done
+#
+# yaourt tree

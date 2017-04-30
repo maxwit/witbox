@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # fixme!!!
 dist_dir="ubuntu-10.10"
