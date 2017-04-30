@@ -37,6 +37,8 @@ case $os in
 		exit 1
 esac
 
+alias curl='curl --connect-timeout 30'
+
 echo -e "### Setup for $os_dist ###\n"
 
 # get installer ready
@@ -44,8 +46,8 @@ case $os_dist in
 	ubuntu|debian )
 		which apt > /dev/null 2>&1 && pm='sudo apt' || pm='sudo apt-get'
 		installer="$pm install -y"
-		$pm update -y
-		$pm upgrade -y
+		# $pm update -y
+		# $pm upgrade -y
 		;;
 
 	redhat|centos|fedora )
@@ -60,6 +62,7 @@ case $os_dist in
 				}
 				pm='sudo dnf --allowerasing'
 			else
+				# TODO: add source repo
 				pm='sudo yum'
 			fi
 
@@ -73,7 +76,7 @@ case $os_dist in
 			# and SCL ?
 		fi
 		installer="$pm install -y"
-		$pm update -y
+		# $pm update -y
 		;;
 
 	macOS )
@@ -230,6 +233,35 @@ group="Java and Groovy"
 
 group="JavaScript"
 
+echo "[$group]" # FIXME
+
+echo "Installing nvm ..."
+export NVM_DIR="$HOME/.nvm"
+for (( i = 0; i < 10; i++ )); do
+	# 'source $profile' does not work, why?
+	if [ -n "$NVM_DIR" ] && [ -s $NVM_DIR/nvm.sh ]; then
+		break
+	fi
+	curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+done
+
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+
+echo "Installing node ..."
+for (( i = 0; i < 10; i++ )); do
+	[ -x $NVM_BIN/node ] && break
+	nvm install node
+	nvm use node
+done
+
+echo "Installing TypeScript ..."
+# safe?
+for (( i = 0; i < 10; i++ )); do
+	[ -x $NVM_BIN/tsc ] && break
+	npm install -g typescript
+done
+
 group="Perl"
 
 group="PHP"
@@ -252,9 +284,15 @@ install_pkgs
 for (( i = 0; i < 10; i++ )); do
   [[ -e $HOME/.local/bin/composer ]] && break
   curl -o composer-setup.php https://getcomposer.org/installer || continue
+	# wget -c -O composer-setup.php https://getcomposer.org/installer || continue
   php composer-setup.php --install-dir=$HOME/.local/bin --filename=composer
   rm composer-setup.php
 done
+
+mkdir -p $HOME/.composer/vendor/bin
+grep '^export PATH=$HOME/.composer/vendor/bin:$PATH' > /dev/null 2>&1 $profile || {
+	echo 'export PATH=$HOME/.composer/vendor/bin:$PATH' >> $profile
+}
 
 group="Python"
 pkg_list=()
@@ -298,27 +336,36 @@ if [[ -n "$pynew" ]]; then
 		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pynew}`" >> $profile
 fi
 
-grep WORKON_HOME $profile > /dev/null || {
-	workon_home='/opt/virtualenvs'
-	sudo mkdir -p $workon_home
-	sudo chown $USER $workon_home
-	sudo chmod go+rx $workon_home
-	echo "export WORKON_HOME=$workon_home" >> $profile
-
-	echo "source $wrapper_sh" >> $profile
-
-	source $profile
+grep virtualenvwrapper.sh $profile > /dev/null || {
+	# workon_home='/opt/virtualenvs'
+	# sudo mkdir -p $workon_home
+	# sudo chown $USER $workon_home
+	# sudo chmod go+rx $workon_home
+	# echo "export WORKON_HOME=$workon_home" >> $profile
+	echo ". $wrapper_sh" >> $profile
+	. $profile
 }
 
 group="Ruby"
+echo "[$group]"
+
+for (( i = 0; i < 10; i++ )); do
+	[ -s $HOME/.rvm/scripts/rvm ] && break
+	curl -sSL https://get.rvm.io | bash -s stable --ruby
+	# curl -sSL https://get.rvm.io | bash -s stable
+done
+
+# . $profile
+#
+# for (( i = 0; i < 10; i++ )); do
+# 	rvm install ruby
+# done
 
 group="Rust"
 
 group="Scala"
 
 group="Swift"
-
-group="TypeScript"
 
 group="VIM/Emacs"
 pkg_list=()
@@ -372,7 +419,6 @@ case $os_dist in
 		if [ $os_dist == fedora -o $version -ge 7 ]; then
 			if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
 				sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-				# sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
 				temp=`mktemp`
 				cat > $temp << __EOF__
 [code]
@@ -450,13 +496,23 @@ __EOF__
 
 function instal_vm_tools() {
 	$installer open-vm-tools
+	case $os_dist in
+		redhat|centos )
+			requires=vmtoolsd
+			;;
+		ubuntu )
+			requires=open-vm-tools
+			;;
+		* )
+		  requires=vmware-vmblock-fuse
+			;;
+	esac
 	temp=`mktemp`
-
 	cat > $temp << __EOF__
 [Unit]
 Description=VMware Shared Folders
-Requires=vmware-vmblock-fuse.service
-After=vmware-vmblock-fuse.service
+Requires=$requires.service
+After=$requires.service
 ConditionPathExists=/mnt/hgfs
 ConditionVirtualization=vmware
 
