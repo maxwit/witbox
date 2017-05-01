@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
+TOPDIR=`dirname $0`
+
 if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
 	declare -A check
 fi
 
 declare -a pkg_list
-
-group='undefined'
 
 os=`uname -s`
 
@@ -40,6 +40,26 @@ esac
 alias curl='curl --connect-timeout 30'
 
 echo -e "### Setup for $os_dist ###\n"
+
+tmp_dir=`mktemp -d`
+
+for repo in package-query yaourt; do
+	for (( i = 0; i < 10; i++ )); do
+	  git clone https://aur.archlinux.org/$repo.git $tmp_dir/$repo
+	  cd $tmp_dir/$repo && {
+			for (( i = 0; i < 10; i++ )); do
+				makepkg -si --noconfirm && break
+			done
+	    break
+	  }
+	done
+done
+
+cd $TOPDIR
+
+yaourt tree
+
+exit 0
 
 # get installer ready
 case $os_dist in
@@ -206,23 +226,3 @@ fi
 
 # VPN
 # /usr/lib/networkmanager/nm-l2tp-service --debug
-
-# for (( i = 0; i < 10; i++ )); do
-#   git clone https://aur.archlinux.org/package-query.git
-#   cd package-query && {
-#     makepkg -si || exit 1
-#     cd ..
-#     break
-#   }
-# done
-#
-# for (( i = 0; i < 10; i++ )); do
-#   git clone https://aur.archlinux.org/yaourt.git
-#   cd yaourt && {
-#     makepkg -si
-#     cd ..
-#     break
-#   }
-# done
-#
-# yaourt tree

@@ -1,14 +1,28 @@
 #!/usr/bin/env bash
 
-function usage {
-	echo "usage: $0 [-t gpt|msdos] <disk>"
-	echo "i.e.: $0 -t gpt /dev/sdb"
-}
+cd `dirname $0`
+bn=`basename $0`
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-h )
+			./main-install.sh -h
+			exit 0
+			;;
+		* )
+			# TODO: check
+			break
+			;;
+	esac
+	shift
+done
 
 if [ $UID != 0 ]; then
-	echo "must run as super user!"
+	echo "must run as root!"
 	exit 1
 fi
+
+# TODO: check chroot env
 
 cp -v /etc/pacman.d/mirrorlist{,.orig}
 sed -n '/China/{p;n;p}' /etc/pacman.d/mirrorlist.orig > /etc/pacman.d/mirrorlist
@@ -47,12 +61,36 @@ parted $disk print
 
 mount LABEL=ROOT /mnt
 
-pacstrap /mnt base
+pacstrap /mnt base python
 
 genfstab -U -p /mnt
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
-cp -v after-chroot.sh /mnt/
-chmod +x /mnt/after-chroot.sh
-arch-chroot /mnt /after-chroot.sh
-echo "reboot now!"
+mnt_dst="/mnt/main-install.sh"
+
+if [[ -e main-install.sh ]]; then
+	cp -v main-install.sh $mnt_dst
+else
+	for (( i = 0; i < 10; i++ )); do
+		if [[ -s $mnt_dst ]]; then
+			magic=`tail -1 $mnt_dst`
+			if [[ "$magic" == '# __END_OF_MAIN_INSTALL_SCRIPT__' ]]; then
+				break
+			fi
+			rm $mnt_dst
+		fi
+		curl -o $mnt_dst https://raw.githubusercontent.com/conke/witbox/master/install/archlinux/install.sh
+	done
+fi
+chmod +x $mnt_dst
+arch-chroot /mnt ${mnt_dst#/mnt} $@
+result=$?
+echo -n -e "\nInstallation "
+if [[ $result -eq 0 ]]; then
+	echo "finished."
+	rm $mnt_dst
+	echo "rebooting ..."
+	reboot
+else
+	echo "failed!"
+fi

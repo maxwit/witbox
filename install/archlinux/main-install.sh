@@ -1,7 +1,48 @@
 #!/usr/bin/env bash
 
-user=conke
-pass=maxwit
+user=archlinux
+pass=ArchLinux`date +%Y`
+
+function usage {
+  # echo "install.sh [options]"
+  echo "options:"
+  echo "  -u user          default is '$user'"
+  echo "  -p password      default is '$pass'"
+  # echo "  -h hostname"
+  echo "  -h this help"
+  echo
+}
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		-u|--user )
+			user=$2
+			shift
+			;;
+    -p|--password )
+      pass=$2
+      shift
+      ;;
+		-h )
+			usage
+			exit 0
+			;;
+		* )
+			echo "invalid option '$1'"
+			usage
+			exit 1
+			;;
+	esac
+
+	shift
+done
+
+if [ $UID != 0 ]; then
+	echo "must run as root!"
+	exit 1
+fi
+
+# TODO: check chroot env
 
 ln -svf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 hwclock --systohc --utc
@@ -9,7 +50,7 @@ sed -i 's/^#\(en_US.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
-pkg_list=(openssh syslog-ng grub sudo vim alsa-utils)
+pkg_list=(base-devel openssh syslog-ng grub vim bash-completion alsa-utils)
 
 if [ -d /sys/firmware/efi ]; then
   mkdir -p /boot/efi
@@ -25,8 +66,8 @@ for (( i = 0; i < 10; i++ )); do
   echo
 done
 
-rm /bin/vi
-cp /usr/bin/vim /bin/vi
+# pacman -R --noconfirm vi
+# ln -sf vim /bin/vi
 
 echo -e "$pass\n$pass" | passwd
 
@@ -87,3 +128,5 @@ fi
 
 grub-install /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
+
+# __END_OF_MAIN_INSTALL_SCRIPT__
