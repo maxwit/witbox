@@ -40,11 +40,11 @@ supported and to be supported:
 ### 3.1. Linux/macOS/FreeBSD
 
 ```bash
-curl https://raw.githubusercontent.com/conke/witbox/master/install/post-install.sh | bash
+curl https://raw.githubusercontent.com/conke/witbox/master/programming/setup.sh | bash
 ```
 
 ### 3.2. Windows
 
 ```bash
-@powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/conke/witbox/master/install/post-install.ps1'))"
+@powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/conke/witbox/master/programming/setup.ps1'))"
 ```
