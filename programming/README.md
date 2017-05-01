@@ -39,8 +39,16 @@ supported and to be supported:
 
 ### 3.1. Linux/macOS/FreeBSD
 
+install all languages and tools:
+
 ```bash
 curl https://raw.githubusercontent.com/conke/witbox/master/programming/setup.sh | bash
+```
+
+or only install the specified languages:
+
+```bash
+curl https://raw.githubusercontent.com/conke/witbox/master/programming/setup.sh | bash -s -- -l go,python
 ```
 
 ### 3.2. Windows
