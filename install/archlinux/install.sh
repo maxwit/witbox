@@ -41,16 +41,16 @@ umount ${disk}[1-9]* 2>/dev/null
 
 parted -s $disk mktable $table
 
-esp_size=200 #200M
-
 if [ $table = "gpt" ]; then
+	esp_size=200 #200M
+
 	echo "mkpart primary fat32 1M $((esp_size+1))M" | parted $disk
 	mkfs.vfat -F32 -I -n ESP ${disk}1
 
 	echo "mkpart primary ext4 $((esp_size+1))M -1M" | parted $disk
 	mkfs.ext4 -F -L ROOT ${disk}2
 else
-	echo "mkpart primary ext4 -${last}M -1M" | parted $disk
+	echo "mkpart primary ext4 1M -1M" | parted $disk
 	mkfs.ext4 -F -L ROOT ${disk}1
   # echo "toggle 0 boot" | parted $disk
 fi
