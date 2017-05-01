@@ -159,25 +159,33 @@ case $os_dist in
 			installer="sudo dnf --allowerasing install -y"
 		else
 			if [[ $version -ge 7 ]]; then
-				which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
-					echo 'fail to install yum-utils!'
-					exit 1
-				}
+				for (( i = 0; i < 10; i++ )); do
+					if which dnf > /dev/null 2>&1; then
+						echo "yum-utils has been installed."
+						break
+					fi
+					sudo yum install -y yum-utils
+				done
 				pm='dnf'
 				installer="sudo dnf --allowerasing install -y"
 			else
-				# TODO: add source repo
 				pm='yum'
 				installer="sudo yum install -y"
+				# TODO: add source repo
 			fi
-
+			# ISU
 			if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
 				curl https://setup.ius.io/ | sudo bash
-				sudo yum install -y yum-plugin-replace
+				$installer yum-plugin-replace
 			fi
-			# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
-			# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
-			# fi
+			# Remi
+			for (( i = 0; i < 10; i++ )); do
+				if [[ -e /etc/yum.repos.d/remi.repo ]]; then
+					echo "remi.repo has been installed"
+					break
+				fi
+				$installer http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
+			done
 			# and SCL ?
 		fi
 		# $pm update -y
@@ -186,7 +194,23 @@ case $os_dist in
 	arch )
 		pm='pacman'
 		installer='sudo pacman -S --noconfirm'
-		# TODO: add yaout
+		# yaourt
+		for repo in package-query yaourt; do
+			if which $repo > /dev/null 2>&1; then
+				echo "$repo has been installed."
+			else
+				tmp_dir=`mktemp -d`
+				for (( i = 0; i < 10; i++ )); do
+					[[ -e $tmp_dir/$repo ]] && break
+					git clone https://aur.archlinux.org/$repo.git $tmp_dir/$repo
+				done
+				cd $tmp_dir/$repo && {
+					makepkg -si --noconfirm
+					cd -
+				}
+				rm -rf $tmp_dir
+			fi
+		done
 		;;
 
 	*)
@@ -667,6 +691,10 @@ __EOF__
 			fi
 			pkg_list+=(code)
 			;;
+
+		arch )
+			echo 1 | yaourt visual-studio-code # FIXME
+			;;
 	esac
 
 	pm_install pkg_list[@]
@@ -677,24 +705,31 @@ __EOF__
 function setup_editor_sublime {
 	set_group 'Sublime'
 
-	which subl > /dev/null 2>&1 && {
-		echo "Sublime has been installed."
-		return
-	}
+	for (( i = 0; i < 10; i++ )); do
+		if which subl > /dev/null 2>&1; then
+			echo 'Sublime has been installed.'
+			break
+		fi
 
-	case $os_dist in
-		macOS )
-			pkg_list+=(sublime-text)
-			;;
+		case $os_dist in
+			macOS )
+				$installer sublime-text
+				;;
 
-		redhat|centos|fedora )
-			;;
+			redhat|centos|fedora )
+				;;
 
-		ubuntu|debian )
-			;;
-	esac
+			ubuntu|debian )
+				;;
 
-	pm_install pkg_list[@]
+			arch )
+				echo 1 | yaourt sublime-text # FIXME
+				;;
+			* )
+				return
+				;;
+		esac
+	done
 }
 
 # call setup handler

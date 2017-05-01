@@ -44,6 +44,11 @@ echo -e "### Setup for $os_dist ###\n"
 tmp_dir=`mktemp -d`
 
 for repo in package-query yaourt; do
+	if which $repo > /dev/null 2>&1; then
+		echo "$repo has been installed."
+		break
+	fi
+
 	for (( i = 0; i < 10; i++ )); do
 	  git clone https://aur.archlinux.org/$repo.git $tmp_dir/$repo
 	  cd $tmp_dir/$repo && {
