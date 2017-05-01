@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 lang_support_list=(cxx csharp go java js perl php python ruby rust scala swift)
-lang_install_list=lang_support_list[@]
+lang_install_list=(${lang_support_list[@]})
 
 editor_support_list=(vim atom vscode sublime)
-editor_install_list=editor_support_list[@]
+editor_install_list=(${editor_support_list[@]})
 
 function usage {
 	echo   "options:"
@@ -309,7 +309,11 @@ function setup_lang_cxx {
 			;;
 	esac
 
-	pkg_list+=(cmake)
+	if which cmake > /dev/null 2>&1; then
+		echo "CMake has been installed."
+	else
+		pkg_list+=(cmake)
+	fi
 
 	# TODO: conan and clang
 
@@ -490,7 +494,7 @@ function setup_lang_python {
 		# sudo chmod go+rx $workon_home
 		# echo "export WORKON_HOME=$workon_home" >> $profile
 		echo ". $wrapper_sh" >> $profile
-		. $profile
+		# . $profile
 	}
 }
 
@@ -571,6 +575,11 @@ __EOF__
 function setup_editor_atom {
 	set_group 'Atom'
 
+	which atom > /dev/null 2>&1 && {
+		echo "Atom has been installed."
+		return
+	}
+
 	case $os_dist in
 		macOS )
 			pkg_list+=(atom)
@@ -592,6 +601,11 @@ function setup_editor_atom {
 
 function setup_editor_vscode {
 	set_group 'VSCode'
+
+	which code > /dev/null 2>&1 && {
+		echo "Visual Studio Code has been installed."
+		return
+	}
 
 	case $os_dist in
 		macOS )
@@ -636,6 +650,11 @@ __EOF__
 
 function setup_editor_sublime {
 	set_group 'Sublime'
+
+	which subl > /dev/null 2>&1 && {
+		echo "Sublime has been installed."
+		return
+	}
 
 	case $os_dist in
 		macOS )
