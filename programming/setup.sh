@@ -659,5 +659,6 @@ for editor in ${editor_install_list[@]}; do
 done
 
 echo
-echo "Done!"
+echo "Done."
+echo "please exit current terminal and re-open a new one!"
 echo
