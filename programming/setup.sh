@@ -1,28 +1,36 @@
 #!/usr/bin/env bash
 
+lang_support_list=(cxx csharp go java js perl php python ruby rust scala swift)
+lang_install_list=lang_support_list[@]
+
+editor_support_list=(vim atom vscode sublime)
+editor_install_list=editor_support_list[@]
+
 function usage {
-	echo "options:"
-	echo "  -l languages, seperated with comma, supported languages so far:"
-	echo "     cxx"
-	echo "     csharp"
-	echo "     go"
-	echo "     java"
-	echo "     js"
-	echo "     perl"
-	echo "     php"
-	echo "     python"
-	echo "     ruby"
-	echo "     rust"
-	echo "     scala"
-	echo "     swift"
-	echo "  -h this help"
+	echo   "options:"
+
+	echo   "  -l languages   seperated with comma, supported languages so far:"
+	for lang in ${lang_support_list[@]}; do
+		echo "                 $lang"
+	done
+
+	echo   "  -e editors     seperated with comma, supported editors so far:"
+	for editor in ${editor_support_list[@]}; do
+		echo "                 $editor"
+	done
+
+	echo   "  -h             this help"
 	echo
 }
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
 		-l )
-			lang_list=(${2//,/ })
+			lang_install_list=(${2//,/ })
+			shift
+			;;
+		-e )
+			editor_install_list=(${2//,/ })
 			shift
 			;;
 		-h )
@@ -203,7 +211,7 @@ function pm_install {
 	# fi
 }
 
-set_group 'SCM'
+# set_group 'SCM'
 
 case "$os_dist" in
 	macOS )
@@ -480,8 +488,8 @@ function setup_lang_swift {
 }
 
 
-function setup_editor_unix {
-	set_group 'VIM/Emacs'
+function setup_editor_vim {
+	set_group 'VIM'
 
 	case "$os_dist" in
 		macOS )
@@ -518,18 +526,37 @@ __EOF__
 	# Compilers and build tools #
 }
 
-function setup_editor_ide {
-	set_group 'Atom/Code/Sublime'
+function setup_editor_atom {
+	set_group 'Atom'
 
 	case $os_dist in
 		macOS )
-			pkg_list+=(atom visual-studio-code sublime-text)
-			# check[visual-studio-code]=code
-			# check[sublime-text]=subl
+			pkg_list+=(atom)
 			;;
 
 		redhat|centos|fedora )
-			# VS Code
+		;;
+
+		ubuntu|debian )
+		;;
+	esac
+
+	# git_list[atom]='https://github.com/atom/atom.git'
+
+	pm_install pkg_list[@]
+
+	# TODO: add extensions
+}
+
+function setup_editor_vscode {
+	set_group 'VSCode'
+
+	case $os_dist in
+		macOS )
+			pkg_list+=(visual-studio-code)
+			;;
+
+		redhat|centos|fedora )
 			if [ $os_dist == fedora -o $version -ge 7 ]; then
 				if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
 					sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
@@ -547,10 +574,9 @@ __EOF__
 				fi
 				pkg_list+=(code)
 			fi
-		;;
+			;;
 
 		ubuntu|debian )
-			# VS Code
 			if [[ ! -e /etc/apt/sources.list.d/vscode.list ]]; then
 				curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
 				sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
@@ -558,21 +584,40 @@ __EOF__
 				sudo $pm update -y
 			fi
 			pkg_list+=(code)
-		;;
+			;;
 	esac
 
-	# git_list[atom]='https://github.com/atom/atom.git'
+	pm_install pkg_list[@]
+
+	# TODO: add extensions
+}
+
+function setup_editor_sublime {
+	set_group 'Sublime'
+
+	case $os_dist in
+		macOS )
+			pkg_list+=(sublime-text)
+			;;
+
+		redhat|centos|fedora )
+			;;
+
+		ubuntu|debian )
+			;;
+	esac
 
 	pm_install pkg_list[@]
 }
 
 # call setup handler
-for lang in ${lang_list[@]}; do
+for lang in ${lang_install_list[@]}; do
 	setup_lang_$lang
 done
 
-# setup_editor_unix
-# setup_editor_ide
+for editor in ${editor_install_list[@]}; do
+	setup_editor_$editor
+done
 
 echo
 echo "Done!"
