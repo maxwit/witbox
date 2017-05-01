@@ -159,7 +159,7 @@ case $os_type in
 		# $pm upgrade -y
 		;;
 
-	redhat|centos|fedora )
+	rhel|centos|fedora )
 		if [[ $os_type == fedora ]]; then
 			# need epel?
 			pm='dnf'
@@ -304,7 +304,7 @@ set_group 'SCM'
 case "$os_type" in
 	macOS )
 		;;
-	redhat|centos )
+	rhel|centos )
 		pkg_list+=(git2u)
 		pkg_list+=(subversion)
 		;;
@@ -346,7 +346,7 @@ function setup_lang_cxx {
 		Linux )
 			pkg_list+=(gcc)
 			case $os_type in
-				redhat|centos|fedora )
+				rhel|centos|fedora )
 					pkg=gcc-c++
 					pkg_list+=($pkg)
 					# check[$pkg]=g++
@@ -395,7 +395,7 @@ function setup_lang_java {
 		macOS )
 			pkg_list+=(java)
 			;;
-		redhat|centos|fedora )
+		rhel|centos|fedora )
 			pkg_list+=(java-1.7.0-openjdk-devel java-1.8.0-openjdk-devel)
 			;;
 		ubuntu|debian )
@@ -409,7 +409,7 @@ function setup_lang_java {
 	pm_install pkg_list[@]
 
 	case $os_type in
-		redhat|centos|fedora )
+		rhel|centos|fedora )
 			for (( i = 0; i < 10; i++ )); do
 				if [ ! -x /usr/java/jdk1.8.0_131/jre/bin/java ]; then
 					[ -e jdk-8u131-linux-x64.rpm ] || \
@@ -470,7 +470,7 @@ function setup_lang_php {
 			brew tap homebrew/php
 			pkg_list+=(php56)
 			;;
-		redhat|centos )
+		rhel|centos )
 			# use remi/scl instead?
 			pkg_list+=(php56u)
 			;;
@@ -509,7 +509,7 @@ function setup_lang_python {
 	fi
 
 	case $os_type in
-		redhat|centos )
+		rhel|centos )
 			pkg_list+=(python${pydef/./}-devel python35u python35u-devel) # FIXME: do not hardcode the version
 			;;
 		ubuntu )
@@ -599,7 +599,7 @@ function setup_editor_vim {
 	case "$os_type" in
 		macOS )
 			;;
-		redhat|centos|fedora )
+		rhel|centos|fedora )
 			pkg_list+=(vim-enhanced)
 			# check[vim-enhanced]=vim # or vimdiff
 			;;
@@ -644,7 +644,7 @@ function setup_editor_atom {
 			pkg_list+=(atom)
 			;;
 
-		redhat|centos|fedora )
+		rhel|centos|fedora )
 			;;
 
 		ubuntu|debian )
@@ -675,7 +675,7 @@ function setup_editor_vscode {
 			pkg_list+=(visual-studio-code)
 			;;
 
-		redhat|centos|fedora )
+		rhel|centos|fedora )
 			if [ $os_type == fedora -o $version -ge 7 ]; then
 				if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
 					sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
@@ -729,7 +729,7 @@ function setup_editor_sublime {
 				$installer sublime-text
 				;;
 
-			redhat|centos|fedora )
+			rhel|centos|fedora )
 				;;
 
 			ubuntu|debian )
