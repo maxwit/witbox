@@ -80,7 +80,7 @@ else
 			rm -f 0.
 			$mnt_dst
 		fi
-		curl -o $mnt_dst https://raw.githubusercontent.com/conke/witbox/master/install/archlinux/install.sh
+		curl -o $mnt_dst https://raw.githubusercontent.com/conke/witbox/master/install/archlinux/main-install.sh
 	done
 fi
 chmod +x $mnt_dst && \
