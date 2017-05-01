@@ -471,7 +471,10 @@ function setup_lang_python {
 	fi
 
 	for (( i = 0; i < 10; i++ )); do
-		[[ -e $wrapper_sh ]] && break
+		if [[ -e $wrapper_sh ]]; then
+			echo "virtualenvwrapper has been installed."
+			break
+		fi
 		python${pydef} -m pip install --user virtualenvwrapper
 	done
 
