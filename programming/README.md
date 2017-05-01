@@ -37,6 +37,8 @@ supported and to be supported:
 
 ## 3. Installation
 
+For each case, please exit current terminal after installation and re-open a new one to activate profile settings!
+
 ### 3.1. Linux/macOS/FreeBSD
 
 install all languages and tools:
