@@ -50,6 +50,7 @@ while [[ $# -gt 0 ]]; do
 			done
 			shift
 			;;
+
 		-e )
 			editor_install_list=(${2//,/ })
 			for (( i = 0; i < ${#editor_install_list[@]}; i++ )); do
@@ -72,10 +73,12 @@ while [[ $# -gt 0 ]]; do
 			done
 			shift
 			;;
+
 		-h )
 			usage
 			exit 0
 			;;
+
 		* )
 			echo "invalid option '$1'"
 			usage
@@ -102,7 +105,7 @@ case $os in
 		if [ -e /etc/os-release ]; then
 			. /etc/os-release
 			os_dist=$ID
-			version=$VERSION_ID
+			version=$VERSION_ID # none on ArchLinux
 		elif [ -e /etc/redhat-release ]; then
 			dist=(`cat /etc/redhat-release | head -n 1`)
 			os_dist=`echo ${dist[0]} | tr A-Z a-z`
@@ -129,6 +132,19 @@ echo -e "### Setup for $os_dist ###\n"
 
 # get installer ready
 case $os_dist in
+	macOS )
+		for (( i = 0; i < 10; i++ )); do
+			if which brew > /dev/null 2>&1; then
+				echo 'HomeBrew has been installed.'
+				break
+			fi
+			/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+		done
+		pm='brew'
+		installer="brew install"
+		# TODO: update/upgrade ?
+		;;
+
 	ubuntu|debian )
 		which apt > /dev/null 2>&1 && pm='apt' || pm='apt-get'
 		installer="sudo $pm install -y"
@@ -167,14 +183,10 @@ case $os_dist in
 		# $pm update -y
 		;;
 
-	macOS )
-		which brew > /dev/null 2>&1 || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-		which brew > /dev/null 2>&1 || {
-			echo "fail to install HomeBrew, pls try again!"
-			exit 1
-		}
-		installer="brew install"
-		# TODO: update/upgrade ?
+	arch )
+		pm='pacman'
+		installer='sudo pacman -S --noconfirm'
+		# TODO: add yaout
 		;;
 
 	*)
@@ -327,7 +339,14 @@ function setup_lang_csharp {
 function setup_lang_go {
 	set_group 'Go'
 
-	pkg_list+=('golang')
+	case $os_dist in
+		arch )
+			pkg_list+=('go')
+			;;
+		* )
+			pkg_list+=('golang')
+			;;
+	esac
 
 	pm_install pkg_list[@]
 }
@@ -344,6 +363,9 @@ function setup_lang_java {
 			;;
 		ubuntu|debian )
 			pkg_list+=(openjdk-7-jdk openjdk-9-jdk openjdk-8-jdk)
+			;;
+		arch )
+			pkg_list+=(jdk7-openjdk jdk8-openjdk)
 			;;
 	esac
 
@@ -586,10 +608,14 @@ function setup_editor_atom {
 			;;
 
 		redhat|centos|fedora )
-		;;
+			;;
 
 		ubuntu|debian )
-		;;
+			;;
+
+		arch )
+			pkg_list+=(atom)
+			;;
 	esac
 
 	# git_list[atom]='https://github.com/atom/atom.git'
