@@ -27,10 +27,49 @@ while [[ $# -gt 0 ]]; do
 	case $1 in
 		-l )
 			lang_install_list=(${2//,/ })
+			for (( i = 0; i < ${#lang_install_list[@]}; i++ )); do
+				lang1=`tr [:upper:] [:lower:] <<< ${lang_install_list[$i]}`
+				case $lang1 in
+					c|c++ )
+						lang1=cxx
+						;;
+					c#|cs )
+						lang1=csharp
+						;;
+					golang )
+						lang1=go
+						;;
+					javascript|ts|typescript )
+						lang1=js
+						;;
+				esac
+				# TODO: check valid
+				if [[ $lang1 != ${lang_install_list[$i]} ]]; then
+					lang_install_list[$i]=$lang1
+				fi
+			done
 			shift
 			;;
 		-e )
 			editor_install_list=(${2//,/ })
+			for (( i = 0; i < ${#editor_install_list[@]}; i++ )); do
+				editor1=`tr [:upper:] [:lower:] <<< ${editor_install_list[$i]}`
+				case $editor1 in
+					vi )
+						editor1=vim
+						;;
+					code )
+						editor1=vscode
+						;;
+					subl )
+						editor1=sublime
+						;;
+				esac
+				# TODO: check valid
+				if [[ $editor1 != ${editor_install_list[$i]} ]]; then
+					lang_install_list[$i]=$editor1
+				fi
+			done
 			shift
 			;;
 		-h )
