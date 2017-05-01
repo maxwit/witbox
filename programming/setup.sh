@@ -67,7 +67,7 @@ while [[ $# -gt 0 ]]; do
 				esac
 				# TODO: check valid
 				if [[ $editor1 != ${editor_install_list[$i]} ]]; then
-					lang_install_list[$i]=$editor1
+					editor_install_list[$i]=$editor1
 				fi
 			done
 			shift
