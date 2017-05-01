@@ -77,12 +77,13 @@ else
 			if [[ "$magic" == '# __END_OF_MAIN_INSTALL_SCRIPT__' ]]; then
 				break
 			fi
-			rm $mnt_dst
+			rm -f 0.
+			$mnt_dst
 		fi
 		curl -o $mnt_dst https://raw.githubusercontent.com/conke/witbox/master/install/archlinux/install.sh
 	done
 fi
-chmod +x $mnt_dst
+chmod +x $mnt_dst && \
 arch-chroot /mnt ${mnt_dst#/mnt} $@
 result=$?
 echo -n -e "\nInstallation "

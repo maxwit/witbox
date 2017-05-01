@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-user=archlinux
+user=archuser
 pass=ArchLinux`date +%Y`
+name=${user^}
 
 function usage {
   # echo "install.sh [options]"
@@ -23,6 +24,9 @@ while [[ $# -gt 0 ]]; do
       pass=$2
       shift
       ;;
+    # -f|--full-name )
+    #   name="$2"
+    #   ;;
 		-h )
 			usage
 			exit 0
@@ -71,7 +75,7 @@ done
 
 echo -e "$pass\n$pass" | passwd
 
-useradd -m -G wheel -c "$user" $user && \
+useradd -m -G wheel -c "$name" $user && \
   echo -e "$pass\n$pass" | passwd $user
 
 # TODO
