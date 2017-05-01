@@ -6,6 +6,17 @@ lang_install_list=(${lang_support_list[@]})
 editor_support_list=(vim atom vscode sublime)
 editor_install_list=(${editor_support_list[@]})
 
+if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
+	declare -A check
+fi
+declare -a pkg_list
+
+current_group='undefined'
+
+os_kernel=`uname -s`
+
+alias curl='curl --connect-timeout 30'
+
 function usage {
 	echo   "options:"
 
@@ -89,49 +100,45 @@ while [[ $# -gt 0 ]]; do
 	shift
 done
 
-if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
-	declare -A check
-fi
-
-declare -a pkg_list
-
-current_group='undefined'
-
-os=`uname -s`
-
-# get OS version
-case $os in
+# get OS info
+case $os_kernel in
 	Linux )
 		if [ -e /etc/os-release ]; then
 			. /etc/os-release
-			os_dist=$ID
-			version=$VERSION_ID # none on ArchLinux
+			os_type=$ID
+			os_version=$VERSION_ID # none on ArchLinux
+			os_name=$NAME
 		elif [ -e /etc/redhat-release ]; then
-			dist=(`cat /etc/redhat-release | head -n 1`)
-			os_dist=`echo ${dist[0]} | tr A-Z a-z`
-			version=${dist[2]%%.*}
+			dist=(`head -n 1 /etc/redhat-release`)
+			os_type=`tr A-Z a-z <<< ${dist[0]}`
+			os_version=${dist[2]}
+			os_name=${dist[0]}
 		else
-			echo -e "Linux distribution not supported yet!\n"
+			echo -e "Unkown Linux distribution!\n"
 			exit 1
 		fi
 		;;
 
 	Darwin )
-		os_dist=macOS
-		# TODO: versions
+		os_type='macOS'
+		os_version=`sw_vers -productVersion`
+		os_name='macOS'
+		;;
+
+	FreeBSD )
+		os_type='FreeBSD'
+		os_version=`uname -r | awk -F '-' '{print $1}'`
+		os_name='FreeBSD'
 		;;
 
 	* )
-		echo -e "OS '$os' not supported yet!\n"
+		echo -e "OS '$os_kernel' not supported yet!\n"
 		exit 1
 esac
 
-alias curl='curl --connect-timeout 30'
+echo -e "### Setup for $os_name $os_version ###\n"
 
-echo -e "### Setup for $os_dist ###\n"
-
-# get installer ready
-case $os_dist in
+case $os_type in
 	macOS )
 		for (( i = 0; i < 10; i++ )); do
 			if which brew > /dev/null 2>&1; then
@@ -153,12 +160,13 @@ case $os_dist in
 		;;
 
 	redhat|centos|fedora )
-		if [[ $os_dist == fedora ]]; then
+		if [[ $os_type == fedora ]]; then
 			# need epel?
 			pm='dnf'
 			installer="sudo dnf --allowerasing install -y"
 		else
-			if [[ $version -ge 7 ]]; then
+			major_version=${os_version%%.*}
+			if [[ $major_version -ge 7 ]]; then
 				for (( i = 0; i < 10; i++ )); do
 					if which dnf > /dev/null 2>&1; then
 						echo "yum-utils has been installed."
@@ -184,7 +192,7 @@ case $os_dist in
 					echo "remi.repo has been installed"
 					break
 				fi
-				$installer http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
+				$installer http://rpms.famillecollet.com/enterprise/remi-release-${major_version}.rpm
 			done
 			# and SCL ?
 		fi
@@ -213,8 +221,13 @@ case $os_dist in
 		done
 		;;
 
+	FreeBSD )
+		pm='pkg'
+		installer='pkg install -y'
+		;;
+
 	*)
-		echo "'$os_dist' not supported!"
+		echo "OS '$os_type' not supported yet!"
 		exit 1
 		;;
 esac
@@ -267,7 +280,7 @@ function pm_install {
 	# 	loc=`which $exe`
 	# done
 
-	if [[ $os_dist == macOS ]]; then
+	if [[ $os_type == macOS ]]; then
 		for (( i = 0; i < $count; i++ )); do
 			pkg=${pkgs[$i]}
 			result=`brew cask search $pkg`
@@ -286,9 +299,9 @@ function pm_install {
 	# fi
 }
 
-# set_group 'SCM'
+set_group 'SCM'
 
-case "$os_dist" in
+case "$os_type" in
 	macOS )
 		;;
 	redhat|centos )
@@ -304,7 +317,7 @@ esac
 pm_install pkg_list[@]
 
 if [[ ! -e ~/.gitconfig ]]; then
-	case $os in
+	case $os_kernel in
 		Linux )
 			fullname=$(awk -F : -v user=$USER '$1==user {print $5}' /etc/passwd)
 			fullname=${fullname/,*}
@@ -329,10 +342,10 @@ fi
 function setup_lang_cxx {
 	set_group 'C/C++'
 
-	case $os in
+	case $os_kernel in
 		Linux )
 			pkg_list+=(gcc)
-			case $os_dist in
+			case $os_type in
 				redhat|centos|fedora )
 					pkg=gcc-c++
 					pkg_list+=($pkg)
@@ -363,7 +376,7 @@ function setup_lang_csharp {
 function setup_lang_go {
 	set_group 'Go'
 
-	case $os_dist in
+	case $os_type in
 		arch )
 			pkg_list+=('go')
 			;;
@@ -378,7 +391,7 @@ function setup_lang_go {
 function setup_lang_java {
 	set_group 'Java and Groovy'
 
-	case $os_dist in
+	case $os_type in
 		macOS )
 			pkg_list+=(java)
 			;;
@@ -395,7 +408,7 @@ function setup_lang_java {
 
 	pm_install pkg_list[@]
 
-	case $os_dist in
+	case $os_type in
 		redhat|centos|fedora )
 			for (( i = 0; i < 10; i++ )); do
 				if [ ! -x /usr/java/jdk1.8.0_131/jre/bin/java ]; then
@@ -407,7 +420,7 @@ function setup_lang_java {
 			;;
 
 		# * )
-		# 	if [[ $os == Linux ]]; then
+		# 	if [[ $os_kernel == Linux ]]; then
 		# 		wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
 		# 	fi
 		# 	;;
@@ -452,7 +465,7 @@ function setup_lang_perl {
 function setup_lang_php {
 	set_group 'PHP'
 
-	case "$os_dist" in
+	case "$os_type" in
 		macOS )
 			brew tap homebrew/php
 			pkg_list+=(php56)
@@ -495,7 +508,7 @@ function setup_lang_python {
 		pydef=2.7
 	fi
 
-	case $os_dist in
+	case $os_type in
 		redhat|centos )
 			pkg_list+=(python${pydef/./}-devel python35u python35u-devel) # FIXME: do not hardcode the version
 			;;
@@ -514,7 +527,7 @@ function setup_lang_python {
 		curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
 	done
 
-	if [ $os_dist == macOS ]; then
+	if [ $os_type == macOS ]; then
 		wrapper_sh="$HOME/Library/Python/2.7/bin/virtualenvwrapper.sh"
 	else
 		wrapper_sh="$HOME/.local/bin/virtualenvwrapper.sh"
@@ -583,7 +596,7 @@ function setup_lang_swift {
 function setup_editor_vim {
 	set_group 'VIM'
 
-	case "$os_dist" in
+	case "$os_type" in
 		macOS )
 			;;
 		redhat|centos|fedora )
@@ -626,7 +639,7 @@ function setup_editor_atom {
 		return
 	}
 
-	case $os_dist in
+	case $os_type in
 		macOS )
 			pkg_list+=(atom)
 			;;
@@ -657,13 +670,13 @@ function setup_editor_vscode {
 		return
 	}
 
-	case $os_dist in
+	case $os_type in
 		macOS )
 			pkg_list+=(visual-studio-code)
 			;;
 
 		redhat|centos|fedora )
-			if [ $os_dist == fedora -o $version -ge 7 ]; then
+			if [ $os_type == fedora -o $version -ge 7 ]; then
 				if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
 					sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 					temp=`mktemp`
@@ -711,7 +724,7 @@ function setup_editor_sublime {
 			break
 		fi
 
-		case $os_dist in
+		case $os_type in
 			macOS )
 				$installer sublime-text
 				;;
