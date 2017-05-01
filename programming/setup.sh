@@ -106,13 +106,13 @@ case $os_kernel in
 		if [ -e /etc/os-release ]; then
 			. /etc/os-release
 			os_type=$ID
-			os_version=$VERSION_ID # none on ArchLinux
 			os_name=$NAME
+			os_version=$VERSION_ID # none on ArchLinux
 		elif [ -e /etc/redhat-release ]; then
 			dist=(`head -n 1 /etc/redhat-release`)
 			os_type=`tr A-Z a-z <<< ${dist[0]}`
-			os_version=${dist[2]}
 			os_name=${dist[0]}
+			os_version=${dist[2]}
 		else
 			echo -e "Unkown Linux distribution!\n"
 			exit 1
@@ -121,14 +121,14 @@ case $os_kernel in
 
 	Darwin )
 		os_type='macOS'
+		os_name=`sw_vers -productName`
 		os_version=`sw_vers -productVersion`
-		os_name='macOS'
 		;;
 
 	FreeBSD )
 		os_type='FreeBSD'
-		os_version=`uname -r | awk -F '-' '{print $1}'`
 		os_name='FreeBSD'
+		os_version=`uname -r | awk -F '-' '{print $1}'`
 		;;
 
 	* )
