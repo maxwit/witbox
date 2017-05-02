@@ -547,42 +547,31 @@ function setup_lang_python {
 	# sudo chmod go+rx $workon_home
 	# echo "export WORKON_HOME=$workon_home" >> $profile
 
-	wrapper_site=`pip show virtualenv | awk '$1=="Location:" {print $2}'`
-	# readlink --canonicalize not work for BSD
-	# wrapper_path=`readlink --canonicalize $wrapper_site/../../../bin/virtualenvwrapper.sh`
+	wrapper_site=`pip show virtualenvwrapper | awk '$1=="Location:" {print $2}'`
 
 	# FIXME: to move above
 	user_site_bin=$wrapper_site/../../../bin
-	if [[ ! -d $user_site_bin ]]; then
+	if [[ ! -e $user_site_bin/virtualenvwrapper.sh ]]; then
 		echo 'should never run here!'
 		echo "user site bin: $user_site_bin"
 		return
 	fi
+	# readlink --canonicalize not work for BSD
+	# wrapper_path=`readlink --canonicalize $wrapper_site/../../../bin`
 	cd $user_site_bin
 	user_site_bin=$PWD
 	cd -
 
-
-	if [ -e $user_site_bin/virtualenvwrapper.sh ]; then
-		wrapper_path=$user_site_bin/virtualenvwrapper.sh
+	if [[ $HOME${user_site_bin#$HOME} == $user_site_bin ]]; then
+		sed -i.orig "\|\$HOME${user_site_bin#$HOME}|d" $profile
+		echo "export PATH=\$HOME${user_site_bin#$HOME}:\$PATH" >> $profile
 	else
-		echo "fail to install virtualenvwrapper!"
-		return
+		sed -i.orig "\|${user_site_bin}|d" $profile
+		echo "export PATH=$user_site_bin:\$PATH" >> $profile
 	fi
 
 	sed -i.orig '/virtualenvwrapper.sh/d' $profile
-
-	if [[ $HOME${wrapper_path#$HOME} == $wrapper_path ]]; then
-		sed -i.orig ":\$HOME${user_site_bin#$HOME}:d" $profile
-		echo "export PATH=\$HOME${user_site_bin#$HOME}:\$PATH" >> $profile
-
-		echo ". \$HOME${wrapper_path#$HOME}" >> $profile
-	else
-		sed -i.orig ":${user_site_bin}:d" $profile
-		echo "export PATH=$user_site_bin:\$PATH" >> $profile
-
-		echo ". $wrapper_path" >> $profile
-	fi
+	echo ". virtualenvwrapper.sh" >> $profile
 }
 
 function setup_lang_ruby {
