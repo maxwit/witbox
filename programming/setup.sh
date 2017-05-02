@@ -240,12 +240,6 @@ else # FIXME
 	touch $profile
 fi
 
-mkdir -p $HOME/.local/bin
-grep '^export PATH=$HOME/.local/bin' > /dev/null 2>&1 $profile || {
-	echo 'export PATH=$HOME/.local/bin:$PATH' >> $profile
-	# export PATH=$HOME/.local/bin:$PATH
-}
-
 for dir in bin etc include lib lib64 opt run sbin share usr usr/share var; do
 	if [[ ! -e /usr/local/$dir ]]; then
 		sudo mkdir -p /usr/local/$dir
@@ -556,20 +550,37 @@ function setup_lang_python {
 	wrapper_site=`pip show virtualenv | awk '$1=="Location:" {print $2}'`
 	# readlink --canonicalize not work for BSD
 	# wrapper_path=`readlink --canonicalize $wrapper_site/../../../bin/virtualenvwrapper.sh`
-	wrapper_path=$wrapper_site/../../../bin/virtualenvwrapper.sh
-	if [[ -e $wrapper_path ]]; then
-		cd `dirname $wrapper_path`
-		wrapper_path=$PWD/virtualenvwrapper.sh
-		cd -
+
+	# FIXME: to move above
+	user_site_bin=$wrapper_site/../../../bin
+	if [[ ! -d $user_site_bin ]]; then
+		echo 'should never run here!'
+		echo "user site bin: $user_site_bin"
+		return
+	fi
+	cd $user_site_bin
+	user_site_bin=$PWD
+	cd -
+
+
+	if [ -e $user_site_bin/virtualenvwrapper.sh ]; then
+		wrapper_path=$user_site_bin/virtualenvwrapper.sh
 	else
 		echo "fail to install virtualenvwrapper!"
 		return
 	fi
 
 	sed -i.orig '/virtualenvwrapper.sh/d' $profile
+
 	if [[ $HOME${wrapper_path#$HOME} == $wrapper_path ]]; then
+		sed -i.orig ":\$HOME${user_site_bin#$HOME}:d" $profile
+		echo "export PATH=\$HOME${user_site_bin#$HOME}:\$PATH" >> $profile
+
 		echo ". \$HOME${wrapper_path#$HOME}" >> $profile
 	else
+		sed -i.orig ":${user_site_bin}:d" $profile
+		echo "export PATH=$user_site_bin:\$PATH" >> $profile
+
 		echo ". $wrapper_path" >> $profile
 	fi
 }
