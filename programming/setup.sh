@@ -565,7 +565,7 @@ function setup_lang_python {
 		echo "fail to install virtualenvwrapper!"
 		return
 	fi
-set -x
+
 	sed -i.orig '/virtualenvwrapper.sh/d' $profile
 	if [[ $HOME${wrapper_path#$HOME} == $wrapper_path ]]; then
 		echo ". \$HOME${wrapper_path#$HOME}" >> $profile
