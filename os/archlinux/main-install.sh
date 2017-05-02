@@ -2,7 +2,6 @@
 
 user=archuser
 pass=ArchLinux`date +%Y`
-name=${user^}
 
 function usage {
   # echo "install.sh [options]"
@@ -47,6 +46,8 @@ if [ $UID != 0 ]; then
 fi
 
 # TODO: check chroot env
+
+name=${user^} # FIXME
 
 ln -svf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 hwclock --systohc --utc

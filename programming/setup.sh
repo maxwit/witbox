@@ -14,6 +14,7 @@ declare -a pkg_list
 current_group='undefined'
 
 os_kernel=`uname -s`
+# zone=`timedatectl | grep 'Time zone' | awk '{print $3}'`
 
 alias curl='curl --connect-timeout 30'
 
