@@ -96,6 +96,7 @@ grep AutomaticLoginEnable /etc/gdm/custom.conf > /dev/null || \
 systemctl enable syslog-ng dhcpcd
 systemctl enable gdm NetworkManager
 
+# FIXME
 vmware='1'
 if [[ $vmware == '1' ]]; then
   for (( i = 0; i < 10; i++ )); do

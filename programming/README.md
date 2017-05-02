@@ -6,8 +6,7 @@ supported and to be supported:
 
 1. Assembly
 2. Bash
-3. C
-4. C++
+3. C/C++  clang/gcc
 5. C#
 6. Go
 7. Groovy

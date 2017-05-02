@@ -509,6 +509,7 @@ function setup_lang_python {
 		pydef=2.7
 	fi
 
+ # FIXME
 	case $os_type in
 		rhel|centos )
 			pkg_list+=(python${pydef/./}-devel python35u python35u-devel) # FIXME: do not hardcode the version
@@ -524,38 +525,53 @@ function setup_lang_python {
 	pm_install pkg_list[@]
 
 	for (( i = 0; i < 10; i++ )); do
-		python${pydef} -m pip --version > /dev/null 2>&1 && break
+		if python${pydef} -m pip --version > /dev/null; then
+			echo "pip has been installed."
+			break
+		fi
 		curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
 	done
 
-	if [ $os_type == macOS ]; then
-		wrapper_sh="$HOME/Library/Python/2.7/bin/virtualenvwrapper.sh"
-	else
-		wrapper_sh="$HOME/.local/bin/virtualenvwrapper.sh"
-	fi
+	alias pip="python${pydef} -m pip"
 
 	for (( i = 0; i < 10; i++ )); do
-		if [[ -e $wrapper_sh ]]; then
+		if pip show virtualenvwrapper > /dev/null;  then
 			echo "virtualenvwrapper has been installed."
 			break
 		fi
-		python${pydef} -m pip install --user virtualenvwrapper
+		pip install --user virtualenvwrapper
 	done
 
 	if [[ -n "$pydef" ]]; then
-		grep VIRTUALENVWRAPPER_PYTHON $profile > /dev/null || \
-			echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pydef}`" >> $profile
+		sed -i.orig '/VIRTUALENVWRAPPER_PYTHON/d' $profile
+		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pydef}`" >> $profile
 	fi
 
-	grep virtualenvwrapper.sh $profile > /dev/null || {
-		# workon_home='/opt/virtualenvs'
-		# sudo mkdir -p $workon_home
-		# sudo chown $USER $workon_home
-		# sudo chmod go+rx $workon_home
-		# echo "export WORKON_HOME=$workon_home" >> $profile
-		echo ". $wrapper_sh" >> $profile
-		# . $profile
-	}
+	# workon_home='/opt/virtualenvs'
+	# sudo mkdir -p $workon_home
+	# sudo chown $USER $workon_home
+	# sudo chmod go+rx $workon_home
+	# echo "export WORKON_HOME=$workon_home" >> $profile
+
+	wrapper_site=`pip show virtualenv | awk '$1=="Location:" {print $2}'`
+	# readlink --canonicalize not work for BSD
+	# wrapper_path=`readlink --canonicalize $wrapper_site/../../../bin/virtualenvwrapper.sh`
+	wrapper_path=$wrapper_site/../../../bin/virtualenvwrapper.sh
+	if [[ -e $wrapper_path ]]; then
+		cd `dirname $wrapper_path`
+		wrapper_path=$PWD/virtualenvwrapper.sh
+		cd -
+	else
+		echo "fail to install virtualenvwrapper!"
+		return
+	fi
+set -x
+	sed -i.orig '/virtualenvwrapper.sh/d' $profile
+	if [[ $HOME${wrapper_path#$HOME} == $wrapper_path ]]; then
+		echo ". \$HOME${wrapper_path#$HOME}" >> $profile
+	else
+		echo ". $wrapper_path" >> $profile
+	fi
 }
 
 function setup_lang_ruby {
