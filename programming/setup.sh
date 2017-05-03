@@ -235,8 +235,10 @@ esac
 
 if [[ -e $HOME/.bashrc ]]; then
 	profile=$HOME/.bashrc
-else # FIXME
+elif [[ -e $HOME/.bash_profile ]]; then
 	profile=$HOME/.bash_profile
+else
+	profile=$HOME/.bashrc
 	touch $profile
 fi
 
@@ -244,6 +246,7 @@ for dir in bin etc include lib lib64 opt run sbin share usr usr/share var; do
 	if [[ ! -e /usr/local/$dir ]]; then
 		sudo mkdir -p /usr/local/$dir
 		sudo chown $USER /usr/local/$dir
+		sudo chmod g+w /usr/local/$dir
 	fi
 done
 
@@ -435,6 +438,7 @@ function setup_lang_js {
 		curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
 	done
 
+	# source $profile now work
 	[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 	[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 
@@ -445,11 +449,20 @@ function setup_lang_js {
 		nvm use node
 	done
 
+	# FIXME: only for some location
+	for (( i = 0; i < 10; i++ )); do
+		if which cnpm > /dev/null; then
+			echo "cnpm has been installed."
+			break
+		fi
+		npm install -g cnpm --registry=https://registry.npm.taobao.org
+	done
+
 	echo "Installing TypeScript ..."
 	# safe?
 	for (( i = 0; i < 10; i++ )); do
 		[ -x $NVM_BIN/tsc ] && break
-		npm install -g typescript
+		cnpm install -g typescript
 	done
 }
 
@@ -518,6 +531,8 @@ function setup_lang_python {
 
 	pm_install pkg_list[@]
 
+	user_base=`python${pydef} -m site --user-base`
+
 	for (( i = 0; i < 10; i++ )); do
 		if python${pydef} -m pip --version > /dev/null; then
 			echo "pip has been installed."
@@ -547,20 +562,11 @@ function setup_lang_python {
 	# sudo chmod go+rx $workon_home
 	# echo "export WORKON_HOME=$workon_home" >> $profile
 
-	wrapper_site=`pip show virtualenvwrapper | awk '$1=="Location:" {print $2}'`
-
-	# FIXME: to move above
-	user_site_bin=$wrapper_site/../../../bin
-	if [[ ! -e $user_site_bin/virtualenvwrapper.sh ]]; then
+	if [[ ! -e $user_base/bin/virtualenvwrapper.sh ]]; then
 		echo 'should never run here!'
-		echo "user site bin: $user_site_bin"
+		echo "user site bin: $user_base/bin"
 		return
 	fi
-	# readlink --canonicalize not work for BSD
-	# wrapper_path=`readlink --canonicalize $wrapper_site/../../../bin`
-	cd $user_site_bin
-	user_site_bin=$PWD
-	cd -
 
 	if [[ $HOME${user_site_bin#$HOME} == $user_site_bin ]]; then
 		sed -i.orig "\|\$HOME${user_site_bin#$HOME}|d" $profile
