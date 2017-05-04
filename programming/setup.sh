@@ -16,7 +16,7 @@ current_group='undefined'
 os_kernel=`uname -s`
 # zone=`timedatectl | grep 'Time zone' | awk '{print $3}'`
 
-alias curl='curl --connect-timeout 15'
+alias curl='nice curl --connect-timeout 15'
 
 function usage {
 	echo   "options:"
@@ -529,7 +529,7 @@ function setup_lang_python {
 			;;
 	esac
 
-	pm_install pkg_list[@]
+	# pm_install pkg_list[@]
 
 	user_base=`python${pydef} -m site --user-base`
 
@@ -539,7 +539,7 @@ function setup_lang_python {
 			echo "pip has been installed."
 			break
 		fi
-		curl -m 60 https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
+		curl -m 180 https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
 	done
 
 	alias pip="python${pydef} -m pip"
