@@ -16,7 +16,7 @@ current_group='undefined'
 os_kernel=`uname -s`
 # zone=`timedatectl | grep 'Time zone' | awk '{print $3}'`
 
-alias curl='curl --connect-timeout 30'
+alias curl='curl --connect-timeout 15'
 
 function usage {
 	echo   "options:"
@@ -533,12 +533,13 @@ function setup_lang_python {
 
 	user_base=`python${pydef} -m site --user-base`
 
+	# FIXME: check upgrade instead
 	for (( i = 0; i < 10; i++ )); do
 		if python${pydef} -m pip --version > /dev/null; then
 			echo "pip has been installed."
 			break
 		fi
-		curl https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
+		curl -m 60 https://bootstrap.pypa.io/get-pip.py | sudo -H python${pydef}
 	done
 
 	alias pip="python${pydef} -m pip"
@@ -553,6 +554,7 @@ function setup_lang_python {
 
 	if [[ -n "$pydef" ]]; then
 		sed -i.orig '/VIRTUALENVWRAPPER_PYTHON/d' $profile
+		echo >> $profile
 		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pydef}`" >> $profile
 	fi
 
@@ -568,6 +570,7 @@ function setup_lang_python {
 		return
 	fi
 
+	echo >> $profile
 	if [[ $HOME${user_site_bin#$HOME} == $user_site_bin ]]; then
 		sed -i.orig "\|\$HOME${user_site_bin#$HOME}|d" $profile
 		echo "export PATH=\$HOME${user_site_bin#$HOME}:\$PATH" >> $profile
