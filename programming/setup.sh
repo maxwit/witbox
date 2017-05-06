@@ -529,7 +529,7 @@ function setup_lang_python {
 			;;
 	esac
 
-	# pm_install pkg_list[@]
+	pm_install pkg_list[@]
 
 	user_base=`python${pydef} -m site --user-base`
 
@@ -702,7 +702,7 @@ function setup_editor_vscode {
 			;;
 
 		rhel|centos|fedora )
-			if [ $os_type == fedora -o $version -ge 7 ]; then
+			if [ $os_type == fedora -o $os_version -ge 7 ]; then
 				if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
 					sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 					temp=`mktemp`
