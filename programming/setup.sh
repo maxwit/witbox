@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
 					c|c++ )
 						lang1=cxx
 						;;
-					c#|cs )
+					'c#'|cs )
 						lang1=csharp
 						;;
 					golang )
@@ -287,7 +287,7 @@ function pm_install {
 		for (( i = 0; i < $count; i++ )); do
 			pkg=${pkgs[$i]}
 			result=`brew cask search $pkg`
-			if [[ "${result:0:15}" == '==> Exact match' ]]; then
+			if [[ "${result:0:15}" == "==> Exact Match" ]]; then
 				pkgs[$i]="Caskroom/cask/$pkg" # brew cask install
 			fi
 		done
@@ -575,7 +575,6 @@ function setup_lang_python {
 		return
 	fi
 
-set -x
 	echo >> $profile
 	if [[ $HOME${user_base#$HOME} == $user_base ]]; then
 		sed -i.orig "\|\$HOME${user_base#$HOME}/bin|d" $profile
