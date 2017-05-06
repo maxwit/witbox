@@ -182,15 +182,20 @@ case $os_type in
 				installer="sudo yum install -y"
 				# TODO: add source repo
 			fi
-			# ISU
-			if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
+			# IUS
+			for (( i = 0; i < 10; i++ )); do
+				if [[ -e /etc/yum.repos.d/ius.repo ]]; then
+					echo "IUS repo has been installed"
+					break
+				fi
+				sudo $pm remove -y ius-release
 				curl https://setup.ius.io/ | sudo bash
 				$installer yum-plugin-replace
-			fi
+			done
 			# Remi
 			for (( i = 0; i < 10; i++ )); do
 				if [[ -e /etc/yum.repos.d/remi.repo ]]; then
-					echo "remi.repo has been installed"
+					echo "Remi repo has been installed"
 					break
 				fi
 				$installer http://rpms.famillecollet.com/enterprise/remi-release-${major_version}.rpm
@@ -479,7 +484,7 @@ function setup_lang_php {
 			pkg_list+=(php56)
 			;;
 		rhel|centos )
-			# use remi/scl instead?
+			# use Remi/SCL instead?
 			pkg_list+=(php56u)
 			;;
 
@@ -570,13 +575,14 @@ function setup_lang_python {
 		return
 	fi
 
+set -x
 	echo >> $profile
-	if [[ $HOME${user_site_bin#$HOME} == $user_site_bin ]]; then
-		sed -i.orig "\|\$HOME${user_site_bin#$HOME}|d" $profile
-		echo "export PATH=\$HOME${user_site_bin#$HOME}:\$PATH" >> $profile
+	if [[ $HOME${user_base#$HOME} == $user_base ]]; then
+		sed -i.orig "\|\$HOME${user_base#$HOME}/bin|d" $profile
+		echo "export PATH=\$HOME${user_base#$HOME}/bin:\$PATH" >> $profile
 	else
-		sed -i.orig "\|${user_site_bin}|d" $profile
-		echo "export PATH=$user_site_bin:\$PATH" >> $profile
+		sed -i.orig "\|$user_base/bin|d" $profile
+		echo "export PATH=$user_base/bin:\$PATH" >> $profile
 	fi
 
 	sed -i.orig '/virtualenvwrapper.sh/d' $profile
@@ -702,7 +708,7 @@ function setup_editor_vscode {
 			;;
 
 		rhel|centos|fedora )
-			if [ $os_type == fedora -o $os_version -ge 7 ]; then
+			if [ $os_type == fedora ] || [ $major_version -ge 7 ]; then
 				if [ ! -e /etc/yum.repos.d/vscode.repo ]; then
 					sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 					temp=`mktemp`
