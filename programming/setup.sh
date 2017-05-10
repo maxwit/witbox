@@ -456,7 +456,7 @@ function setup_lang_js {
 
 	# FIXME: only for some location
 	for (( i = 0; i < 10; i++ )); do
-		if which cnpm > /dev/null; then
+		if which cnpm > /dev/null 2>&1; then
 			echo "cnpm has been installed."
 			break
 		fi
