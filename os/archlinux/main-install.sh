@@ -8,6 +8,7 @@ function usage {
   echo "options:"
   echo "  -u user          default is '$user'"
   echo "  -p password      default is '$pass'"
+  echo "  -d device        default is 'LABEL=ArchLinux' if exists"
   # echo "  -h hostname"
   echo "  -h this help"
   echo
@@ -15,6 +16,10 @@ function usage {
 
 while [[ $# -gt 0 ]]; do
 	case $1 in
+    --root )
+      root=$2
+      shift
+      ;;
 		-u|--user )
 			user=$2
 			shift

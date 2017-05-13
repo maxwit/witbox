@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+echo "'$0', '$1''"
+exit 0
+
 cd `dirname $0`
 bn=`basename $0`
 
@@ -60,10 +63,10 @@ echo "toggle 1 boot" | parted $disk
 parted $disk print
 
 mount LABEL=ROOT /mnt
+genfstab -U -p /mnt
 
 pacstrap /mnt base python
 
-genfstab -U -p /mnt
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
 mnt_dst="/mnt/main-install.sh"
@@ -77,8 +80,7 @@ else
 			if [[ "$magic" == '# __END_OF_MAIN_INSTALL_SCRIPT__' ]]; then
 				break
 			fi
-			rm -f 0.
-			$mnt_dst
+			rm -f $mnt_dst
 		fi
 		curl -o $mnt_dst https://raw.githubusercontent.com/conke/witbox/master/install/archlinux/main-install.sh
 	done
