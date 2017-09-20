@@ -446,10 +446,19 @@ function setup_lang_java {
 
 	# Java: 8uXXX-oracle
 
-	for app in java groovy scala kotlin; do
-		echo "Installing $app ..."
+	for app in java maven gradle springboot groovy scala; do # kotlin sbt
+		if [ $app = springboot ]; then
+			cmd=spring
+		elif [ $app = maven ]; then
+			cmd=mvn
+		else
+			cmd=$app
+		fi
+
 		for (( i = 0; i < 10; i++ )); do
-			[ -s $HOME/candidates/$app/current/bin/${app}c ] && break
+			if [ -s $HOME/.sdkman/candidates/$app/current/bin/$cmd ]; then
+				break
+			fi
 			sdk install $app
 		done
 	done
@@ -697,9 +706,14 @@ function setup_editor_atom {
 			;;
 
 		rhel|centos|fedora )
+			ver=v1.20.1 # FIXME!!
+			$installer https://github.com/atom/atom/releases/download/$ver/atom.x86_64.rpm
 			;;
 
 		ubuntu|debian )
+			sudo add-apt-repository -y ppa:webupd8team/atom
+			sudo apt update -y
+			pkg_list+=(atom)
 			;;
 
 		arch )
