@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-lang_support_list=(cxx csharp go java js perl php python ruby rust scala swift)
+lang_support_list=(cxx csharp go groovy java javascript kotlin perl php python ruby rust scala swift typescript)
 lang_install_list=(${lang_support_list[@]})
 
 editor_support_list=(vim atom vscode sublime)
@@ -48,11 +48,11 @@ while [[ $# -gt 0 ]]; do
 					'c#'|cs )
 						lang1=csharp
 						;;
-					golang )
-						lang1=go
+					groovy|scala|kotlin)
+						lang1=java
 						;;
-					javascript|ts|typescript )
-						lang1=js
+					js|ts|typescript )
+						lang1=javascript
 						;;
 				esac
 				# TODO: check valid
@@ -238,6 +238,13 @@ case $os_type in
 		;;
 esac
 
+for (( i = 0; i < 10; i++ )); do
+	which curl > /dev/null && break
+	$installer curl
+done
+
+[ $i == 10 ] && exit 1
+
 if [[ -e $HOME/.bashrc ]]; then
 	profile=$HOME/.bashrc
 elif [[ -e $HOME/.bash_profile ]]; then
@@ -392,45 +399,63 @@ function setup_lang_go {
 }
 
 function setup_lang_java {
-	set_group 'Java and Groovy'
+	set_group 'Java/Groovy/Kotlin/Scala'
 
-	case $os_type in
-		macOS )
-			pkg_list+=(java)
-			;;
-		rhel|centos|fedora )
-			pkg_list+=(java-1.7.0-openjdk-devel java-1.8.0-openjdk-devel)
-			;;
-		ubuntu|debian )
-			pkg_list+=(openjdk-7-jdk openjdk-9-jdk openjdk-8-jdk)
-			;;
-		arch )
-			pkg_list+=(jdk7-openjdk jdk8-openjdk)
-			;;
-	esac
+	# case $os_type in
+	# 	macOS )
+	# 		pkg_list+=(java)
+	# 		;;
+	# 	rhel|centos|fedora )
+	# 		pkg_list+=(java-1.7.0-openjdk-devel java-1.8.0-openjdk-devel)
+	# 		;;
+	# 	ubuntu|debian )
+	# 		pkg_list+=(openjdk-7-jdk openjdk-9-jdk openjdk-8-jdk)
+	# 		;;
+	# 	arch )
+	# 		pkg_list+=(jdk7-openjdk jdk8-openjdk)
+	# 		;;
+	# esac
 
-	pm_install pkg_list[@]
+	# pm_install pkg_list[@]
 
-	case $os_type in
-		rhel|centos|fedora )
-			for (( i = 0; i < 10; i++ )); do
-				if [ ! -x /usr/java/jdk1.8.0_131/jre/bin/java ]; then
-					[ -e jdk-8u131-linux-x64.rpm ] || \
-						wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm
-					$installer jdk-8u131-linux-x64.rpm && break
-				fi
-			done
-			;;
+	# case $os_type in
+	# 	rhel|centos|fedora )
+	# 		for (( i = 0; i < 10; i++ )); do
+	# 			if [ ! -x /usr/java/jdk1.8.0_131/jre/bin/java ]; then
+	# 				[ -e jdk-8u131-linux-x64.rpm ] || \
+	# 					wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm
+	# 				$installer jdk-8u131-linux-x64.rpm && break
+	# 			fi
+	# 		done
+	# 		;;
 
-		# * )
-		# 	if [[ $os_kernel == Linux ]]; then
-		# 		wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
-		# 	fi
-		# 	;;
-	esac
+	# 	# * )
+	# 	# 	if [[ $os_kernel == Linux ]]; then
+	# 	# 		wget -c --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
+	# 	# 	fi
+	# 	# 	;;
+	# esac
+
+	for (( i = 0; i < 10; i++ )); do
+		if [ -s $HOME/.sdkman/bin/sdkman-init.sh ]; then
+			break
+		fi
+		curl -s "https://get.sdkman.io" | bash
+	done
+	source "$HOME/.sdkman/bin/sdkman-init.sh" || return 1
+
+	# Java: 8uXXX-oracle
+
+	for app in java groovy scala kotlin; do
+		echo "Installing $app ..."
+		for (( i = 0; i < 10; i++ )); do
+			[ -s $HOME/candidates/$app/current/bin/${app}c ] && break
+			sdk install $app
+		done
+	done
 }
 
-function setup_lang_js {
+function setup_lang_javascript {
 	set_group 'JavaScript'
 
 	echo "Installing nvm ..."
@@ -557,11 +582,11 @@ function setup_lang_python {
 		pip install --user virtualenvwrapper
 	done
 
-	if [[ -n "$pydef" ]]; then
+	# if [[ -n "$pydef" ]]; then
 		sed -i.orig '/VIRTUALENVWRAPPER_PYTHON/d' $profile
 		echo >> $profile
 		echo "export VIRTUALENVWRAPPER_PYTHON=`which python${pydef}`" >> $profile
-	fi
+	# fi
 
 	# workon_home='/opt/virtualenvs'
 	# sudo mkdir -p $workon_home
@@ -613,10 +638,6 @@ function setup_lang_rust {
 		[ -x $HOME/.cargo/bin/rustc ] && break
 		curl -sSf https://sh.rustup.rs | bash -s -- -y
 	done
-}
-
-function setup_lang_scala {
-	set_group 'Scala'
 }
 
 function setup_lang_swift {
