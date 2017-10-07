@@ -50,7 +50,7 @@ choco install -y phpstorm
 
 
 # python
-choco install -y python
+choco install -y python2
 # choco install -y anaconda3
 # choco install -y pycharm-professional
 
