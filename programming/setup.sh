@@ -479,7 +479,7 @@ function setup_lang_javascript {
 
 	# source $profile now work
 	[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-	[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+	# [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 
 	echo "Installing node ..."
 	for (( i = 0; i < 10; i++ )); do

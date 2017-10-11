@@ -33,12 +33,17 @@ choco install -y intellijidea-ultimate
 
 
 # javascript
-choco install -y nodejs
-# choco install -y 
-npm install -g cnpm --registry=https://registry.npm.taobao.org
+# choco install -y nodejs
+choco install -y nvm
 
-cnpm install -g react-cli
-cnpm install -g create-react-app
+# FIXME
+# nvm install 6.11
+# nvm install 8.6
+# nvm use 8.6
+# npm install -g cnpm --registry=https://registry.npm.taobao.org
+
+# cnpm install -g react-cli
+# cnpm install -g create-react-app
 
 choco install -y WebStorm
 
