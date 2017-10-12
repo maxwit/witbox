@@ -477,7 +477,7 @@ function setup_lang_javascript {
 		curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
 	done
 
-	# source $profile now work
+	# source $profile not work?
 	[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 	[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 
@@ -485,7 +485,8 @@ function setup_lang_javascript {
 	for (( i = 0; i < 10; i++ )); do
 		[ -x $NVM_BIN/node ] && break
 		nvm install node
-		nvm use node
+		nvm install --lts
+		nvm use --lts # nvm use node
 	done
 
 	# FIXME: only for some location
