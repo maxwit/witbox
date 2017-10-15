@@ -108,7 +108,7 @@ case $os_kernel in
 			. /etc/os-release
 			os_type=$ID
 			os_name=$NAME
-			os_version=$VERSION_ID # none on ArchLinux
+			os_version=$VERSION_ID # maybe none on ArchLinux
 		elif [ -e /etc/redhat-release ]; then
 			dist=(`head -n 1 /etc/redhat-release`)
 			os_type=`tr A-Z a-z <<< ${dist[0]}`
@@ -474,7 +474,8 @@ function setup_lang_javascript {
 		if [ -n "$NVM_DIR" ] && [ -s $NVM_DIR/nvm.sh ]; then
 			break
 		fi
-		curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+		# curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+		curl -o- https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 	done
 
 	# source $profile not work?
@@ -495,6 +496,7 @@ function setup_lang_javascript {
 			echo "cnpm has been installed."
 			break
 		fi
+		# alias instead!
 		npm install -g cnpm --registry=https://registry.npm.taobao.org
 	done
 
@@ -504,6 +506,9 @@ function setup_lang_javascript {
 		[ -x $NVM_BIN/tsc ] && break
 		cnpm install -g typescript
 	done
+
+	# for each nvm, install:
+	# react/native/vue/angular/...
 }
 
 function setup_lang_perl {
