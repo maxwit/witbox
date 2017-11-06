@@ -20,10 +20,10 @@ while [[ $# -gt 0 ]]; do
       root=$2
       shift
       ;;
-		-u|--user )
-			user=$2
-			shift
-			;;
+	-u|--user )
+		user=$2
+		shift
+		;;
     -p|--password )
       pass=$2
       shift
@@ -31,15 +31,15 @@ while [[ $# -gt 0 ]]; do
     # -f|--full-name )
     #   name="$2"
     #   ;;
-		-h )
-			usage
-			exit 0
-			;;
-		* )
-			echo "invalid option '$1'"
-			usage
-			exit 1
-			;;
+	-h )
+		usage
+		exit 0
+		;;
+	* )
+		echo "invalid option '$1'"
+		usage
+		exit 1
+		;;
 	esac
 
 	shift
