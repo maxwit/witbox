@@ -12,7 +12,7 @@ if (![System.IO.File]::Exists("~/.gitconfig")) {
 # c/c++
 choco install -y cmake
 # choco install -y conan
-choco install -y clion-ide
+# choco install -y clion-ide
 
 
 # go
@@ -29,7 +29,7 @@ choco install -y scala
 choco install -y maven
 choco install -y gradle
 
-choco install -y intellijidea-ultimate
+# choco install -y intellijidea-ultimate
 
 
 # javascript
@@ -45,13 +45,13 @@ choco install -y nvm
 # cnpm install -g react-cli
 # cnpm install -g create-react-app
 
-choco install -y WebStorm
+# choco install -y WebStorm
 
 
 # php
 choco install -y php
 # composer 
-choco install -y phpstorm
+# choco install -y phpstorm
 
 
 # python
@@ -71,7 +71,7 @@ choco install -y rust
 
 # editors
 choco install -y Atom
-# choco install -y VisualStudioCode
+choco install -y VisualStudioCode
 # choco install -y SublimeText3
 
 
