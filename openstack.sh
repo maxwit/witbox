@@ -123,6 +123,6 @@ kolla-ansible -i $inventory deploy || exit 1
 kolla-ansible post-deploy || exit 1
 . /etc/kolla/admin-openrc.sh || exit 1
 
-pip_save_install python-openstackclient python-glanceclient python-neutronclient
+pip_safe_install python-openstackclient python-glanceclient python-neutronclient
 
 init-runonce
