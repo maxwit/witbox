@@ -62,22 +62,24 @@ if [ "$kolla_mode" == 'pip' ]; then
         kolla_home=/usr/local/share/kolla-ansible
     fi
     cp -r $kolla_home/etc_examples/kolla /etc/kolla || exit 1
-    kolla-genpwd
+    grep 'BEGIN PRIVATE KEY' /etc/kolla/passwords.yml > /dev/null || kolla-genpwd || exit 1
 else
-    repo=kolla-ansible
-    if [ ! -d $repo ]; then
-        git clone https://github.com/openstack/$repo || exit 1
-    fi
+    for repo in kolla kolla-ansible; do
+        if [ ! -d $repo ]; then
+            git clone https://github.com/openstack/$repo || exit 1
+        fi
+    done
     kolla_home=$PWD/kolla-ansible
     export PATH=$kolla_home/tools:$PATH
-    cp -r $kolla_home/etc/kolla /etc/kolla || exit 1
-    generate_passwords.py
+    cp -r $kolla_home/etc/kolla /etc/kolla && \
+    pip_safe_install oslo.utils oslo.config || exit 1
+    grep 'BEGIN PRIVATE KEY' /etc/kolla/passwords.yml > /dev/null || generate_passwords.py || exit 1
 fi
 
-sed -i -e "s/^#\s*\(network_interface:\).*/\1 \"$network_interface\"/" \
-    -e "s/^#\s*\(neutron_external_interface:\).*/\1 \"$neutron_external_interface\"/" \
-    -e "s/\(openstack_release:\)/\1 \"$openstack_release\"/" \
-    -e "s/\(kolla_internal_vip_address:\)/\1 \"$kolla_internal_vip_address\"/" \
+sed -i -e "s/^#*\s*\(network_interface:\).*/\1 \"$network_interface\"/" \
+    -e "s/^#*\s*\(neutron_external_interface:\).*/\1 \"$neutron_external_interface\"/" \
+    -e "s/^#*\s*\(openstack_release:\).*/\1 \"$openstack_release\"/" \
+    -e "s/^#*\s*\(kolla_internal_vip_address:\).*/\1 \"$kolla_internal_vip_address\"/" \
     /etc/kolla/globals.yml
 
     # -e "s/\(kolla_base_distro:\).*/\1 \"$os_type\"/" \
