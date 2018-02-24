@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 
+function pip_safe_install
+{
+    while [ true ]; do
+        pip install -U $@ && break
+    done
+}
+
 # FIXME
+# kolla_mode='pip' # or git
 network_interface="ens33"
+kolla_internal_vip_address="192.168.31.222"
 neutron_external_interface="ens38"
 openstack_release="pike"
 
@@ -27,12 +36,12 @@ fi
 
 case "$os_type" in
 centos)
-    yum install -y epel-release
-    yum install -y git python-pip python-devel libffi-devel gcc openssl-devel libselinux-python
+    yum install -y epel-release && \
+    yum install -y python-pip python-devel libffi-devel gcc openssl-devel libselinux-python || exit 1
     ;;
 
 ubuntu)
-    apt-get install -y git python-pip python-dev libffi-dev gcc libssl-dev python-selinux
+    apt-get install -y python-pip python-dev libffi-dev gcc libssl-dev python-selinux || exit 1
     ;;
 
 *)
@@ -40,40 +49,48 @@ ubuntu)
     exit 1
 esac
 
-for p in pip ansible kolla-ansible; do
-    while [ true ]; do
-        pip install -U $p && break
-    done
-done
+pip_safe_install ansible
 
-# pip install -U pip
-# pip install -U ansible
+rm -rf /etc/kolla
 
-# # FIXME
-# pip install kolla-ansible
+if [ "$kolla_mode" == 'pip' ]; then
+    pip_safe_install kolla-ansible
 
-# cd $HOME?
-for repo in kolla kolla-ansible; do
+    if [ $os_type == 'centos' ]; then
+        kolla_home=/usr/share/kolla-ansible
+    else
+        kolla_home=/usr/local/share/kolla-ansible
+    fi
+    cp -r $kolla_home/etc_examples/kolla /etc/kolla || exit 1
+    kolla-genpwd
+else
+    repo=kolla-ansible
     if [ ! -d $repo ]; then
         git clone https://github.com/openstack/$repo || exit 1
     fi
-done
-
-rm -rf /etc/kolla
-cp -r kolla-ansible/etc/kolla /etc/kolla
-
-cp -v kolla-ansible/ansible/inventory/* .
+    kolla_home=$PWD/kolla-ansible
+    export PATH=$kolla_home/tools:$PATH
+    cp -r $kolla_home/etc/kolla /etc/kolla || exit 1
+    generate_passwords.py
+fi
 
 sed -i -e "s/^#\s*\(network_interface:\).*/\1 \"$network_interface\"/" \
     -e "s/^#\s*\(neutron_external_interface:\).*/\1 \"$neutron_external_interface\"/" \
     -e "s/\(openstack_release:\)/\1 \"$openstack_release\"/" \
+    -e "s/\(kolla_internal_vip_address:\)/\1 \"$kolla_internal_vip_address\"/" \
     /etc/kolla/globals.yml
 
     # -e "s/\(kolla_base_distro:\).*/\1 \"$os_type\"/" \
 
-kolla-genpwd
+# [defaults]
+# host_key_checking=False
+# pipelining=True
+# forks=100
 
-./kolla-ansible/tools/kolla-ansible -i all-in-one bootstrap-servers || exit 1
+# cp -v $kolla_home/ansible/inventory/* .
+inventory=$kolla_home/ansible/inventory/all-in-one
+
+kolla-ansible -i $inventory bootstrap-servers || exit 1
 
 # cat > /etc/systemd/system/docker.service.d/kolla.conf << _EOF_
 # [Service]
@@ -84,24 +101,26 @@ kolla-genpwd
 #  --mtu 1400
 # _EOF_
 
-cat > /etc/systemd/system/docker.service.d/kolla.conf << _EOF_
-[Service]
-MountFlags=shared
-ExecStart=
-ExecStart=/usr/bin/dockerd --mtu 1400
-_EOF_
+# cat > /etc/systemd/system/docker.service.d/kolla.conf << _EOF_
+# [Service]
+# MountFlags=shared
+# ExecStart=
+# ExecStart=/usr/bin/dockerd --mtu 1400
+# _EOF_
 
-systemctl daemon-reload && \
-systemctl restart docker || exit 1
+# systemctl daemon-reload && \
+# systemctl restart docker || exit 1
 
-./kolla-ansible/tools/kolla-ansible pull -i all-in-one || exit 1
+# kolla-ansible pull -i $inventory || exit 1
 
 # kolla-build || exit 1
 
-./kolla-ansible/tools/kolla-ansible prechecks -i all-in-one || exit 1
-./kolla-ansible/tools/kolla-ansible deploy -i all-in-one || exit 1
-./kolla-ansible/tools/kolla-ansible post-deploy || exit 1
+kolla-ansible -i $inventory prechecks || exit 1
+kolla-ansible -i $inventory deploy || exit 1
 
-. /etc/kolla/admin-openrc.sh
+kolla-ansible post-deploy || exit 1
+. /etc/kolla/admin-openrc.sh || exit 1
 
-./kolla-ansible/tools/init-runonce
+pip_save_install python-openstackclient python-glanceclient python-neutronclient
+
+init-runonce
