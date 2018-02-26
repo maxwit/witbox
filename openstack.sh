@@ -9,10 +9,21 @@ function pip_safe_install
 
 # FIXME
 # kolla_mode='pip' # or git
-network_interface="ens33"
-kolla_internal_vip_address="192.168.31.222"
-neutron_external_interface="ens38"
 openstack_release="pike"
+
+ifx=(`ip a | grep -owe "ens[0-9]\+:" | sed 's/://g'`)
+if [ ${#ifx[@]} < 2 ]; then
+  echo "error: NIC count = ${#ifx[@]}!"
+  exit 1
+fi
+
+# FIXME: customization
+network_interface="${ifx[0]}"
+neutron_external_interface="${ifx[1]}"
+
+vip=`ip a s dev $network_interface | grep -e "inet\s.*brd" | awk '{print $2}' | awk -F '/' '{print $1}'`
+vip=${vip%.*}.234
+kolla_internal_vip_address="$vip"
 
 if [ $UID != 0 ]; then
     echo "pls run as root!"
@@ -37,31 +48,28 @@ fi
 case "$os_type" in
 centos)
     yum install -y epel-release && \
-    yum install -y python-pip python-devel libffi-devel gcc openssl-devel libselinux-python || exit 1
+    yum install -y python-pip python-devel libffi-devel gcc git openssl-devel libselinux-python || exit 1
     ;;
-
 ubuntu)
-    apt-get install -y python-pip python-dev libffi-dev gcc libssl-dev python-selinux || exit 1
+    apt-get install -y python-pip python-dev libffi-dev gcc git libssl-dev python-selinux || exit 1
     ;;
-
 *)
     echo "unknown linux distribution '$os_type'!"
     exit 1
 esac
 
+pip_safe_install pip
 pip_safe_install ansible
-
-rm -rf /etc/kolla
+pip_safe_install python-openstackclient python-glanceclient python-neutronclient
 
 if [ "$kolla_mode" == 'pip' ]; then
     pip_safe_install kolla-ansible
-
     if [ $os_type == 'centos' ]; then
         kolla_home=/usr/share/kolla-ansible
     else
         kolla_home=/usr/local/share/kolla-ansible
     fi
-    cp -r $kolla_home/etc_examples/kolla /etc/kolla || exit 1
+    [ -d /etc/kolla ] || cp -r $kolla_home/etc_examples/kolla /etc/kolla || exit 1
     grep 'BEGIN PRIVATE KEY' /etc/kolla/passwords.yml > /dev/null || kolla-genpwd || exit 1
 else
     for repo in kolla kolla-ansible; do
@@ -71,15 +79,14 @@ else
     done
     kolla_home=$PWD/kolla-ansible
     export PATH=$kolla_home/tools:$PATH
-    cp -r $kolla_home/etc/kolla /etc/kolla && \
-    pip_safe_install oslo.utils oslo.config || exit 1
+    [ -d /etc/kolla ] || cp -r $kolla_home/etc/kolla /etc/kolla || exit 1
     grep 'BEGIN PRIVATE KEY' /etc/kolla/passwords.yml > /dev/null || generate_passwords.py || exit 1
 fi
 
 sed -i -e "s/^#*\s*\(network_interface:\).*/\1 \"$network_interface\"/" \
     -e "s/^#*\s*\(neutron_external_interface:\).*/\1 \"$neutron_external_interface\"/" \
-    -e "s/^#*\s*\(openstack_release:\).*/\1 \"$openstack_release\"/" \
     -e "s/^#*\s*\(kolla_internal_vip_address:\).*/\1 \"$kolla_internal_vip_address\"/" \
+    -e "s/^#*\s*\(openstack_release:\).*/\1 \"$openstack_release\"/" \
     /etc/kolla/globals.yml
 
     # -e "s/\(kolla_base_distro:\).*/\1 \"$os_type\"/" \
@@ -92,7 +99,9 @@ sed -i -e "s/^#*\s*\(network_interface:\).*/\1 \"$network_interface\"/" \
 # cp -v $kolla_home/ansible/inventory/* .
 inventory=$kolla_home/ansible/inventory/all-in-one
 
-kolla-ansible -i $inventory bootstrap-servers || exit 1
+for ((i=0; i<3; i++)); do
+    kolla-ansible -i $inventory bootstrap-servers && break
+done || exit 1
 
 # cat > /etc/systemd/system/docker.service.d/kolla.conf << _EOF_
 # [Service]
@@ -117,12 +126,22 @@ kolla-ansible -i $inventory bootstrap-servers || exit 1
 
 # kolla-build || exit 1
 
-kolla-ansible -i $inventory prechecks || exit 1
-kolla-ansible -i $inventory deploy || exit 1
+for ((i=0; i<3; i++)); do
+    kolla-ansible -i $inventory prechecks && break
+done || exit 1
 
-kolla-ansible post-deploy || exit 1
-. /etc/kolla/admin-openrc.sh || exit 1
+for ((i=0; i<3; i++)); do
+    kolla-ansible -i $inventory deploy && break
+done || exit 1
 
-pip_safe_install python-openstackclient python-glanceclient python-neutronclient
+for ((i=0; i<3; i++)); do
+    kolla-ansible post-deploy && break
+done || exit 1
 
-init-runonce
+# while [ true ]; do
+#     netstat -nptl | grep "$kolla_internal_vip_address:80" && break
+#     sleep 1
+# done
+#
+# . /etc/kolla/admin-openrc.sh || exit 1
+# init-runonce
