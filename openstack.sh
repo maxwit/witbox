@@ -12,14 +12,18 @@ function pip_safe_install
 openstack_release="pike"
 
 ifx=(`ip a | grep -owe "ens[0-9]\+:" | sed 's/://g'`)
-if [ ${#ifx[@]} < 2 ]; then
+if [ ${#ifx[@]} == 0 ]; then
   echo "error: NIC count = ${#ifx[@]}!"
   exit 1
 fi
 
 # FIXME: customization
 network_interface="${ifx[0]}"
-neutron_external_interface="${ifx[1]}"
+if [ ${#ifx[@]} == 1 ]; then
+  neutron_external_interface="${ifx[0]}"
+else
+  neutron_external_interface="${ifx[1]}"
+fi
 
 vip=`ip a s dev $network_interface | grep -e "inet\s.*brd" | awk '{print $2}' | awk -F '/' '{print $1}'`
 vip=${vip%.*}.234
