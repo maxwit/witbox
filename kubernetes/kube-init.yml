@@ -1,0 +1,17 @@
+---
+- hosts: all
+  # remote_user: root
+  tasks:
+  - name: Remove swap from /etc/fstab
+    mount:
+      path: swap
+      fstype: swap
+      state: absent
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+  - name: Disable firewalld
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: False
