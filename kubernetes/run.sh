@@ -11,8 +11,13 @@ cd kubespray
 cp -rfp inventory/sample inventory/mycluster
 
 # FIXME
-declare -a IPS=(192.168.18.11 192.168.18.12 192.168.18.13)
+declare -a IPS=(192.168.94.11 192.168.94.12 192.168.94.13)
 CONFIG_FILE=inventory/mycluster/hosts.ini python3 contrib/inventory_builder/inventory.py ${IPS[@]} || exit 1
+
+ki=`mktemp`
+curl -fsSL -o $ki https://github.com/conke/witbox/raw/master/kubernetes/kube-init.yml
+ansible-playbook -u root -i inventory/mycluster/hosts.ini $ki || exit 1
+rm $ki
 
 # cat inventory/mycluster/group_vars/all.yml
 
