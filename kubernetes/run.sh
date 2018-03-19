@@ -11,7 +11,7 @@ cd kubespray
 cp -rfp inventory/sample inventory/mycluster
 
 # FIXME
-declare -a IPS=(192.168.94.11 192.168.94.12 192.168.94.13)
+declare -a IPS=(192.168.173.11 192.168.173.12 192.168.173.13)
 CONFIG_FILE=inventory/mycluster/hosts.ini python3 contrib/inventory_builder/inventory.py ${IPS[@]} || exit 1
 
 ki=`mktemp`
