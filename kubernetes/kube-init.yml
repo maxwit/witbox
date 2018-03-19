@@ -3,9 +3,12 @@
   # remote_user: root
   tasks:
   - name: Remove swap from /etc/fstab
-    mount:
-      path: swap
-      fstype: swap
+    # mount:
+    #   path: swap
+    #   fstype: swap
+    lineinfile:
+      dest: /etc/fstab
+      regexp: '\s+none\s+swap\s'
       state: absent
   - name: Disable swap
     command: swapoff -a
