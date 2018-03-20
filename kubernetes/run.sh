@@ -16,8 +16,32 @@ declare -a IPS=(192.168.20.126 192.168.20.127 192.168.20.138)
 CONFIG_FILE=inventory/mycluster/hosts.ini python3 contrib/inventory_builder/inventory.py ${IPS[@]} || exit 1
 
 ki=`mktemp`
-curl -fsSL -o $ki https://github.com/conke/witbox/raw/master/kubernetes/kube-init.yml
+cat > $ki << __END__
+---
+- hosts: all
+  # remote_user: root
+  tasks:
+  - name: Remove swap from /etc/fstab
+    # mount:
+    #   path: swap
+    #   fstype: swap
+    lineinfile:
+      dest: /etc/fstab
+      regexp: '\s+none\s+swap\s'
+      state: absent
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+  - name: Disable firewalld
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: False
+    ignore_errors: True
+__END__
+
 ansible-playbook -u root -i inventory/mycluster/hosts.ini $ki || exit 1
+
 rm $ki
 
 # cat inventory/mycluster/group_vars/all.yml
