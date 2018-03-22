@@ -31,7 +31,7 @@ cat > $ki << __END__
       state: absent
   - name: Disable swap
     command: swapoff -a
-    when: ansible_swaptotal_mb > 0
+    # when: ansible_swaptotal_mb > 0
   - name: Disable firewalld
     systemd:
       name: firewalld
