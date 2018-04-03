@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ -e /etc/redhat-release ]; then
+    yum -y install bzip2-devel libaio MariaDB-client MariaDB-devel MariaDB-shared
+fi
+
 if [ ! -d /opt/openstack-ansible ]; then
     git clone https://git.openstack.org/openstack/openstack-ansible \
         /opt/openstack-ansible
