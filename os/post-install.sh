@@ -130,19 +130,18 @@ $installer tree
 
 case $os_dist in
 	macOS )
-	# sudoers
-	sudo sed "s/\(^%admin.*(ALL)\) ALL$/\1 NOPASSWD:ALL/" /etc/sudoers
+		# sudoers
+		sudo sed "s/\(^%admin.*(ALL)\) ALL$/\1 NOPASSWD:ALL/" /etc/sudoers
 
-	# bash
-	brew install bash
-	sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
-	sudo chpass -s /usr/local/bin/bash $USER
-	;;
-esac
-
-test -e /etc/gdm/custom.conf && {
-	temp=`mktemp`
-	cat > $temp << __EOF__
+		# bash
+		brew install bash
+		sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
+		sudo chpass -s /usr/local/bin/bash $USER
+		;;
+	* )
+		test -e /etc/gdm/custom.conf && {
+			temp=`mktemp`
+			cat > $temp << __EOF__
 [daemon]
 AutomaticLoginEnable=true
 AutomaticLogin=$USER
@@ -158,11 +157,11 @@ AutomaticLogin=$USER
 [debug]
 
 __EOF__
+			sudo cp -v $temp /etc/gdm/custom.conf
+		}
+esac
 
-	sudo cp -v $temp /etc/gdm/custom.conf
-}
-
-function instal_vm_tools() {
+function install_vm_tools() {
 	$installer open-vm-tools
 	case $os_dist in
 		redhat|centos )
@@ -213,7 +212,7 @@ if [[ $os == Linux ]]; then
 		vmware )
 			# open-vm-tools
 			if [[ $kmajor -ge 4 ]]; then # really begin with 4.0?
-					instal_vm_tools
+					install_vm_tools
 			fi
 			;;
 		# vmware
