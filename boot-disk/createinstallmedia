@@ -36,6 +36,11 @@ done
 root=${root%%/}
 part=""
 
+if [ -z "$root" -o -z "$repo" ]; then
+	usage
+	exit 1
+fi
+
 while read mnt
 do
 	mnt=($mnt)
