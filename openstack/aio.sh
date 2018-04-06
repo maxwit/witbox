@@ -12,11 +12,11 @@
 # else
 #     apt install -y build-essential libaio1 libdbd-mysql-perl libmariadbclient-dev mariadb-client
 # fi || exit 1
-#
-# if [ ! -d /opt/openstack-ansible ]; then
-#     git clone https://git.openstack.org/openstack/openstack-ansible \
-#         /opt/openstack-ansible || exit 1
-# fi
+
+if [ ! -d /opt/openstack-ansible ]; then
+    git clone https://git.openstack.org/openstack/openstack-ansible \
+        /opt/openstack-ansible || exit 1
+fi
 
 cd /opt/openstack-ansible && \
 git checkout stable/queens || exit 1
