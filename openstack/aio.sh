@@ -21,20 +21,20 @@ fi
 cd /opt/openstack-ansible && \
 git checkout stable/queens || exit 1
 
-# FIXME
-disks=(`fdisk -l | grep '^Disk /dev' | awk '{print $2}'`)
-rootd=`awk '$2=="/" {print $1}' /proc/mounts`
-
-if [ ${#disks[@]} -gt 1 ]; then
-	for disk in ${disks[@]/:/}; do
-		if [ ${rootd#$disk} == $rootd ]; then
-			export BOOTSTRAP_OPTS="bootstrap_host_data_disk_device=${disk/\/dev\//}"
-			break
-		fi
-	done
-fi
-
-echo "BOOTSTRAP_OPTS = $BOOTSTRAP_OPTS"
+## FIXME
+#disks=(`fdisk -l | grep '^Disk /dev' | awk '{print $2}'`)
+#rootd=`awk '$2=="/" {print $1}' /proc/mounts`
+#
+#if [ ${#disks[@]} -gt 1 ]; then
+#	for disk in ${disks[@]/:/}; do
+#		if [ ${rootd#$disk} == $rootd ]; then
+#			export BOOTSTRAP_OPTS="bootstrap_host_data_disk_device=${disk/\/dev\//}"
+#			break
+#		fi
+#	done
+#fi
+#
+#echo "BOOTSTRAP_OPTS = $BOOTSTRAP_OPTS"
 
 # export ANSIBLE_ROLE_FETCH_MODE='galaxy'
 scripts/bootstrap-ansible.sh || exit 1
