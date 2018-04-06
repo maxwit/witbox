@@ -27,12 +27,14 @@ rootd=`awk '$2=="/" {print $1}' /proc/mounts`
 
 if [ ${#disks[@]} -gt 1 ]; then
 	for disk in ${disks[@]/:/}; do
-		if [ ${rootd#$disks} == $rootd ]; then
+		if [ ${rootd#$disk} == $rootd ]; then
 			export BOOTSTRAP_OPTS="bootstrap_host_data_disk_device=$disk"
 			break
 		fi
 	done
 fi
+
+echo "BOOTSTRAP_OPTS = $BOOTSTRAP_OPTS"
 
 # export ANSIBLE_ROLE_FETCH_MODE='galaxy'
 scripts/bootstrap-ansible.sh || exit 1
