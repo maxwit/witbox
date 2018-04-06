@@ -28,7 +28,7 @@ rootd=`awk '$2=="/" {print $1}' /proc/mounts`
 if [ ${#disks[@]} -gt 1 ]; then
 	for disk in ${disks[@]/:/}; do
 		if [ ${rootd#$disk} == $rootd ]; then
-			export BOOTSTRAP_OPTS="bootstrap_host_data_disk_device=$disk"
+			export BOOTSTRAP_OPTS="bootstrap_host_data_disk_device=${disk/\/dev\//}"
 			break
 		fi
 	done
