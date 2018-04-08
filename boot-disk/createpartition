@@ -56,7 +56,7 @@ umount ${disk}[1-9]* 2>/dev/null
 ###################
 parted -s $disk mktable $table
 
-last=2048
+last=10240
 
 echo "mkpart primary fat32 1M -${last}M" | parted $disk
 mkfs.vfat -F32 -I -n DATA ${disk}1
