@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -x
 if [ $UID != 0 ]; then
 	echo "must run as super user!"
 	exit 1
@@ -103,7 +104,7 @@ if which grub2-install > /dev/null; then
 	grub_cmd="grub2-install"
 	grub_cfg="$boot/grub2/grub.cfg"
 elif which grub-install > /dev/null; then
-	grub_cmd="grub-install"
+	grub_cmd="grub-install --removable"
 	grub_cfg="$boot/grub/grub.cfg"
 else
 	echo "not grub installer found!"
@@ -174,7 +175,7 @@ do
 			;;
 	esac
 	
-	cat >> $grub_cfg << OEF
+	cat >> $grub_cfg << _OEF_
 
 menuentry 'Install $label' {
 	set root='hd0,$index'
@@ -182,7 +183,7 @@ menuentry 'Install $label' {
 	linux (lo)/$linux
 	initrd (lo)/$initrd
 }
-OEF
+_OEF_
 
 done
 
