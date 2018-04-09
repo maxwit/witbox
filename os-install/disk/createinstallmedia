@@ -145,6 +145,7 @@ echo "GRUB_TIMEOUT=5" > $grub_cfg
 if [ $pttype = "gpt" ]; then
 	echo "insmod part_gpt" >> $grub_cfg
 fi
+echo "insmod ext2" >> $grub_cfg
 
 for iso_fn in ${iso_list[@]}
 do
