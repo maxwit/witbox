@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
 if [ $UID != 0 ]; then
 	echo "must run as super user!"
 	exit 1
@@ -186,6 +185,10 @@ menuentry 'Install $label' {
 _OEF_
 
 done
+
+if [ $pttype = "gpt" ]; then
+	umount $boot/efi
+fi
 
 echo
 
