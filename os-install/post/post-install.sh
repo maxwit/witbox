@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-TOPDIR=`dirname $0`
-
-if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
-	declare -A check
+if [[ $UID -eq 0 ]]; then
+	echo "do NOT run as root!"
+	exit 1
 fi
 
-declare -a pkg_list
+# if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
+# 	declare -A check
+# fi
 
 os=`uname -s`
 
@@ -41,35 +42,13 @@ alias curl='curl --connect-timeout 30'
 
 echo -e "### Setup for $os_dist ###\n"
 
-tmp_dir=`mktemp -d`
-
-for repo in package-query yaourt; do
-	if which $repo > /dev/null 2>&1; then
-		echo "$repo has been installed."
-		break
-	fi
-
-	for (( i = 0; i < 10; i++ )); do
-	  git clone https://aur.archlinux.org/$repo.git $tmp_dir/$repo
-	  cd $tmp_dir/$repo && {
-			for (( i = 0; i < 10; i++ )); do
-				makepkg -si --noconfirm && break
-			done
-	    break
-	  }
-	done
-done
-
-cd $TOPDIR
-
-yaourt tree
-
-exit 0
-
 # get installer ready
 case $os_dist in
 	ubuntu|debian )
 		which apt > /dev/null 2>&1 && pm='apt' || pm='apt-get'
+		sudo $pm update -y
+		# sudo $pm autoremove -y libreoffice-common
+		sudo $pm upgrade -y
 		installer="sudo $pm install -y"
 		# $pm update -y
 		# $pm upgrade -y
@@ -81,31 +60,54 @@ case $os_dist in
 			pm='dnf'
 			installer="sudo dnf --allowerasing install -y"
 		else
-			if [[ $version -ge 7 ]]; then
-				which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
-					echo 'fail to install yum-utils!'
-					exit 1
-				}
-				pm='dnf'
-				installer="sudo dnf --allowerasing install -y"
-			else
-				# TODO: add source repo
+			# if [[ $version -ge 7 ]]; then
+			# 	which dnf > /dev/null 2>&1 || sudo yum install -y yum-utils || {
+			# 		echo 'fail to install yum-utils!'
+			# 		exit 1
+			# 	}
+			# 	pm='dnf'
+			# 	installer="sudo dnf --allowerasing install -y"
+			# else
+			# 	# TODO: add source repo
 				pm='yum'
 				installer="sudo yum install -y"
-			fi
+			# fi
 
-			if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
-				curl https://setup.ius.io/ | sudo bash
-				sudo yum install -y yum-plugin-replace
-			fi
+			# if [[ ! -e /etc/yum.repos.d/ius.repo ]]; then
+			# 	curl https://setup.ius.io/ | sudo bash
+			# 	sudo yum install -y yum-plugin-replace
+			# fi
 			# if [[ ! -e /etc/yum.repos.d/remi.repo ]]; then
 			# 	yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
 			# fi
 			# and SCL ?
 		fi
+		$installer yum-plugin-fastestmirror
 		# $pm update -y
 		;;
 
+	archlinux)
+		tmp_dir=`mktemp -d`
+
+		for repo in package-query yaourt; do
+			if which $repo > /dev/null 2>&1; then
+				echo "$repo has been installed."
+				break
+			fi
+
+			for (( i = 0; i < 10; i++ )); do
+				git clone https://aur.archlinux.org/$repo.git $tmp_dir/$repo
+				cd $tmp_dir/$repo && {
+					for (( i = 0; i < 10; i++ )); do
+						makepkg -si --noconfirm && break
+					done
+					break
+				}
+			done
+		done
+		;;
+
+	# macOS: make sure SIP disabled
 	macOS )
 		which brew > /dev/null 2>&1 || /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 		which brew > /dev/null 2>&1 || {
@@ -122,26 +124,52 @@ case $os_dist in
 		;;
 esac
 
-#########################
-
-# macOS: make sure SIP disabled
+sudo sh -c "echo $USER ALL=(ALL:ALL) NOPASSWD:ALL >> /etc/sudoers.d/$USER"
 
 $installer tree
 
-case $os_dist in
-	macOS )
-		# sudoers
-		sudo sed "s/\(^%admin.*(ALL)\) ALL$/\1 NOPASSWD:ALL/" /etc/sudoers
+function install_vm_tools() {
+	$installer open-vm-tools || exit 1
 
-		# bash
-		brew install bash
-		sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
-		sudo chpass -s /usr/local/bin/bash $USER
-		;;
-	* )
-		test -e /etc/gdm/custom.conf && {
-			temp=`mktemp`
-			cat > $temp << __EOF__
+	for s in open-vm-tools vmtoolsd vmware-vmblock-fuse; do
+		if systemctl list-unit-files | grep $s > /dev/null; then
+			requires=$s.service
+			break
+		fi
+	done
+
+	if [[ -z "$requires" ]]; then
+		echo "no vm service found!"
+		exit 1
+	fi
+
+	temp=`mktemp`
+	cat > $temp << __EOF__
+[Unit]
+Description=VMware Shared Folders
+Requires=$requires
+After=$requires
+ConditionPathExists=/mnt/hgfs
+ConditionVirtualization=vmware
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/vmhgfs-fuse -o allow_other -o auto_unmount .host:/ /mnt/hgfs
+
+[Install]
+WantedBy=multi-user.target
+__EOF__
+
+	sudo mkdir -p /mnt/hgfs
+	sudo cp $temp /etc/systemd/system/hgfs.service
+	rm $temp
+	sudo systemctl enable --now hgfs
+}
+
+function enable_auto_login() {
+	temp=`mktemp`
+	cat > $temp << __EOF__
 [daemon]
 AutomaticLoginEnable=true
 AutomaticLogin=$USER
@@ -157,76 +185,48 @@ AutomaticLogin=$USER
 [debug]
 
 __EOF__
-			sudo cp -v $temp /etc/gdm/custom.conf
-		}
-esac
-
-function install_vm_tools() {
-	$installer open-vm-tools
-	case $os_dist in
-		redhat|centos )
-			requires=vmtoolsd
-			;;
-		ubuntu )
-			requires=open-vm-tools
-			;;
-		* )
-		  requires=vmware-vmblock-fuse
-			;;
-	esac
-	temp=`mktemp`
-	cat > $temp << __EOF__
-[Unit]
-Description=VMware Shared Folders
-Requires=$requires.service
-After=$requires.service
-ConditionPathExists=/mnt/hgfs
-ConditionVirtualization=vmware
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/usr/bin/vmhgfs-fuse -o allow_other -o auto_unmount .host:/ /mnt/hgfs
-
-[Install]
-WantedBy=multi-user.target
-__EOF__
-
-	sudo mkdir -p /mnt/hgfs
-	sudo cp -v $temp /etc/systemd/system/hgfs.service
-	rm $temp
-	sudo systemctl enable hgfs
-	# sudo systemctl start hgfs
+		sudo cp $temp /etc/gdm/custom.conf
+		rm $temp
 }
 
-if [[ $os == Linux ]]; then
-	kver=`uname -r`
-	kver=(${kver//./ })
-	kmajor=${kver[0]}
+case $os in
+	Linux)
+		if [[ -e /etc/gdm/custom.conf ]]; then
+			enable_auto_login
+		fi
 
-	which virt-what > /dev/null 2>&1 || $installer virt-what
+		$installer vim openssh-server
 
-	vm=`sudo virt-what`
+		case $os_dist in
+			ubuntu|debian )
+				sudo update-alternatives --set editor /usr/bin/vim.basic
+				;;
+			redhat|centos|fedora )
+				sudo ln -svf /usr/bin/vim /bin/vi
+				sudo systemctl enable --now ssh
+				;;
+		esac
 
-	case "$vm" in
-		vmware )
-			# open-vm-tools
-			if [[ $kmajor -ge 4 ]]; then # really begin with 4.0?
-					install_vm_tools
-			fi
-			;;
-		# vmware
-		# xen
-		# docker
-		# kvm
-		# hyperv
-		# parallels
-		# qemu
-		# virtualbox
-	esac
-fi
+		which virt-what > /dev/null 2>&1 || $installer virt-what || exit 1
+		vm=`sudo virt-what`
+		case "$vm" in
+			vmware )
+				install_vm_tools
+				;;
+			# xen
+			# kvm
+			# hyperv
+			# parallels
+			# qemu
+			# virtualbox
+		esac
+		;;
 
-# Bridge
+	Darwin)
+		brew install bash
+		sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
+		sudo chpass -s /usr/local/bin/bash $USER
+		;;
 
-# VPN
-# /usr/lib/networkmanager/nm-l2tp-service --debug
+	# BSD)
+esac
