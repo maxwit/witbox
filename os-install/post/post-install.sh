@@ -250,7 +250,13 @@ set nu
 __EOF__
 
 $installer python3 || exit 1
-curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
+
+# or pip3?
+if which pip > /dev/null; then
+	pip install -U pip
+else
+	curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
+fi
 
 if [[ $os == Darwin ]]; then
 	pip_conf_path='/Library/Application Support/pip'
@@ -265,7 +271,7 @@ index-url = http://mirrors.aliyun.com/pypi/simple/
 [install]
 trusted-host = mirrors.aliyun.com
 _EOF_
-sudo cp -v $temp $pip_conf_path/pip.conf
+sudo cp -v $temp "$pip_conf_path/pip.conf"
 rm $temp
 
 user_site=`python3 -m site --user-site`
