@@ -5,6 +5,8 @@ if [[ $UID -eq 0 ]]; then
 	exit 1
 fi
 
+sudo sh -c "echo '$USER ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers.d/$USER"
+
 # if [[ ${BASH_VERSINFO[0]} -ge 4 ]]; then
 # 	declare -A check
 # fi
@@ -123,8 +125,6 @@ case $os_dist in
 		exit 1
 		;;
 esac
-
-sudo sh -c "echo '$USER ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers.d/$USER"
 
 $installer tree
 
