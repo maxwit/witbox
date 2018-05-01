@@ -254,7 +254,7 @@ set nu
 __EOF__
 
 $installer python3 || exit 1
-curl https://bootstrap.pypa.io/get-pip.py -o | sudo -H python3
+curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
 
 user_site=`python3 -m site --user-site`
 user_path="${user_site/\/lib\/python*}/bin"
