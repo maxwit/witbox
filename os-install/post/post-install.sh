@@ -224,8 +224,7 @@ case $os in
 
 	# TODO: robust
 	Darwin)
-		brew install bash
-		brew install bash-completion
+		brew install bash bash-completion
 		sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
 		sudo chpass -s /usr/local/bin/bash $USER
 		echo 'export CLICOLOR=1' > ~/.bashrc
@@ -234,7 +233,6 @@ case $os in
 
 		# FIXME
 		brew install --with-default-names findutils gnu-tar gnu-sed gawk
-		# echo "export PATH=/usr/local/opt/$pkg/libexec/gnubin:\$PATH" >> ~/.bashrc
 		;;
 
 	# BSD)
