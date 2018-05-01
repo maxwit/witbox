@@ -252,6 +252,22 @@ __EOF__
 $installer python3 || exit 1
 curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
 
+if [[ $os == Darwin ]]; then
+	pip_conf_path='/Library/Application Support/pip'
+	sudo mkdir -p "$pip_conf_path"
+else
+	pip_conf_path='/etc'
+fi
+temp=`mktemp`
+cat > $temp << _EOF_
+[global]
+index-url = http://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host = mirrors.aliyun.com
+_EOF_
+sudo cp -v $temp $pip_conf_path/pip.conf
+rm $temp
+
 user_site=`python3 -m site --user-site`
 user_path="${user_site/\/lib\/python*}/bin"
 echo "export PATH=$user_path:\$PATH" >> ~/.bashrc
