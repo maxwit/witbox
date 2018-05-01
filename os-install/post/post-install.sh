@@ -222,11 +222,40 @@ case $os in
 		esac
 		;;
 
+	# TODO: robust
 	Darwin)
 		brew install bash
+		brew install bash-completion
 		sudo sh -c 'echo /usr/local/bin/bash >> /etc/shells'
 		sudo chpass -s /usr/local/bin/bash $USER
+		echo 'export CLICOLOR=1' > ~/.bashrc
+		echo '[ -f $(brew --prefix)/etc/bash_completion ] && . $(brew --prefix)/etc/bash_completion' >> ~/.bashrc
+		echo 'source ~/.bashrc' > ~/.bash_profile
+
+		# FIXME
+		for pkg in findutils gnu-tar gnu-sed gawk; do
+			brew install --with-default-names $pkg
+			echo "export PATH=/usr/local/opt/$pkg/libexec/gnubin:\$PATH" >> ~/.bashrc
+		done
 		;;
 
 	# BSD)
 esac
+
+inode=(`ls -l ~/.viminfo`)
+if [[ ${inode[2]} != $USER ]]; then
+	rm -vf ~/.viminfo
+fi
+
+test -e ~/.vimrc || cat > ~/.vimrc << __EOF__
+syntax on
+set hlsearch
+set nu
+__EOF__
+
+$installer python3 || exit 1
+curl https://bootstrap.pypa.io/get-pip.py -o | sudo -H python3
+
+user_site=`python3 -m site --user-site`
+user_path="${user_site/\/lib\/python*}/bin"
+echo "export PATH=$user_path:\$PATH" >> ~/.bashrc
