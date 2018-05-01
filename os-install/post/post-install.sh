@@ -233,10 +233,8 @@ case $os in
 		echo 'source ~/.bashrc' > ~/.bash_profile
 
 		# FIXME
-		for pkg in findutils gnu-tar gnu-sed gawk; do
-			brew install --with-default-names $pkg
-			echo "export PATH=/usr/local/opt/$pkg/libexec/gnubin:\$PATH" >> ~/.bashrc
-		done
+		brew install --with-default-names findutils gnu-tar gnu-sed gawk
+		# echo "export PATH=/usr/local/opt/$pkg/libexec/gnubin:\$PATH" >> ~/.bashrc
 		;;
 
 	# BSD)
