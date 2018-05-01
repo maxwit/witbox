@@ -124,7 +124,7 @@ case $os_dist in
 		;;
 esac
 
-sudo sh -c "echo $USER ALL=(ALL:ALL) NOPASSWD:ALL >> /etc/sudoers.d/$USER"
+sudo sh -c "echo '$USER ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers.d/$USER"
 
 $installer tree
 
