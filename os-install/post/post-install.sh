@@ -220,6 +220,8 @@ case $os in
 			# qemu
 			# virtualbox
 		esac
+
+		PIP="sudo -H pip3"
 		;;
 
 	# TODO: robust
@@ -233,6 +235,8 @@ case $os in
 
 		# FIXME
 		brew install --with-default-names findutils gnu-tar gnu-sed gawk
+
+		PIP="pip3"
 		;;
 
 	# BSD)
@@ -252,10 +256,18 @@ __EOF__
 $installer python3 || exit 1
 
 # or pip3?
-if which pip > /dev/null; then
-	pip install -U pip
+if which pip3 > /dev/null; then
+	$PIP install -U pip
 else
-	curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
+	case $os_dist in
+		ubuntu|debian )
+			$installer python3-pip
+			$PIP install -U pip
+			;;
+		* )
+			curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
+			;;
+	esac
 fi
 
 if [[ $os == Darwin ]]; then
