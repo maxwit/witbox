@@ -253,6 +253,7 @@ test -e ~/.vimrc || cat > ~/.vimrc << __EOF__
 syntax on
 set hlsearch
 set nu
+set ts=4
 __EOF__
 
 # $installer python3 || exit 1
