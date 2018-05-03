@@ -213,12 +213,14 @@ case $os in
 			vmware )
 				install_vm_tools
 				;;
-			# xen
+			virtualbox )
+				sudo usermod -aG vboxsf $USER
+				;;
 			# kvm
+			# qemu
+			# xen
 			# hyperv
 			# parallels
-			# qemu
-			# virtualbox
 		esac
 
 		PIP="sudo -H pip3"
@@ -270,12 +272,24 @@ else
 	esac
 fi
 
+temp=`mktemp`
+pip completion --bash > $temp
 if [[ $os == Darwin ]]; then
-	pip_conf_path='/Library/Application Support/pip'
-	sudo mkdir -p "$pip_conf_path"
+	cp $temp /usr/local/etc/bash_completion.d/pip-prompt
 else
-	pip_conf_path='/etc'
+	sudo cp $temp /etc/bash_completion.d/pip-prompt
 fi
+rm $temp
+
+# if [[ $os == Darwin ]]; then
+# 	pip_conf_path='/Library/Application Support/pip'
+# 	sudo mkdir -p "$pip_conf_path"
+# else
+# 	pip_conf_path='/etc'
+# fi
+pip_conf_path=$HOME/.pip
+mkdir -p $pip_conf_path
+
 temp=`mktemp`
 cat > $temp << _EOF_
 [global]
