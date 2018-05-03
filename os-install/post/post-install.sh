@@ -223,7 +223,7 @@ case $os in
 			# parallels
 		esac
 
-		PIP="sudo -H pip3"
+		PIP="sudo -H pip"
 		;;
 
 	# TODO: robust
@@ -238,7 +238,7 @@ case $os in
 		# FIXME
 		brew install --with-default-names findutils gnu-tar gnu-sed gawk
 
-		PIP="pip3"
+		PIP="pip"
 		;;
 
 	# BSD)
@@ -255,40 +255,22 @@ set hlsearch
 set nu
 __EOF__
 
-$installer python3 || exit 1
+# $installer python3 || exit 1
+for pyver in python python3; do
+	pyexec=`which $pyver`
+	if [ -n "$pyexec" ]; then
+		break
+	fi
+done
 
-# or pip3?
-if which pip3 > /dev/null; then
-	$PIP install -U pip
-else
-	case $os_dist in
-		ubuntu|debian )
-			$installer python3-pip
-			$PIP install -U pip
-			;;
-		* )
-			curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3
-			;;
-	esac
-fi
-
-temp=`mktemp`
-pip completion --bash > $temp
 if [[ $os == Darwin ]]; then
-	cp $temp /usr/local/etc/bash_completion.d/pip-prompt
+	pip_conf_path='/Library/Application Support/pip'
+	sudo mkdir -p "$pip_conf_path"
 else
-	sudo cp $temp /etc/bash_completion.d/pip-prompt
+	pip_conf_path='/etc'
 fi
-rm $temp
-
-# if [[ $os == Darwin ]]; then
-# 	pip_conf_path='/Library/Application Support/pip'
-# 	sudo mkdir -p "$pip_conf_path"
-# else
-# 	pip_conf_path='/etc'
-# fi
-pip_conf_path=$HOME/.pip
-mkdir -p $pip_conf_path
+#pip_conf_path=$HOME/.pip
+#mkdir -p $pip_conf_path
 
 temp=`mktemp`
 cat > $temp << _EOF_
@@ -298,6 +280,22 @@ index-url = http://mirrors.aliyun.com/pypi/simple/
 trusted-host = mirrors.aliyun.com
 _EOF_
 sudo cp -v $temp "$pip_conf_path/pip.conf"
+rm $temp
+
+which pip > /dev/null || $installer ${pyver}-pip
+if which pip > /dev/null; then
+	$PIP install -U pip
+else
+	curl https://bootstrap.pypa.io/get-pip.py | sudo -H $pyexec
+fi
+
+temp=`mktemp`
+pip completion --bash > $temp
+if [[ $os == Darwin ]]; then
+	cp $temp /usr/local/etc/bash_completion.d/pip-prompt
+else
+	sudo cp $temp /etc/bash_completion.d/pip-prompt
+fi
 rm $temp
 
 user_site=`python3 -m site --user-site`
