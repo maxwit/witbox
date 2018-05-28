@@ -283,7 +283,7 @@ _EOF_
 sudo cp -v $temp "$pip_conf_path/pip.conf"
 rm $temp
 
-which pip > /dev/null || $installer ${pyver}-pip
+# which pip > /dev/null || $installer ${pyver}-pip
 if which pip > /dev/null; then
 	$PIP install -U pip
 else
@@ -299,6 +299,6 @@ else
 fi
 rm $temp
 
-user_site=`python3 -m site --user-site`
+user_site=`$pyver -m site --user-site`
 user_path="${user_site/\/lib\/python*}/bin"
 echo "export PATH=$user_path:\$PATH" >> ~/.bashrc
