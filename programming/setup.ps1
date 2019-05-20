@@ -55,7 +55,7 @@ choco install -y php
 
 
 # python
-choco install -y python2
+choco install -y python
 # choco install -y anaconda3
 # choco install -y pycharm-professional
 
@@ -70,8 +70,9 @@ choco install -y rust
 
 
 # editors
-choco install -y Atom
-choco install -y VisualStudioCode
+# choco install -y Atom
+# choco install -y VisualStudioCode
+choco install -y vscode
 # choco install -y SublimeText3
 
 
