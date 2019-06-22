@@ -2,7 +2,7 @@
 
 function usage {
 	echo "usage: $0 [-t gpt|msdos] <disk>"
-	echo "i.e.: $0 -t gpt /dev/sdb"
+	echo "i.e.: $0 /dev/sdb"
 }
 
 if [ $UID != 0 ]; then
@@ -11,7 +11,6 @@ if [ $UID != 0 ]; then
 fi
 
 # os=`uname -s`
-device=/dev/sda # FIXME
 if [ -d /sys/firmware/efi ]; then
 	table="gpt"
 else
@@ -32,7 +31,7 @@ while [[ $# -gt 0 ]]; do
 			device=$1
 			;;
 		* )
-			echo "invalid option '$1'"
+			echo "invalid argument '$1'"
 			usage
 			exit 1
 			;;
@@ -40,6 +39,12 @@ while [[ $# -gt 0 ]]; do
 
 	shift
 done
+
+if [ -z "$device" -o ! -b "$device" ]; then
+	echo "invalid block device '$device'!"
+	usage
+	exit 1
+fi
 
 # FIXME
 disk=${device%%[0-9]}
