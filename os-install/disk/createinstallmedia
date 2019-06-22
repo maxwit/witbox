@@ -159,8 +159,7 @@ do
 	echo "generating menuentry for $label ..."
 	case "$label" in
 		RHEL* | CentOS* | OL* | Fedora*)			
-			blk_tag $part 'UUID'
-			uuid=$value
+			uuid=`blk_tag UUID $part`
 			linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
 			initrd="isolinux/initrd.img"
 			;;
