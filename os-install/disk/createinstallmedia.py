@@ -6,22 +6,31 @@ from optparse import OptionParser
 #     exit(1)
 
 parser = OptionParser()
-parser.add_option('-m', '--volume', dest='volume',
-                    help='mount point')
 parser.add_option('-p', '--isopath', dest='isopath',
                     help='path to ISO image')
+parser.add_option('-m', '--volume', dest='volume',
+                    help='mount point')
 
 (opts, args) = parser.parse_args()
 
-print(opts.volume)
+if opts.isopath != None:
+    repo = opts.isopath
+else:
+    repo = os.getcwd()
 
-# root=${root%%/}
-# part=""
+if opts.volume == None:
+    parser.print_help()
+    exit(1)
 
-# if [ -z "$root" -o -z "$repo" ]; then
-# 	usage
-# 	exit 1
-# fi
+root = opts.volume
+part=""
+
+while root.endswith('/'):
+    root = root[:-1]
+
+if root == "" or not os.path.exists(repo):
+    parser.print_help()
+    exit(1)
 
 # while read mnt
 # do
