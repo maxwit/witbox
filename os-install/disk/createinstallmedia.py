@@ -1,5 +1,10 @@
+#!/usr/bin/env python3
+
 import os
 from optparse import OptionParser
+import re
+import shutil
+import subprocess
 
 # if os.getuid() != 0:
 #     print('must run as super user!')
@@ -7,9 +12,9 @@ from optparse import OptionParser
 
 parser = OptionParser()
 parser.add_option('-p', '--isopath', dest='isopath',
-                    help='path to ISO image')
+                  help='path to ISO image')
 parser.add_option('-m', '--volume', dest='volume',
-                    help='mount point')
+                  help='mount point')
 
 (opts, args) = parser.parse_args()
 
@@ -23,91 +28,98 @@ if opts.volume == None:
     exit(1)
 
 root = opts.volume
-part=""
+part = ""
 
-while root.endswith('/'):
-    root = root[:-1]
+root = re.sub("/+$", '', root)
 
 if root == "" or not os.path.exists(repo):
     parser.print_help()
     exit(1)
 
-# while read mnt
-# do
-# 	mnt=($mnt)
-# 	if [ ${root} == ${mnt[1]} ]; then
-# 		part=${mnt[0]}
-# 		break
-# 	fi
-# done < /proc/mounts
+for line in open('/proc/mounts').readlines():
+    mnt = line.split()
+    if root == mnt[1]:
+        part = mnt[0]
+        break
 
-# if [ "$part" == "" ]; then
-# 	echo "No such mount point found! ($root)"
-# 	exit 1
-# fi
+if part == "":
+    print("No such mount point found:", root)
+    exit(1)
 
-# disk=${part%%[0-9]}
-# index=${part#$disk}
+# FIXME: sdXN, mmcMpN, nvmeMpN
+disk = re.sub('\d+$', '', part)
+index = part.replace(disk, '')
 
-# boot=$root/boot
-# boot_iso=$root/iso
-# mkdir -vp $boot $boot_iso
+boot = root + '/boot'
+boot_iso = root + '/iso'
+
+# mkdir -p boot
+if not os.path.exists(boot):
+    os.mkdir(boot)
+if not os.path.exists(boot):
+    os.mkdir(boot_iso)
 
 # ############### copy ISO ###############
-# if [ -d $repo ]; then
-# 	src_list=(`ls $repo/*.iso`)
-# 	if [ ${#src_list[@]} -eq 0 ]; then
-# 		echo "No iso files in '$repo'!"
-# 		exit 1
-# 	fi
-# elif [ -e $repo ]; then
-# 	src_list=($repo)
-# else
-# 	echo "'$repo' is invalid!"
-# 	exit 1
-# fi
+if os.path.isdir(repo):
+    src_list = os.listdir(repo)
+    i = 0
+    while i < len(src_list):
+        if not src_list[i].endswith('.iso'):
+            del src_list[i]
+        i += 1
+    if len(src_list) == 0:
+        print('no iso')
+        exit(1)
+elif os.path.exists(repo):
+    src_list = [repo]
+else:
+    print("'$repo' is invalid!")
+    exit(1)
 
-# iso_list=()
+iso_list = []
 
-# count=1
-# for iso in ${src_list[@]}
-# do
-# 	echo "[$count/${#src_list[@]}]"
+count = 0
+for iso in src_list:
+    count += 1
+    print('[{}/{}]'.format(count, len(src_list)))
 
-# 	iso_fn=`basename $iso`
+    iso_fn = os.path.basename(iso)
+    iso_list.append(iso_fn)
 
-# 	iso_list=(${iso_list[@]} $iso_fn)
+    if os.path.exists(iso_fn):
+        print('{}/{} already exists!'.format(boot_iso, iso_fn))
+    else:
+        shutil.copyfile(iso, boot_iso)
 
-# 	if [ -e $boot_iso/$iso_fn ]; then
-# 		echo "$boot_iso/$iso_fn already exists"
-# 	else
-# 		cp -v $iso $boot_iso
-# 	fi
+############# install grub #############
 
-# 	((count++))
-# done
+print("installing grub to {} for {} ...".format(boot, disk))
 
-# ############# install grub #############
-# echo "installing grub to $boot for $disk ..."
+grub_cfg = None
+for grub in ['grub', 'grub2']:
+    grub_cmd = grub + '-install'
+    if shutil.which(grub_cmd) != None:
+        grub_cfg = boot + '/' + grub + '/grub.cfg'
+        break
 
-# if which grub2-install > /dev/null; then
-# 	grub_cmd="grub2-install"
-# 	grub_cfg="$boot/grub2/grub.cfg"
-# elif which grub-install > /dev/null; then
-# 	grub_cmd="grub-install --removable"
-# 	grub_cfg="$boot/grub/grub.cfg"
-# else
-# 	echo "not grub installer found!"
-# 	exit 1
-# fi
+if grub_cfg == None:
+	print("No grub installer found!")
+	exit(1)
 
-# function blk_tag() {
-# 	blkid -s $1 $2| perl -p -e 's/.*="(.*?)".*/\1/'
-# 	#blkid -s $1 $2 | awk -F ": $1=" '{print $2}'
-# }
+def blk_tag(tag, dev):
+    r = subprocess.check_output(["blkid", "-s", tag, dev])
+    return r.strip().split('=')[1].replace('"', '')
 
-# pttype=`blk_tag PTTYPE $disk`
-# echo "$disk partition type: $pttype"
+pttype = blk_tag('PTTYPE', disk)
+print("{} partition type: {}".format(disk, pttype))
+
+if pttype == 'gpt':
+    grub_cmd += ' --target=x86_64-efi'
+
+    fd = os.popen('parted ' + disk + ' print')
+    for line in fd:
+        fields = line.strip().split()
+        
 
 # if [ $pttype = "gpt" ]; then
 # 	grub_cmd="$grub_cmd --target=x86_64-efi"
@@ -149,7 +161,7 @@ if root == "" or not os.path.exists(repo):
 
 # 	echo "generating menuentry for $label ..."
 # 	case "$label" in
-# 		RHEL* | CentOS* | OL* | Fedora*)			
+# 		RHEL* | CentOS* | OL* | Fedora*)
 # 			uuid=`blk_tag UUID $part`
 # 			linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
 # 			initrd="isolinux/initrd.img"
@@ -164,7 +176,7 @@ if root == "" or not os.path.exists(repo):
 # 			continue
 # 			;;
 # 	esac
-	
+
 # 	cat >> $grub_cfg << _OEF_
 
 # menuentry 'Install $label' {

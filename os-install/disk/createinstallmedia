@@ -106,7 +106,7 @@ elif which grub-install > /dev/null; then
 	grub_cmd="grub-install --removable"
 	grub_cfg="$boot/grub/grub.cfg"
 else
-	echo "not grub installer found!"
+	echo "No grub installer found!"
 	exit 1
 fi
 
