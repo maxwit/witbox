@@ -66,7 +66,6 @@ for line in open('/proc/mounts').readlines():
     if root == mnt[1]:
         part = mnt[0]
         break
-
 if part == '':
     print('No such mount point:', root)
     exit(1)
@@ -147,9 +146,9 @@ if pttype == 'gpt':
         print("ESP partition not found!")
         exit(1)
 
-    for part in os.listdir('/dev'):
-        if re.match(disk + '\d+', part): # or + '\d+p\d+'
-            subprocess.call('umount ' + part)
+    for _part in os.listdir('/dev'):
+        if re.match(disk + '\d+', _part): # or + '\d+p\d+'
+            subprocess.call('umount ' + _part)
 
     efi_dir = boot_dir + '/efi'
     if not os.path.exists(efi_dir):
@@ -176,7 +175,9 @@ configs = ['GRUB_TIMEOUT=5',
 if pttype == 'gpt':
     configs.append('insmod part_gpt')
 
-cf.writelines(configs)
+for line in configs:
+    cf.write(line + '\n')
+cf.write('\n')
 
 for iso in iso_list:
     iso_rel = iso.lstrip(root)
@@ -186,7 +187,7 @@ for iso in iso_list:
 
     if linux_dist(iso) == 'redhat':
         uuid = blk_tag('UUID', part)
-        linux="isolinux/vmlinuz repo=hd:UUID={}:{}".format(uuid, iso_dir.lstrip(root))
+        linux="isolinux/vmlinuz repo=hd:UUID={}:/iso".format(uuid) # iso_dir.lstrip(root)
         initrd="isolinux/initrd.img"
     elif linux_dist(iso) == 'debian':
         linux="casper/vmlinuz.efi boot=casper iso-scan/filename=" + iso_rel
@@ -203,7 +204,10 @@ for iso in iso_list:
         "    initrd (lo)/{}".format(initrd),
         "}"
     ]
-    cf.writelines(menuentry)
+    for line in menuentry:
+        cf.write(line + '\n')
+
+cf.close()
 
 if pttype == 'gpt':
     subprocess.call('umount {}/efi'.format(boot_dir), shell=True)
