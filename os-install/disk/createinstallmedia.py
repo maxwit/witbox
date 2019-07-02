@@ -9,7 +9,8 @@ import platform
 
 os_type = platform.system()
 if os_type != 'Linux':
-    raise Exception(os_type + ' NOT supported!')
+    print(os_type + ' NOT supported!')
+    exit(1)
 
 # if os.getuid() != 0:
 #     print('must run as super user!')
