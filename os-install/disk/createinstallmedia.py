@@ -148,6 +148,7 @@ if pttype == 'gpt':
         exit(1)
 
     for _part in os.listdir('/dev'):
+        _part = '/dev/' + _part
         if re.match(disk + '\d+', _part): # or + '\d+p\d+'
             subprocess.call('umount ' + _part)
 

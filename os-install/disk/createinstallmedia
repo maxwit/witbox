@@ -165,8 +165,8 @@ do
 			;;
 
 		Ubuntu* | Deiban*)
-			linux="casper/vmlinuz.efi boot=casper iso-scan/filename=/iso/$iso_fn"
-			initrd="casper/initrd.lz"
+			linux="casper/vmlinuz boot=casper iso-scan/filename=/iso/$iso_fn"
+			initrd="casper/initrd"
 			;;
 		*)
 			echo "Warning: distribution '$label' not supported (skipped)!"
