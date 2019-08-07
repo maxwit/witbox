@@ -43,6 +43,8 @@ parser.add_option('-p', '--isopath', dest='isopath',
                   help='path to ISO image')
 parser.add_option('-m', '--volume', dest='volume',
                   help='mount point')
+# parser.add_option('-d', '--drive', dest='drive',
+#                   help='mount point')
 
 (opts, args) = parser.parse_args()
 
@@ -199,7 +201,7 @@ for iso in iso_list:
         continue
 
     menuentry = [
-        "menuentry 'Install " + label + " {",
+        "menuentry 'Install " + label + "' {",
         "    set root='hd0,{}'".format(index),
         "    loopback lo {}".format(iso_rel),
         "    linux (lo)/{}".format(linux),
