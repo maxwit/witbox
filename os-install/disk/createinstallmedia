@@ -75,7 +75,7 @@ if part == '':
 
 # FIXME: sdXN, mmcMpN, nvmeMpN
 disk = re.sub('\d+$', '', part)
-index = part.lstrip(disk)
+index = part[len(disk):]
 
 boot_dir = root + '/boot'
 iso_dir  = root + '/iso'
@@ -190,14 +190,14 @@ for line in configs:
     cf.write(line + '\n')
 
 for iso in iso_list:
-    iso_rel = iso.lstrip(root)
+    iso_rel = iso[len(root):]
     label = blk_tag('LABEL', iso)
 
     print("{} ({})".format(label, iso_rel))
 
     if linux_dist(iso) == 'redhat':
         uuid = blk_tag('UUID', part)
-        linux="isolinux/vmlinuz repo=hd:UUID={}:/iso".format(uuid) # iso_dir.lstrip(root)
+        linux="isolinux/vmlinuz repo=hd:UUID={}:/iso".format(uuid)
         initrd="isolinux/initrd.img"
     elif linux_dist(iso) == 'debian':
         linux="casper/vmlinuz boot=casper iso-scan/filename=" + iso_rel
@@ -209,7 +209,7 @@ for iso in iso_list:
     menuentry = [
         "menuentry 'Install " + label + "' {",
         "    set root='hd0,{}'".format(index),
-        "    loopback lo /iso/{}".format(iso_rel),
+        "    loopback lo {}".format(iso_rel),
         "    linux (lo)/{}".format(linux),
         "    initrd (lo)/{}".format(initrd),
         "}"
