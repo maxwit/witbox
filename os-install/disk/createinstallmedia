@@ -209,7 +209,7 @@ for iso in iso_list:
     menuentry = [
         "menuentry 'Install " + label + "' {",
         "    set root='hd0,{}'".format(index),
-        "    loopback lo {}".format(iso_rel),
+        "    loopback lo /iso/{}".format(iso_rel),
         "    linux (lo)/{}".format(linux),
         "    initrd (lo)/{}".format(initrd),
         "}"
