@@ -1,194 +1,225 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-if [ $UID != 0 ]; then
-	echo "must run as super user!"
-	exit 1
-fi
+import os
+from optparse import OptionParser
+import re
+import shutil
+import subprocess
+import platform
 
-usage() {
-	echo "usage: $0 --isopath/-p <iso path> --volume/-m <mount point>"
-}
+os_type = platform.system()
+if os_type != 'Linux':
+    print(os_type + ' NOT supported!')
+    exit(1)
 
-while [[ $# -gt 0 ]]; do
-	case $1 in
-	--volume|-m )
-		root="$2"
-		shift
-		;;
-	--isopath|-p )
-		repo="$2"
-		shift
-		;;
-	-h )
-		usage
-		exit 0
-		;;
-	* )
-		echo "invalid option '$1'"
-		usage
-		exit 1
-		;;
-	esac
+if os.getuid() != 0:
+    print('must run as super user!')
+    exit(1)
 
-	shift
-done
+dist_serial = {}
+for dist in ['RHEL', 'CentOS', 'Fedora', 'OL']:
+    dist_serial[dist] = 'redhat'
+for dist in ['Ubuntu', 'Debian']:
+    dist_serial[dist] = 'debian'
 
-root=${root%%/}
-part=""
+def blk_tag(tag, dev):
+    fd = os.popen('blkid -s {} {}'.format(tag, dev))
+    for line in fd:
+    # r = subprocess.check_output(['blkid', '-s', tag, dev])
+        kv = line.strip().split('=')
+        if len(kv) > 1:
+            return kv[1].strip('"')
+    return None
 
-if [ -z "$root" -o -z "$repo" ]; then
-	usage
-	exit 1
-fi
+def linux_dist(iso):
+    label = blk_tag('LABEL', iso)
+    for dist in dist_serial:
+        if label.startswith(dist):
+            return dist_serial[dist]
+    return None
 
-while read mnt
-do
-	mnt=($mnt)
-	if [ ${root} == ${mnt[1]} ]; then
-		part=${mnt[0]}
-		break
-	fi
-done < /proc/mounts
+parser = OptionParser()
+parser.add_option('-p', '--isopath', dest='isopath',
+                  help='path to ISO image')
+parser.add_option('-m', '--volume', dest='volume',
+                  help='mount point')
+# parser.add_option('-d', '--drive', dest='drive',
+#                   help='mount point')
 
-if [ "$part" == "" ]; then
-	echo "No such mount point found! ($root)"
-	exit 1
-fi
+(opts, args) = parser.parse_args()
 
-disk=${part%%[0-9]}
-index=${part#$disk}
+if opts.isopath != None:
+    repo = opts.isopath
+else:
+    repo = os.getcwd()
 
-boot=$root/boot
-boot_iso=$root/iso
-mkdir -vp $boot $boot_iso
+if opts.volume == None:
+    parser.print_help()
+    exit(1)
 
-############### copy ISO ###############
-if [ -d $repo ]; then
-	src_list=(`ls $repo/*.iso`)
-	if [ ${#src_list[@]} -eq 0 ]; then
-		echo "No iso files in '$repo'!"
-		exit 1
-	fi
-elif [ -e $repo ]; then
-	src_list=($repo)
-else
-	echo "'$repo' is invalid!"
-	exit 1
-fi
+root = re.sub('/+$', '', opts.volume)
+part = ''
 
-iso_list=()
+if root == '' or not os.path.exists(repo):
+    parser.print_help()
+    exit(1)
 
-count=1
-for iso in ${src_list[@]}
-do
-	echo "[$count/${#src_list[@]}]"
+for line in open('/proc/mounts').readlines():
+    mnt = line.split()
+    if root == mnt[1]:
+        part = mnt[0]
+        break
+if part == '':
+    print('No such mount point:', root)
+    exit(1)
 
-	iso_fn=`basename $iso`
+# FIXME: sdXN, mmcMpN, nvmeMpN
+disk = re.sub('\d+$', '', part)
+index = part.lstrip(disk)
 
-	iso_list=(${iso_list[@]} $iso_fn)
+boot_dir = root + '/boot'
+iso_dir  = root + '/iso'
 
-	if [ -e $boot_iso/$iso_fn ]; then
-		echo "$boot_iso/$iso_fn already exists"
-	else
-		cp -v $iso $boot_iso
-	fi
+for d in [boot_dir, iso_dir]:
+    if not os.path.exists(d):
+        os.mkdir(d)
 
-	((count++))
-done
+# ############### copy ISO ###############
+
+if os.path.isdir(repo):
+    src_list = []
+    for iso in os.listdir(repo):
+        if iso.endswith('.iso'):
+            if linux_dist(iso) != None:
+                src_list.append(iso)
+            else:
+                print('"{}" skipped'.format(iso))
+    if len(src_list) == 0:
+        print('No valid Linux ISO found in "{}"!'.format(repo))
+        exit(1)
+elif os.path.exists(repo) and linux_dist(repo) != None:
+    src_list = [repo]
+else:
+    print("'{}' is invalid!".format(repo))
+    exit(1)
+
+iso_list = []
+count = 0
+for iso in src_list:
+    count += 1
+    bname = os.path.basename(iso)
+    print('[{}/{}]'.format(count, len(src_list)))
+
+    dest_iso = iso_dir + '/' + bname
+    iso_list.append(dest_iso)
+
+    if os.path.exists(dest_iso):
+        print(dest_iso + ' already exists!')
+    else:
+        print('%s -> %s ...' % (bname, iso_dir))
+        shutil.copyfile(iso, dest_iso)
 
 ############# install grub #############
-echo "installing grub to $boot for $disk ..."
 
-if which grub2-install > /dev/null; then
-	grub_cmd="grub2-install"
-	grub_cfg="$boot/grub2/grub.cfg"
-elif which grub-install > /dev/null; then
-	grub_cmd="grub-install --removable"
-	grub_cfg="$boot/grub/grub.cfg"
-else
-	echo "No grub installer found!"
-	exit 1
-fi
+print("installing grub to {} for {} ...".format(boot_dir, disk))
 
-function blk_tag() {
-	blkid -s $1 $2| perl -p -e 's/.*="(.*?)".*/\1/'
-	#blkid -s $1 $2 | awk -F ": $1=" '{print $2}'
-}
+grub_cfg = None
+for grub in ['grub', 'grub2']:
+    grub_cmd = grub + '-install'
+    if shutil.which(grub_cmd) != None:
+        grub_cfg = boot_dir + '/' + grub + '/grub.cfg'
+        break
 
-pttype=`blk_tag PTTYPE $disk`
-echo "$disk partition type: $pttype"
+if grub_cfg == None:
+	print("No grub installer found!")
+	exit(1)
 
-if [ $pttype = "gpt" ]; then
-	grub_cmd="$grub_cmd --target=x86_64-efi"
+pttype = blk_tag('PTTYPE', disk)
+print("{} partition type: {}".format(disk, pttype))
 
-	esp=`parted $disk print | awk '/boot.*esp/{print $1}'`
-	num='^[0-9]+$'
-	if ! [[ "$esp" =~ $num ]]; then
-		echo "ESP partition not found!"
-		exit 1
-	fi
-	umount $disk$esp 2>/dev/null
-	mkdir -p $boot/efi
-	mount $disk$esp $boot/efi
-	#rm -rf $boot/efi/EFI
-else
-	grub_cmd="$grub_cmd --target=i386-pc"
-fi
+if pttype == 'gpt':
+    grub_cmd += ' --target=x86_64-efi'
 
-rm -rf $boot/grub $boot/grub2
+    esp = None
+    fd = os.popen('parted ' + disk + ' print')
+    for line in fd:
+        fields = line.strip().split()
+        if len(fields) > 0 and fields[0].isdigit() and 'esp' in fields:
+            esp = fields[0]
+            break
+    if esp == None:
+        print("ESP partition not found!")
+        exit(1)
 
-$grub_cmd --boot-directory=$boot $disk || exit 1
+ #   for _part in os.listdir('/dev'):
+ #       _part = '/dev/' + _part
+ #       if re.match(disk + '\d+', _part): # or + '\d+p\d+'
+ #           subprocess.call(['umount', _part])
 
-echo "Generating $grub_cfg ..."
-echo "GRUB_TIMEOUT=5" > $grub_cfg
-if [ $pttype = "gpt" ]; then
-	echo "insmod part_gpt" >> $grub_cfg
-fi
-echo "insmod ext2" >> $grub_cfg
+    efi_dir = boot_dir + '/efi'
+    if not os.path.exists(efi_dir):
+        os.mkdir(efi_dir)
+    subprocess.call('mount {}{} {}'.format(disk, esp, efi_dir), shell=True)
+else:
+	grub_cmd += ' --target=i386-pc'
 
-for iso_fn in ${iso_list[@]}
-do
-	label=`blk_tag LABEL $boot_iso/$iso_fn`
-	if [ -z "$label" ]; then
-		echo "'$boot_iso/$iso_fn' is NOT a valid ISO image!"
-		#rm -vf $boot_iso/$iso_fn
-		echo
-		continue
-	fi
+for g in ['grub', 'grub2']:
+    grub_dir = boot_dir + '/' + g
+    if os.path.exists(grub_dir):
+        shutil.rmtree(grub_dir)
 
-	echo "generating menuentry for $label ..."
-	case "$label" in
-		RHEL* | CentOS* | OL* | Fedora*)			
-			uuid=`blk_tag UUID $part`
-			linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
-			initrd="isolinux/initrd.img"
-			;;
+try:
+    subprocess.call("{} --removable --boot-directory={} {}".format(grub_cmd, boot_dir, disk), shell=True)
+except Exception as e:
+    print(e)
+    if not os.path.exists('/sys/firmware/efi'):
+        print('Did you forget to install grub-efi?')
 
-		Ubuntu* | Deiban*)
-			linux="casper/vmlinuz boot=casper iso-scan/filename=/iso/$iso_fn"
-			initrd="casper/initrd"
-			;;
-		*)
-			echo "Warning: distribution '$label' not supported (skipped)!"
-			continue
-			;;
-	esac
-	
-	cat >> $grub_cfg << _OEF_
+print("Generating {} ...".format(grub_cfg))
 
-menuentry 'Install $label' {
-	set root='hd0,$index'
-	loopback lo /iso/$iso_fn
-	linux (lo)/$linux
-	initrd (lo)/$initrd
-}
-_OEF_
+cf = open(grub_cfg, 'w')
 
-done
+configs = ['GRUB_TIMEOUT=5',
+    'insmod ext2',
+    'insmod all_video'
+]
+if pttype == 'gpt':
+    configs.append('insmod part_gpt')
 
-if [ $pttype = "gpt" ]; then
-	umount $boot/efi
-fi
+for line in configs:
+    cf.write(line + '\n')
 
-echo
+for iso in iso_list:
+    iso_rel = iso.lstrip(root)
+    label = blk_tag('LABEL', iso)
 
+    print("{} ({})".format(label, iso_rel))
+
+    if linux_dist(iso) == 'redhat':
+        uuid = blk_tag('UUID', part)
+        linux="isolinux/vmlinuz repo=hd:UUID={}:/iso".format(uuid) # iso_dir.lstrip(root)
+        initrd="isolinux/initrd.img"
+    elif linux_dist(iso) == 'debian':
+        linux="casper/vmlinuz boot=casper iso-scan/filename=" + iso_rel
+        initrd="casper/initrd"
+    else:
+        print('Warning: "{}" skipped!'.format(iso))
+        continue
+
+    menuentry = [
+        "menuentry 'Install " + label + "' {",
+        "    set root='hd0,{}'".format(index),
+        "    loopback lo {}".format(iso_rel),
+        "    linux (lo)/{}".format(linux),
+        "    initrd (lo)/{}".format(initrd),
+        "}"
+    ]
+
+    cf.write('\n')
+    for line in menuentry:
+        cf.write(line + '\n')
+
+cf.close()
+
+if pttype == 'gpt':
+    subprocess.call('umount {}/efi'.format(boot_dir), shell=True)
