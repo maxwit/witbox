@@ -194,8 +194,8 @@ for iso in iso_list:
         linux="isolinux/vmlinuz repo=hd:UUID={}:/iso".format(uuid) # iso_dir.lstrip(root)
         initrd="isolinux/initrd.img"
     elif linux_dist(iso) == 'debian':
-        linux="casper/vmlinuz.efi boot=casper iso-scan/filename=" + iso_rel
-        initrd="casper/initrd.lz"
+        linux="casper/vmlinuz boot=casper iso-scan/filename=" + iso_rel
+        initrd="casper/initrd"
     else:
         print('Warning: "{}" skipped!'.format(iso))
         continue
