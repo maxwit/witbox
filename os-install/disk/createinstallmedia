@@ -206,6 +206,9 @@ for iso in iso_list:
         print('Warning: "{}" skipped!'.format(iso))
         continue
 
+	# FIXME
+	linux += ' modprobe.blacklist=nouveau'
+
     menuentry = [
         "menuentry 'Install " + label + "' {",
         "    set root='hd0,{}'".format(index),
