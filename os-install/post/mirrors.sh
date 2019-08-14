@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 mkdir -p ~/.pip
 cat > ~/.pip/pip.conf << EOF
 [global]
@@ -40,18 +42,17 @@ deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-updates main restricted un
 deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-proposed main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-backports main restricted universe multiverse
 EOF
-	sudo cp $tmp /etc/apt/sources.list
-	rm $tmp
-	sudo apt update -y
+	sudo mv $tmp /etc/apt/sources.list
 fi
 
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
+sudo usermod -aG docker conke
+
+sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-  "registry-mirrors": ["https://https://registry.docker-cn.com"]
+  "registry-mirrors": ["https://registry.docker-cn.com"]
 }
 EOF
-
-sudo systemctl daemon-reload
 sudo systemctl restart docker
