@@ -49,7 +49,7 @@ curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
-  "registry-mirrors": ["https://2r2lwgn9.mirror.aliyuncs.com"]
+  "registry-mirrors": ["https://https://registry.docker-cn.com"]
 }
 EOF
 
