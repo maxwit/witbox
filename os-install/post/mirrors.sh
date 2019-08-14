@@ -45,14 +45,16 @@ EOF
 	sudo mv $tmp /etc/apt/sources.list
 fi
 
-curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+which docker > /dev/null || curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
 sudo usermod -aG docker $USER
 
-sudo mkdir -p /etc/docker
-sudo tee /etc/docker/daemon.json <<-'EOF'
+if [ ! -e /etc/docker/daemon.json ]; then
+	sudo mkdir -p /etc/docker
+	sudo tee /etc/docker/daemon.json <<-'EOF'
 {
   "registry-mirrors": ["https://registry.docker-cn.com"]
 }
 EOF
-sudo systemctl restart docker
+	sudo systemctl restart docker
+fi
