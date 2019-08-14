@@ -11,10 +11,10 @@ if [ -e /etc/redhat-release ]; then
 	sudo yum install -y sudo yum-utils
 
 	sudo yum remove -y epel-release
-	if [ ! -e /etc/sudo yum.repos.d/repo-back.tar ]; then
-		tar cvf /etc/sudo yum.repos.d/repo-back.tar /etc/sudo yum.repos.d/*.repo
+	if [ ! -e /etc/yum.repos.d/repo-back.tar ]; then
+		tar cvf /etc/yum.repos.d/repo-back.tar /etc/yum.repos.d/*.repo
 	fi
-	rm -vf /etc/sudo yum.repos.d/*.repo
+	rm -vf /etc/yum.repos.d/*.repo
 
 	sudo yum-config-manager --add-repo \
 		http://mirrors.aliyun.com/repo/Centos-7.repo
