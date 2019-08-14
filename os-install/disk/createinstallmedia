@@ -131,8 +131,8 @@ for grub in ['grub', 'grub2']:
         break
 
 if grub_cfg == None:
-	print("No grub installer found!")
-	exit(1)
+    print("No grub installer found!")
+    exit(1)
 
 pttype = blk_tag('PTTYPE', disk)
 print("{} partition type: {}".format(disk, pttype))
@@ -161,7 +161,7 @@ if pttype == 'gpt':
         os.mkdir(efi_dir)
     subprocess.call('mount {}{} {}'.format(disk, esp, efi_dir), shell=True)
 else:
-	grub_cmd += ' --target=i386-pc'
+    grub_cmd += ' --target=i386-pc'
 
 for g in ['grub', 'grub2']:
     grub_dir = boot_dir + '/' + g
@@ -206,8 +206,8 @@ for iso in iso_list:
         print('Warning: "{}" skipped!'.format(iso))
         continue
 
-	# FIXME
-	linux += ' modprobe.blacklist=nouveau'
+    # FIXME
+    linux += ' modprobe.blacklist=nouveau'
 
     menuentry = [
         "menuentry 'Install " + label + "' {",
