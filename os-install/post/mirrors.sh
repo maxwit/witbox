@@ -47,7 +47,7 @@ fi
 
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
-sudo usermod -aG docker conke
+sudo usermod -aG docker $USER
 
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'
