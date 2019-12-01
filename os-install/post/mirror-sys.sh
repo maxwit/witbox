@@ -1,38 +1,35 @@
 #!/usr/bin/env bash
 
-mkdir -p ~/.pip
-cat > ~/.pip/pip.conf << EOF
-[global]
-trusted-host = mirrors.aliyun.com
-index-url = https://mirrors.aliyun.com/pypi/simple
-EOF
+if [ $UID -ne 0 ]; then
+    echo "pls run as root!"
+    exit 1
+fi
 
 if [ -e /etc/redhat-release ]; then
     eval `cat /etc/os-release | grep VERSION_ID`
 
-    sudo yum install -y sudo yum-utils
+    cd /etc/yum.repos.d/
 
-    sudo yum remove -y epel-release
-    if [ ! -e /etc/yum.repos.d/repo-back.tar ]; then
-        sudo tar cvf /etc/yum.repos.d/repo-back.tar /etc/yum.repos.d/*.repo
+    if [ ! -z "$VERSION_ID" -a "$VERSION_ID" -lt 8 ]; then
+        if [ ! -e repo-back.tar ]; then
+            tar cvf repo-back.tar *.repo
+        fi
+        yum remove -y epel-release
+        rm -vf *.repo
+
+        wget http://mirrors.aliyun.com/repo/Centos-${VERSION_ID}.repo
+        wget http://mirrors.aliyun.com/repo/epel-${VERSION_ID}.repo
+    else # FIXME
+        sed -i -e 's/mirrorlist=/#mirrorlist=/g' \
+            -e 's/#baseurl=/baseurl=/g' \
+            -e 's#http://mirror.centos.org#https://mirrors.aliyun.com#g' *.repo
     fi
-    sudo rm -vf /etc/yum.repos.d/*.repo
 
-    sudo yum-config-manager --add-repo \
-        http://mirrors.aliyun.com/repo/Centos-${VERSION_ID}.repo
-
-    sudo yum-config-manager --add-repo \
-        http://mirrors.aliyun.com/repo/epel-${VERSION_ID}.repo
-
-    # sudo yum-config-manager --add-repo \
-    #     https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-
-    sudo yum clean all
-    sudo yum repolist enabled
+    yum clean all
+    yum repolist enabled
 else
     codename=`lsb_release -sc`
-    tmp=`mktemp`
-    cat > $tmp << EOF
+    tee /etc/apt/sources.list << EOF
 deb http://mirrors.aliyun.com/ubuntu/ ${codename} main restricted universe multiverse
 deb http://mirrors.aliyun.com/ubuntu/ ${codename}-security main restricted universe multiverse
 deb http://mirrors.aliyun.com/ubuntu/ ${codename}-updates main restricted universe multiverse
@@ -44,19 +41,19 @@ deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-updates main restricted un
 deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-proposed main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-backports main restricted universe multiverse
 EOF
-    sudo mv $tmp /etc/apt/sources.list
+    apt update -y
 fi
 
 which docker > /dev/null || curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
-sudo usermod -aG docker $USER
+usermod -aG docker $USER
 
 if [ ! -e /etc/docker/daemon.json ]; then
-    sudo mkdir -p /etc/docker
-    sudo tee /etc/docker/daemon.json <<-'EOF'
+    mkdir -p /etc/docker
+    tee /etc/docker/daemon.json << EOF
 {
   "registry-mirrors": ["https://registry.docker-cn.com"]
 }
 EOF
-    sudo systemctl restart docker
+    systemctl restart docker
 fi
