@@ -8,6 +8,8 @@ index-url = https://mirrors.aliyun.com/pypi/simple
 EOF
 
 if [ -e /etc/redhat-release ]; then
+    eval `cat /etc/os-release | grep VERSION_ID`
+
     sudo yum install -y sudo yum-utils
 
     sudo yum remove -y epel-release
@@ -17,10 +19,10 @@ if [ -e /etc/redhat-release ]; then
     sudo rm -vf /etc/yum.repos.d/*.repo
 
     sudo yum-config-manager --add-repo \
-        http://mirrors.aliyun.com/repo/Centos-7.repo
+        http://mirrors.aliyun.com/repo/Centos-${VERSION_ID}.repo
 
     sudo yum-config-manager --add-repo \
-        http://mirrors.aliyun.com/repo/epel-7.repo
+        http://mirrors.aliyun.com/repo/epel-${VERSION_ID}.repo
 
     # sudo yum-config-manager --add-repo \
     #     https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo

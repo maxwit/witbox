@@ -33,6 +33,8 @@ def blk_tag(tag, dev):
 
 def linux_dist(iso):
     label = blk_tag('LABEL', iso)
+    if label == None:
+        return None
     for dist in dist_serial:
         if label.startswith(dist):
             return dist_serial[dist]
@@ -210,11 +212,11 @@ for iso in iso_list:
     linux += ' modprobe.blacklist=nouveau'
 
     menuentry = [
-        "menuentry 'Install " + label + "' {",
+        "menuentry 'Install {}' {".format(label),
         "    set root='hd0,{}'".format(index),
-        "    loopback lo {}".format(iso_rel),
-        "    linux (lo)/{}".format(linux),
-        "    initrd (lo)/{}".format(initrd),
+        "    loopback lo " + iso_rel,
+        "    linux (lo)/" + linux,
+        "    initrd (lo)/" + initrd,
         "}"
     ]
 
