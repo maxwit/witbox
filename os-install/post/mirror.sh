@@ -21,10 +21,12 @@ Linux)
         sudo yum remove -y epel-release
         sudo rm -vf *.repo
 
-        sudo wget http://mirrors.aliyun.com/repo/Centos-${VERSION_ID}.repo
-        sudo wget http://mirrors.aliyun.com/repo/epel-${VERSION_ID}.repo
+        sudo wget http://mirrors.aliyun.com/repo/Centos-${VERSION_ID}.repo || exit 1
+        sudo wget http://mirrors.aliyun.com/repo/epel-${VERSION_ID}.repo || sudo yum install -y epel-release # walkaround for centos8
         sudo yum clean all
         sudo yum repolist enabled
+        sudo yum update -y
+        sudo yum autoremove -y
         ;;
 
     ubuntu)
@@ -41,40 +43,31 @@ deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-updates main restricted un
 deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-proposed main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ ${codename}-backports main restricted universe multiverse
 EOF
-        sudo apt update -y
+        sudo apt update -y || exit 1
+        sudo apt upgrade -y
+        sudo apt autoremove -y
         ;;
     esac
-
-        which docker > /dev/null || curl -fsSL https://get.docker.com | sudo bash -s docker --mirror Aliyun
-        sudo usermod -aG docker $USER
-        if [ ! -e /etc/docker/daemon.json ]; then
-            sudo mkdir -p /etc/docker
-            sudo tee /etc/docker/daemon.json << EOF
-{
-    "registry-mirrors": ["https://registry.docker-cn.com"]
-}
-EOF
-        sudo systemctl restart docker
-    fi
 
     ;;
 
 Darwin)
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    which brew > /dev/null || {
+        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" || exit 1
+    }
 
-    git -C "$(brew --repo)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
-    git -C "$(brew --repo homebrew/core)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git
-    git -C "$(brew --repo homebrew/cask)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-cask.git
-    brew update
+    git -C "$(brew --repo)" config --list | grep tsinghua > /dev/null || {
+        git -C "$(brew --repo)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
+        git -C "$(brew --repo homebrew/core)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git
+        git -C "$(brew --repo homebrew/cask)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-cask.git
+        brew update
+    }
 
+    ;;
+
+*)
+    echo "'$os' not supported yet!"
     ;;
 esac
 
-# now go on with user mode:
-
-mkdir -p ~/.pip
-cat > ~/.pip/pip.conf << EOF
-[global]
-trusted-host = mirrors.aliyun.com
-index-url = https://mirrors.aliyun.com/pypi/simple
-EOF
+echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
