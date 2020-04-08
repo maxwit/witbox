@@ -212,7 +212,7 @@ for iso in iso_list:
     linux += ' modprobe.blacklist=nouveau'
 
     menuentry = [
-        "menuentry 'Install {}' {".format(label),
+        "menuentry 'Install {}' {{".format(label),
         "    set root='hd0,{}'".format(index),
         "    loopback lo " + iso_rel,
         "    linux (lo)/" + linux,
