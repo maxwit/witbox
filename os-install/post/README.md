@@ -1,14 +1,20 @@
-## on Unix-like systems:
+# POST Installation on Unix-like Systems
 
-### to run mirrors.sh (either of them)
+## mirrors.sh (either of them)
 ```bash
 curl -fsSL https://github.com/maxwit/witbox/raw/master/os-install/post/mirror.sh | bash
 wget -qO- https://github.com/maxwit/witbox/raw/master/os-install/post/mirror.sh | bash
 ```
 
-### to run post-install.sh
+## Docker and mirror
 
 ```bash
-curl -fsSL https://github.com/conke/witbox/raw/master/os-install/post/post-install.sh | bash
-wget -qO- https://github.com/conke/witbox/raw/master/os-install/post/post-install.sh | bash
+curl -fsSL https://github.com/conke/witbox/raw/master/os-install/post/docker.sh | bash
+wget -qO- https://github.com/conke/witbox/raw/master/os-install/post/docker.sh | bash
+```
+
+## Python mirror
+```bash
+curl -fsSL https://github.com/conke/witbox/raw/master/os-install/post/python.sh | bash
+wget -qO- https://github.com/conke/witbox/raw/master/os-install/post/python.sh | bash
 ```

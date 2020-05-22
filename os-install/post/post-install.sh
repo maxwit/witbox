@@ -302,3 +302,5 @@ rm $temp
 user_site=`$pyver -m site --user-site`
 user_path="${user_site/\/lib\/python*}/bin"
 echo "export PATH=$user_path:\$PATH" >> ~/.bashrc
+
+echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER

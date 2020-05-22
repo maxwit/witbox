@@ -7,7 +7,9 @@ fi
 
 os=`uname -s`
 if [ $os = macOS ]; then
-    while true; do brew cask install docker && break; done
+    while true; do
+        brew cask install docker && break
+    done
     exit 0
 fi
 
@@ -21,7 +23,7 @@ if [ ! -e /etc/docker/daemon.json ]; then
     sudo mkdir -p /etc/docker
     sudo tee /etc/docker/daemon.json << EOF
 {
-"registry-mirrors": ["https://registry.docker-cn.com"]
+    "registry-mirrors": ["https://registry.docker-cn.com"]
 }
 EOF
     sudo systemctl restart docker
