@@ -158,13 +158,13 @@ do
 
 	echo "generating menuentry for $label ..."
 	case "$label" in
-		RHEL* | CentOS* | OL* | Fedora*)			
+		RHEL* | AlmaLinux* | Rocky* | CentOS* | OL* | Fedora*)
 			uuid=`blk_tag UUID $part`
 			linux="isolinux/vmlinuz repo=hd:UUID=$uuid:/iso/"
 			initrd="isolinux/initrd.img"
 			;;
 
-		Ubuntu* | Deiban*)
+		Ubuntu* | Debian*)
 			linux="casper/vmlinuz boot=casper iso-scan/filename=/iso/$iso_fn"
 			initrd="casper/initrd"
 			;;
@@ -173,7 +173,7 @@ do
 			continue
 			;;
 	esac
-	
+
 	cat >> $grub_cfg << _OEF_
 
 menuentry 'Install $label' {

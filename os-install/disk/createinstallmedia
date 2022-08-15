@@ -17,15 +17,17 @@ if os.getuid() != 0:
     exit(1)
 
 dist_serial = {}
-for dist in ['RHEL', 'CentOS', 'Fedora', 'OL']:
+for dist in ['RHEL', 'CentOS', 'Fedora', 'OL', 'Rocky', 'AlmaLinux']:
     dist_serial[dist] = 'redhat'
-for dist in ['Ubuntu', 'Debian']:
+for dist in ['Ubuntu', 'Debian', 'Steam OS']:
     dist_serial[dist] = 'debian'
+for dist in ['ARCH_']:
+    dist_serial[dist] = 'archlinux'
 
 def blk_tag(tag, dev):
     fd = os.popen('blkid -s {} {}'.format(tag, dev))
-    for line in fd:
     # r = subprocess.check_output(['blkid', '-s', tag, dev])
+    for line in fd:
         kv = line.strip().split('=')
         if len(kv) > 1:
             return kv[1].strip('"')
@@ -75,7 +77,7 @@ if part == '':
     print('No such mount point:', root)
     exit(1)
 
-# FIXME: sdXN, mmcMpN, nvmeMpN
+# FIXME: sdXN, mmcMpN, nvmeMnNpX
 disk = re.sub('\d+$', '', part)
 index = part[len(disk):]
 
@@ -92,6 +94,7 @@ if os.path.isdir(repo):
     src_list = []
     for iso in os.listdir(repo):
         if iso.endswith('.iso'):
+            iso = repo + '/' + iso
             if linux_dist(iso) != None:
                 src_list.append(iso)
             else:
@@ -183,6 +186,8 @@ cf = open(grub_cfg, 'w')
 
 configs = ['GRUB_TIMEOUT=5',
     'insmod ext2',
+    'insmod exfat',
+    'insmod fat',
     'insmod all_video'
 ]
 if pttype == 'gpt':
