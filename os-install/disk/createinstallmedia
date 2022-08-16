@@ -19,10 +19,12 @@ if os.getuid() != 0:
 dist_serial = {}
 for dist in ['RHEL', 'CentOS', 'Fedora', 'OL', 'Rocky', 'AlmaLinux']:
     dist_serial[dist] = 'redhat'
-for dist in ['Ubuntu', 'Debian', 'Steam OS']:
+for dist in ['Ubuntu']:
+    dist_serial[dist] = 'ubuntu'
+for dist in ['Debian', 'Steam OS']:
     dist_serial[dist] = 'debian'
-for dist in ['ARCH_']:
-    dist_serial[dist] = 'archlinux'
+# for dist in ['ARCH_']:
+#     dist_serial[dist] = 'archlinux'
 
 def blk_tag(tag, dev):
     fd = os.popen('blkid -s {} {}'.format(tag, dev))
@@ -43,7 +45,7 @@ def linux_dist(iso):
     return None
 
 parser = OptionParser()
-parser.add_option('-p', '--isopath', dest='isopath',
+parser.add_option('-i', '--isopath', dest='isopath',
                   help='path to ISO image')
 parser.add_option('-m', '--volume', dest='volume',
                   help='mount point')
@@ -77,6 +79,8 @@ if part == '':
     print('No such mount point:', root)
     exit(1)
 
+uuid = blk_tag('UUID', part)
+
 # FIXME: sdXN, mmcMpN, nvmeMnNpX
 disk = re.sub('\d+$', '', part)
 index = part[len(disk):]
@@ -89,6 +93,7 @@ for d in [boot_dir, iso_dir]:
         os.mkdir(d)
 
 # ############### copy ISO ###############
+print('Copying ISO ...')
 
 if os.path.isdir(repo):
     src_list = []
@@ -113,20 +118,21 @@ count = 0
 for iso in src_list:
     count += 1
     bname = os.path.basename(iso)
-    print('[{}/{}]'.format(count, len(src_list)))
+    print(f'[{count}/{len(src_list)}] ', end='')
 
     dest_iso = iso_dir + '/' + bname
-    iso_list.append(dest_iso)
 
     if os.path.exists(dest_iso):
         print(dest_iso + ' already exists!')
     else:
-        print('%s -> %s ...' % (bname, iso_dir))
+        print(f'{bname} -> {iso_dir} ...')
         shutil.copyfile(iso, dest_iso)
+
+    iso_list.append(dest_iso)
 
 ############# install grub #############
 
-print("installing grub to {} for {} ...".format(boot_dir, disk))
+print('\nInstalling Grub ...')
 
 grub_cfg = None
 for grub in ['grub', 'grub2']:
@@ -136,14 +142,17 @@ for grub in ['grub', 'grub2']:
         break
 
 if grub_cfg == None:
-    print("No grub installer found!")
+    print('No grub installer found!')
     exit(1)
 
 pttype = blk_tag('PTTYPE', disk)
-print("{} partition type: {}".format(disk, pttype))
+# print(f'{disk}: {pttype}')
+
+march = platform.machine()
+# TODO: machine string mapping
 
 if pttype == 'gpt':
-    grub_cmd += ' --target=x86_64-efi'
+    grub_cmd += f' --target={march}-efi'
 
     esp = None
     fd = os.popen('parted ' + disk + ' print')
@@ -166,69 +175,75 @@ if pttype == 'gpt':
         os.mkdir(efi_dir)
     subprocess.call('mount {}{} {}'.format(disk, esp, efi_dir), shell=True)
 else:
-    grub_cmd += ' --target=i386-pc'
+    grub_cmd += f' --target={march}-pc'
 
 for g in ['grub', 'grub2']:
     grub_dir = boot_dir + '/' + g
     if os.path.exists(grub_dir):
         shutil.rmtree(grub_dir)
 
+grub_cmd += f' --removable --boot-directory={boot_dir} {disk}'
+print(grub_cmd)
+
 try:
-    subprocess.call("{} --removable --boot-directory={} {}".format(grub_cmd, boot_dir, disk), shell=True)
+    subprocess.call(grub_cmd, shell=True)
 except Exception as e:
     print(e)
     if not os.path.exists('/sys/firmware/efi'):
         print('Did you forget to install grub-efi?')
 
-print("Generating {} ...".format(grub_cfg))
-
-cf = open(grub_cfg, 'w')
+print(f'Generating {grub_cfg} ...')
 
 configs = ['GRUB_TIMEOUT=5',
     'insmod ext2',
-    'insmod exfat',
-    'insmod fat',
     'insmod all_video'
 ]
+
 if pttype == 'gpt':
     configs.append('insmod part_gpt')
 
-for line in configs:
-    cf.write(line + '\n')
-
+count = 0
 for iso in iso_list:
-    iso_rel = iso[len(root):]
     label = blk_tag('LABEL', iso)
+    iso_rel = iso[len(root):]
 
-    print("{} ({})".format(label, iso_rel))
+    count += 1
+    print(f'[{count}/{len(iso_list)}] {label} ({iso_rel})')
 
-    if linux_dist(iso) == 'redhat':
-        uuid = blk_tag('UUID', part)
-        linux="isolinux/vmlinuz repo=hd:UUID={}:/iso".format(uuid)
-        initrd="isolinux/initrd.img"
-    elif linux_dist(iso) == 'debian':
-        linux="casper/vmlinuz boot=casper iso-scan/filename=" + iso_rel
-        initrd="casper/initrd"
+    menuentry = [
+        f"menuentry 'Install {label}' {{",
+        '\tsearch --no-floppy --fs-uuid --set=root ' + uuid,
+        '\tloopback lo ' + iso_rel
+        ]
+
+    dist = linux_dist(iso)
+
+    if dist == 'redhat':
+        linux=f'isolinux/vmlinuz inst.repo=hd:UUID={uuid}:/iso'
+        initrd='isolinux/initrd.img'
+    elif dist == 'ubuntu':
+        linux='casper/vmlinuz boot=casper iso-scan/filename=' + iso_rel
+        initrd='casper/initrd'
+    elif dist == 'debian':
+        menuentry.append('\tset isofile=' + iso_rel)
+        linux='install.amd/vmlinuz'
+        initrd='install.amd/initrd.gz'
     else:
-        print('Warning: "{}" skipped!'.format(iso))
+        print(f'Warning: "{iso}" NOT supported(skipped)!')
         continue
 
     # FIXME
     linux += ' modprobe.blacklist=nouveau'
 
-    menuentry = [
-        "menuentry 'Install {}' {{".format(label),
-        "    set root='hd0,{}'".format(index),
-        "    loopback lo " + iso_rel,
-        "    linux (lo)/" + linux,
-        "    initrd (lo)/" + initrd,
-        "}"
-    ]
+    menuentry.append("\tlinux (lo)/" + linux)
+    menuentry.append("\tinitrd (lo)/" + initrd)
+    menuentry.append("}")
 
-    cf.write('\n')
-    for line in menuentry:
-        cf.write(line + '\n')
+    configs += menuentry
 
+cf = open(grub_cfg, 'w')
+for line in configs:
+    cf.write(line + '\n')
 cf.close()
 
 if pttype == 'gpt':
