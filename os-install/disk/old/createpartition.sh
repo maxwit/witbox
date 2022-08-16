@@ -46,36 +46,39 @@ if [ -z "$device" -o ! -b "$device" ]; then
 	exit 1
 fi
 
-## FIXME
-#disk=${device%%[0-9]}
-#if [ "$disk" != "$device" ]; then
-#	echo "warning: $device does NOT seem a disk, fall back to $disk"
-#fi
-disk=$device
+# FIXME
+disk=${device%%[0-9]}
+if [ "$disk" != "$device" ]; then
+	echo "warning: $device does NOT seem a disk, fall back to $disk"
+fi
 
 if [ ! -b $disk ]; then
 	echo "No such device: $disk!"
 	exit 1
 fi
 
-umount ${disk}* 2>/dev/null
+umount ${disk}[1-9]* 2>/dev/null
 ###################
 parted -s $disk mktable $table
 
-echo -e "g\nn\n\n\n+200M\nn\n\n\n+16G\nn\n\n\n\nw\n" | fdisk $disk
+last=10240
 
-# FIXME
-if [ -b ${disk}p1 ]; then
-    p=p
+echo "mkpart primary fat32 1M -${last}M" | parted $disk
+mkfs.vfat -F32 -I -n DATA ${disk}1
+
+if [ $table = "gpt" ]; then
+	echo "mkpart primary fat32 -${last} -$((last-100))M" | parted $disk
+	mkfs.vfat -F32 -I -n ESP ${disk}2
+
+	echo "mkpart primary ext4 -$((last-100))M -1M" | parted $disk
+	mkfs.ext4 -F -L linux ${disk}3
+
+	echo "toggle 2 boot" | parted $disk
 else
-    p=""
+	echo "toggle 1 boot" | parted $disk
+
+	echo "mkpart primary ext4 -${last}M -1M" | parted $disk
+	mkfs.ext4 -F -L linux ${disk}2
 fi
-
-mkfs.vfat -F32 -I -n ESP ${disk}${p}1
-parted -s $disk toggle 1 esp
-
-mkfs.ext4 -F -L install ${disk}${p}2
-
-mkfs.exfat -L data ${disk}${p}3
 
 parted $disk print
