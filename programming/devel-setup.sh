@@ -16,25 +16,46 @@ add_path() {
     grep "PATH.*$1" $profile || echo -e "\nexport PATH=\$PATH:$1" >> $profile
 }
 
+temp=$(mktemp -d)
 
 echo ">>>> C/C++"
 os=$(uname -s)
 case $os in
     Darwin)
-	xcode-select --install
-	brew install fmt pkg-config || exit 1
-	;;
+		xcode-select --install
+		brew install cmake pkg-config || exit 1
+		;;
     Linux)
-	which apt > /dev/null && sudo apt install -y clang libfmt-dev pkg-config
-	which dnf > /dev/null && sudo dnf install -y clang fmt-devel pkg-config
-	;;
+		which apt > /dev/null && sudo apt install -y clang cmake pkg-config
+		which dnf > /dev/null && sudo dnf install -y clang cmake pkg-config
+		;;
     *)
-	echo "$os not supported!"
-	exit 1
+			echo "$os not supported! (skipped)"
 esac
 
+cd $temp
+while [ ! -d fmt ]
+do
+    git clone https://github.com/fmtlib/fmt.git
+done
+
+mkdir -vp fmt/build
+cd fmt/build
+cmake ..
+make && sudo make install
+
+if [ $? -ne 0 ]; then
+    echo "fail to install fmt!"
+    exit 1
+fi
+
+echo ">>>> C#"
+curl -sfSL https://dot.net/v1/dotnet-install.sh | bash
+grep DOTNET_ROOT $profile || echo 'export DOTNET_ROOT=$HOME/.dotnet' >> $profile
+add_path '$HOME/.dotnet:$HOME/.dotnet/tools'
+
 echo ">>>> Dart"
-cd
+cd ~
 while [ ! -d flutter/bin ]
 do
     rm -rf flutter
@@ -73,6 +94,7 @@ echo ">>>> JavaScript: Deno"
 curl -fsSL https://deno.land/install.sh | sh
 
 echo ">>>> JavaScript: NVM"
+cd $temp
 while [ ! -d nvm ]
 do
     git clone https://github.com/nvm-sh/nvm --depth 1
@@ -88,5 +110,19 @@ nvm install --lts
 
 echo ">>>> Rust"
 which rustc || curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+
+echo ">>>> Swift"
+
+case $(uname -s) in
+Linux)
+    sudo usermod -aG docker $USER
+    newgrp docker
+    ;;
+esac
+
+docker pull swift
+
+# clean up
+rm -rf $temp
 
 echo "All Done!"
