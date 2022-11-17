@@ -30,7 +30,7 @@ case $os in
 		which dnf > /dev/null && sudo dnf install -y clang cmake pkg-config
 		;;
     *)
-			echo "$os not supported! (skipped)"
+		echo "$os not supported! (skipped)"
 esac
 
 cd $temp
@@ -42,7 +42,7 @@ done
 mkdir -vp fmt/build
 cd fmt/build
 cmake ..
-make && sudo make install
+make -j4 && sudo make install
 
 if [ $? -ne 0 ]; then
     echo "fail to install fmt!"
@@ -79,28 +79,32 @@ echo ">>>> Java & Kotlin"
 while [ ! -e ~/.sdkman/bin/sdkman-init.sh ]
 do
     rm -rf ~/.sdkman
-    curl -s "https://get.sdkman.io" | bash
+    curl -s https://get.sdkman.io | bash
 done
 
 source ~/.sdkman/bin/sdkman-init.sh
-
 # FIXME
 for pkg in java kotlin maven gradle
 do
-    while true; do sdk install $pkg && break; done
+    while true
+	do
+        sdk install $pkg && break
+    done
 done
 
 echo ">>>> JavaScript: Deno"
 curl -fsSL https://deno.land/install.sh | sh
 
 echo ">>>> JavaScript: NVM"
-cd $temp
-while [ ! -d nvm ]
+while [ ! ~/.nvm/nvm.sh ]
 do
-    git clone https://github.com/nvm-sh/nvm --depth 1
+    cd $temp
+    while [ ! -d nvm ]
+    do
+        git clone https://github.com/nvm-sh/nvm --depth 1
+    done
+    bash nvm/install.sh
 done
-
-bash nvm/install.sh
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -114,13 +118,20 @@ which rustc || curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
 echo ">>>> Swift"
 
 case $(uname -s) in
+Darwin)
+    brew install docker
+    ;;
 Linux)
+    curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
     sudo usermod -aG docker $USER
     newgrp docker
     ;;
 esac
 
-docker pull swift
+for ((i=0;i<10;i++))
+do
+    docker pull swift && break
+done
 
 # clean up
 rm -rf $temp
