@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
 
-RKBIN="../rkbin/bin"
+TOPDIR=$PWD
+RKBIN="../rkbin"
 
-soc=`grep -o '^CONFIG_ROCKCHIP_RK[3-9]\+PRO=y' .config`
-if [ -z "$soc" ]; then
-	soc=`grep -o '^CONFIG_ROCKCHIP_RK[3-9]\+=y' .config`
+SOC=`grep -o '^CONFIG_ROCKCHIP_RK[3-9]\+PRO=y' .config`
+if [ -z "$SOC" ]; then
+	SOC=`grep -o '^CONFIG_ROCKCHIP_RK[3-9]\+=y' .config`
 fi
-if [ -z "$soc" ]; then
+if [ -z "$SOC" ]; then
 	echo "u-boot not fingured for Rockchip!"
 	exit 1
 fi
 
-soc=${soc##*_}
-soc=${soc%=y}
-echo "u-boot configured for $soc"
+SOC=${SOC##*_}
+SOC=${SOC%=y}
+echo "u-boot configured for $SOC"
 
-soc=`echo $soc | tr A-Z a-z`
+soc=`echo $SOC | tr A-Z a-z`
 
 # FIXME
 bl=(`ls /dev/sd[a-z]`)
@@ -55,27 +56,32 @@ if [ $bootflow -eq 1 ]; then
 	echo "Boot flow 1: Rockchip miniloader"
 	case $soc in
 	rk3399)
-		tpl=$RKBIN/rk33/rk3399_ddr_800MHz_v1.27.bin
-		spl=$RKBIN/rk33/rk3399_miniloader_v1.26.bin
+		tpl=$RKBIN/bin/rk33/rk3399_ddr_800MHz_v1.27.bin
+		spl=$RKBIN/bin/rk33/rk3399_miniloader_v1.26.bin
 		;;
 	rk3399pro)
-		tpl=$RKBIN/rk33/rk3399pro_ddr_933MHz_v1.27.bin
-		spl=$RKBIN/rk33/rk3399pro_miniloader_v1.26.bin
+		tpl=$RKBIN/bin/rk33/rk3399pro_ddr_933MHz_v1.27.bin
+		spl=$RKBIN/bin/rk33/rk3399pro_miniloader_v1.26.bin
 		;;
 	rk3568)
-		tpl=$RKBIN/rk35/rk3568_ddr_1560MHz_v1.13.bin
-		spl=$RKBIN/rk35/rk356x_spl_v1.12.bin
+		tpl=$RKBIN/bin/rk35/rk3568_ddr_1560MHz_v1.13.bin
+		spl=$RKBIN/bin/rk35/rk356x_spl_v1.12.bin
 		;;
 	rk3588)
-		tpl=$RKBIN/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin
-		spl=$RKBIN/rk35/rk3588_spl_v1.11.bin
+		tpl=$RKBIN/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin
+		spl=$RKBIN/bin/rk35/rk3588_spl_v1.11.bin
 		;;
 	*)
 		echo "$soc not supported yet!"
 		exit 1
 	esac
 
-	uboot=uboot.img
+	for img in uboot.img u-boot.img; do
+		if [ -f $img ]; then
+			uboot=$img
+			break
+		fi
+	done
 else
 	echo "Boot flow 2: u-boot TPL/SPL"
 
@@ -88,10 +94,11 @@ else
 			break
 		fi
 	done
-	if [ -z "$img" ]; then
-		echo "no u-boot image found!"
-		exit 1
-	fi
+fi
+
+if [ -z "$uboot" ]; then
+	echo "no u-boot image found!"
+	exit 1
 fi
 
 echo "burning to $sd ..."
@@ -101,11 +108,13 @@ echo "burning to $sd ..."
 echo 
 image_list="idbloader.img@64 $uboot@16384"
 if [ $bootflow -eq 1 ]; then
-	if [ -e trust.img ]; then
-		image_list+=" trust.img@24576"
-	else
-		echo "trust.img does NOT exist! skipping ..."	
+	if [ ! -e trust.img ]; then
+		cd $RKBIN
+		tools/trust_merger RKTRUST/${SOC}TRUST.ini
+		cd $TOPDIR
+		mv $RKBIN/trust.img .
 	fi
+	image_list+=" trust.img@24576"
 fi
 
 for info in $image_list
@@ -115,16 +124,3 @@ do
 	echo "$img => $off"
 	dd if=$img of=$sd seek=$off
 done
-
-#dd if=idbloader.img of=$sd seek=64
-#dd if=$uboot of=$sd seek=16384
-#
-#if [ $bootflow -eq 1 ]; then
-#	if [ -e trust.img ]; then
-#		dd if=trust.img of=$sd seek=24576
-#	else
-#		echo "trust.img does NOT exist! skipping ..."	
-#	fi
-#fi
-
-#dd if=/dev/zero of=$sd seek=24576 count=8192
