@@ -18,17 +18,21 @@ echo "u-boot configured for $SOC"
 
 soc=`echo $SOC | tr A-Z a-z`
 
-# FIXME
-bl=(`ls /dev/sd[a-z]`)
-if [ ${#bl[@]} -lt 2 ]; then
-	echo "not SD/TF card found!"
+bl=(`ls /dev/mmcblk[0-9] /dev/sd[a-z] 2>/dev/null`)
+if [ ${#bl[@]} -eq 0 ]; then
+	echo "No SD/TF cards found!"
 	exit 1
 fi
+# FIXME
 sd=${bl[-1]}
+if mount | grep $sd; then
+	echo "$sd is mounted! pls umount it first!"
+	exit 1
+fi
 
 if grep -q rockchip-linux/u-boot .git/config; then
 	bootflow=1
-else	
+else
 	bootflow=2
 fi
 
@@ -105,16 +109,18 @@ echo "burning to $sd ..."
 
 ./tools/mkimage -n $soc -T rksd -d $tpl:$spl idbloader.img
 
-echo 
+echo
 image_list="idbloader.img@64 $uboot@16384"
 if [ $bootflow -eq 1 ]; then
-	if [ ! -e trust.img ]; then
-		cd $RKBIN
-		tools/trust_merger RKTRUST/${SOC}TRUST.ini
-		cd $TOPDIR
-		mv $RKBIN/trust.img .
+	if [ -e trust.img ]; then
+		image_list+=" trust.img@24576"
+	else
+		echo "trust.img not found, ignored."
+		# cd $RKBIN
+		# tools/trust_merger RKTRUST/${SOC}TRUST.ini
+		# cd $TOPDIR
+		# mv $RKBIN/trust.img .
 	fi
-	image_list+=" trust.img@24576"
 fi
 
 for info in $image_list
