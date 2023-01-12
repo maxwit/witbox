@@ -30,7 +30,7 @@ if mount | grep $sd; then
 	exit 1
 fi
 
-if grep -q rockchip-linux/u-boot .git/config; then
+if grep -q rockchip-linux/u-boot .git/config 2>/dev/null; then
 	bootflow=1
 else
 	bootflow=2
@@ -58,27 +58,6 @@ done
 
 if [ $bootflow -eq 1 ]; then
 	echo "Boot flow 1: Rockchip miniloader"
-	case $soc in
-	rk3399)
-		tpl=$RKBIN/bin/rk33/rk3399_ddr_800MHz_v1.27.bin
-		spl=$RKBIN/bin/rk33/rk3399_miniloader_v1.26.bin
-		;;
-	rk3399pro)
-		tpl=$RKBIN/bin/rk33/rk3399pro_ddr_933MHz_v1.27.bin
-		spl=$RKBIN/bin/rk33/rk3399pro_miniloader_v1.26.bin
-		;;
-	rk3568)
-		tpl=$RKBIN/bin/rk35/rk3568_ddr_1560MHz_v1.13.bin
-		spl=$RKBIN/bin/rk35/rk356x_spl_v1.12.bin
-		;;
-	rk3588)
-		tpl=$RKBIN/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2736MHz_v1.08.bin
-		spl=$RKBIN/bin/rk35/rk3588_spl_v1.11.bin
-		;;
-	*)
-		echo "$soc not supported yet!"
-		exit 1
-	esac
 
 	for img in uboot.img u-boot.img; do
 		if [ -f $img ]; then
@@ -86,11 +65,12 @@ if [ $bootflow -eq 1 ]; then
 			break
 		fi
 	done
+
+	if [ -e trust.img ]; then
+		trust=trust.img
+	fi
 else
 	echo "Boot flow 2: u-boot TPL/SPL"
-
-	tpl=tpl/u-boot-tpl.bin
-	spl=spl/u-boot-spl.bin
 
 	for img in u-boot.itb fit/uboot.itb; do
 		if [ -f $img ]; then
@@ -105,23 +85,24 @@ if [ -z "$uboot" ]; then
 	exit 1
 fi
 
-echo "burning to $sd ..."
-
-./tools/mkimage -n $soc -T rksd -d $tpl:$spl idbloader.img
-
-echo
-image_list="idbloader.img@64 $uboot@16384"
-if [ $bootflow -eq 1 ]; then
-	if [ -e trust.img ]; then
-		image_list+=" trust.img@24576"
-	else
-		echo "trust.img not found, ignored."
-		# cd $RKBIN
-		# tools/trust_merger RKTRUST/${SOC}TRUST.ini
-		# cd $TOPDIR
-		# mv $RKBIN/trust.img .
+for idb in idbloader.img idblock.bin; do
+	if [ -e $idb ]; then
+		loader=$idb
+		break
 	fi
+done
+
+if [ -z "$loader" ]; then
+	echo "no idbloader image found!"
+	exit 1
 fi
+
+image_list="$loader@64 $uboot@16384"
+if [ ! -z "$trust" ]; then
+	image_list+=" $trust@24576"
+fi
+
+echo "burning to $sd ..."
 
 for info in $image_list
 do
