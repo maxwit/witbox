@@ -30,7 +30,7 @@ if mount | grep $sd; then
 	exit 1
 fi
 
-if grep -q rockchip-linux/u-boot .git/config 2>/dev/null; then
+if [ -x make.sh  ]; then
 	bootflow=1
 else
 	bootflow=2
@@ -59,12 +59,8 @@ done
 if [ $bootflow -eq 1 ]; then
 	echo "Boot flow 1: Rockchip miniloader"
 
-	for img in uboot.img u-boot.img; do
-		if [ -f $img ]; then
-			uboot=$img
-			break
-		fi
-	done
+	idb_list="idblock.bin idbloader.img"
+	uboot_list="uboot.img u-boot.img"
 
 	if [ -e trust.img ]; then
 		trust=trust.img
@@ -72,20 +68,11 @@ if [ $bootflow -eq 1 ]; then
 else
 	echo "Boot flow 2: u-boot TPL/SPL"
 
-	for img in u-boot.itb fit/uboot.itb; do
-		if [ -f $img ]; then
-			uboot=$img
-			break
-		fi
-	done
+	idb_list="idbloader.img idblock.bin"
+	uboot_list="u-boot.itb fit/uboot.itb"
 fi
 
-if [ -z "$uboot" ]; then
-	echo "no u-boot image found!"
-	exit 1
-fi
-
-for idb in idbloader.img idblock.bin; do
+for idb in $idb_list; do
 	if [ -e $idb ]; then
 		loader=$idb
 		break
@@ -94,6 +81,18 @@ done
 
 if [ -z "$loader" ]; then
 	echo "no idbloader image found!"
+	exit 1
+fi
+
+for img in $uboot_list; do
+	if [ -f $img ]; then
+		uboot=$img
+		break
+	fi
+done
+
+if [ -z "$uboot" ]; then
+	echo "no u-boot image found!"
 	exit 1
 fi
 
