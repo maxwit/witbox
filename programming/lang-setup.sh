@@ -137,25 +137,25 @@ if ! rustc --version; then
     done
 fi
 
-echo ">>>> Swift"
+# echo ">>>> Swift"
 
-if ! docker --version; then
-    case $(uname -s) in
-    Darwin)
-        brew install docker
-        ;;
-    Linux)
-        curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
-        sudo usermod -aG docker $USER
-        newgrp docker
-        ;;
-    esac
-fi
+# if ! docker --version; then
+#     case $(uname -s) in
+#     Darwin)
+#         brew install docker
+#         ;;
+#     Linux)
+#         curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+#         sudo usermod -aG docker $USER
+#         newgrp docker
+#         ;;
+#     esac
+# fi
 
-for ((i=0;i<10;i++))
-do
-    docker pull swift && break
-done
+# for ((i=0;i<10;i++))
+# do
+#     docker pull swift && break
+# done
 
 # clean up
 rm -rf $temp
