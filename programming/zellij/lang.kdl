@@ -1,0 +1,42 @@
+layout cwd="/Users/conke/demo" {
+    pane split_direction="vertical" {
+		pane {
+				name "C/C++"
+                cwd "cc"
+		}
+		pane command="docker" {
+				name "C#"
+				args "run" "-it" "--rm" "mono" "csharp"
+		}
+		pane command="interactive" {
+				name "Dart"
+                cwd "dart"
+		}
+    }
+    pane split_direction="vertical" {
+        pane command="gore" {
+				name "Go"
+		}
+		pane command="docker" {
+				name "Java"
+				args "run" "-it" "--rm" "openjdk"
+		}
+        pane command="kotlinc" {
+				name "Kotlin"
+		}
+    }
+    pane split_direction="vertical" {
+		pane command="docker" {
+				name "JavaScript/TypeScript"
+				args "run" "-it" "--rm" "denoland/deno" "repl"
+		}
+		pane {
+				name "Rust"
+                cwd "rust"
+		}
+		pane command="swift" {
+				name "Swift"
+				args "repl"
+		}
+    }
+}

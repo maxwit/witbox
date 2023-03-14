@@ -1,0 +1,43 @@
+layout {
+    pane split_direction="vertical" {
+		pane command="docker" {
+				name "C/C++"
+				args "run" "-it" "--rm" "gcc"
+				name "abc"
+		}
+		pane command="docker" {
+				name "C#"
+				args "run" "-it" "--rm" "mono" "csharp"
+		}
+		pane command="docker" {
+				name "Dart"
+				args "run" "-it" "--rm" "dart"
+		}
+    }
+    pane split_direction="vertical" {
+        pane command="gore" {
+				name "Go"
+		}
+		pane command="docker" {
+				name "Java"
+				args "run" "-it" "--rm" "openjdk"
+		}
+        pane command="kotlinc" {
+				name "Kotlin"
+		}
+    }
+    pane split_direction="vertical" {
+		pane command="docker" {
+				name "JavaScript/TypeScript"
+				args "run" "-it" "--rm" "denoland/deno" "repl"
+		}
+		pane command="docker" {
+				name "Rust"
+				args "run" "-it" "--rm" "rust"
+		}
+		pane command="swift" {
+				name "Swift"
+				args "repl"
+		}
+    }
+}
