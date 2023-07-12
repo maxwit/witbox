@@ -1,9 +1,7 @@
 layout {
     pane split_direction="vertical" {
-		pane command="docker" {
+		pane command="cling" {
 				name "C/C++"
-				args "run" "-it" "--rm" "gcc"
-				name "abc"
 		}
 		pane command="docker" {
 				name "C#"
@@ -31,9 +29,8 @@ layout {
 				name "JavaScript/TypeScript"
 				args "run" "-it" "--rm" "denoland/deno" "repl"
 		}
-		pane command="docker" {
+		pane command="evcxr" {
 				name "Rust"
-				args "run" "-it" "--rm" "rust"
 		}
 		pane command="swift" {
 				name "Swift"

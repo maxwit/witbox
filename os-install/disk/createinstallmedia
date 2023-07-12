@@ -224,9 +224,8 @@ for iso in iso_list:
     elif dist == 'ubuntu':
         linux='casper/vmlinuz boot=casper iso-scan/filename=' + iso_rel
         initrd='casper/initrd'
-    elif dist == 'debian':
-        menuentry.append('\tset isofile=' + iso_rel)
-        linux='install.amd/vmlinuz'
+    elif dist == 'debian': # FIXME
+        linux='install.amd/vmlinuz iso-scan/filename=' + iso_rel
         initrd='install.amd/initrd.gz'
     else:
         print(f'Warning: "{iso}" NOT supported(skipped)!')
@@ -238,6 +237,9 @@ for iso in iso_list:
     menuentry.append("\tlinux (lo)/" + linux)
     menuentry.append("\tinitrd (lo)/" + initrd)
     menuentry.append("}")
+
+    for line in menuentry:
+        print(line)
 
     configs += menuentry
 
