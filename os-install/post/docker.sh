@@ -14,7 +14,7 @@ if [ $os = macOS ]; then
 fi
 
 which docker > /dev/null || {
-    curl -fsSL https://get.docker.com | sudo bash -s docker --mirror Aliyun
+    curl -fsSL https://get.docker.com | bash
     sudo usermod -aG docker $USER
     sudo systemctl enable --now docker
 }
@@ -23,8 +23,8 @@ if [ ! -e /etc/docker/daemon.json ]; then
     sudo mkdir -p /etc/docker
     sudo tee /etc/docker/daemon.json << EOF
 {
-    "registry-mirrors": ["https://registry.docker-cn.com"]
+    "registry-mirrors": ["https://docker.m.daocloud.io"]
 }
 EOF
-    sudo systemctl restart docker
+    sudo systemctl daemon-reload
 fi
